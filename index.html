@@ -112,6 +112,7 @@ h1,h2,h3{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-seri
 .hm-cell{width:100%;aspect-ratio:1;border-radius:3px;background:var(--card3)}
 .hm-cell.l1{background:rgba(200,255,61,.25)} .hm-cell.l2{background:rgba(200,255,61,.5)}
 .hm-cell.l3{background:rgba(200,255,61,.75)} .hm-cell.l4{background:var(--accent)}
+.hm-cell.rec{background:rgba(77,200,255,.4)}
 .hm-cell.miss{background:rgba(255,92,92,.35)}
 .hm-cell.today{outline:1.5px solid var(--text)}
 
@@ -303,6 +304,7 @@ function freshState(){
     prs:{},             // ex -> {heaviest:{w,reps,date}, e1rm:{v,w,reps,date}, repsAt:{"80":{reps,date}}, sesVol:{v,date}, best5:{v,date}}
     prLog:[],           // {date,ex,type,label}
     streak:{cur:0,longest:0,lastEnd:null,windowEnds:null,tokens:0,tokenProgress:0,history:[],startedAt:null,protectedDates:[]},
+    recovery:[],        // active rest days: {date,ts,type,value}
     bodyLogs:[],        // {date,weight,waist,chest,arms,thighs}
     photos:[],          // {id,date,type,dataUrl}
     achievements:{},    // id -> ts
@@ -487,18 +489,31 @@ function targetFor(ex){
 
 /* ---------------- streak engine ---------------- */
 function windowMs(){ return S.settings.windowHours*3600000; }
+function lastActivityTs(){
+  const st=S.streak;
+  const recTs=S.recovery.length?Math.max(...S.recovery.map(r=>r.ts)):0;
+  return Math.max(st.lastEnd||0, recTs);
+}
+function recoveryDaysSinceWorkout(){
+  // distinct active-recovery dates logged since the last workout
+  const cut=S.streak.lastEnd||0;
+  return new Set(S.recovery.filter(r=>r.ts>cut).map(r=>r.date)).size;
+}
 function streakState(){
   const st=S.streak;
   if(!st.cur || !st.windowEnds) return {status:"none"};
   const left = st.windowEnds - Date.now();
   if(left<=0) return {status:"expired"};
   const h=left/3600000;
+  const sinceAct=(Date.now()-lastActivityTs())/3600000;
   let tier="strong", msg="Momentum strong.";
   if(h<=1){ tier="critical"; msg=`${st.cur} workouts. Don't throw it away now.`; }
   else if(h<=6){ tier="danger"; msg=`Don't lose your ${st.cur}-workout streak.`; }
+  else if(sinceAct>=40){ tier="danger"; msg=`🚨 Second day with no activity. Train or move — now.`; }
   else if(h<=12){ tier="due"; msg="Your next session is due."; }
+  else if(sinceAct>=24){ tier="due"; msg="No activity logged yesterday. Train or log active recovery."; }
   else if(h<=24){ tier="soon"; msg="Momentum holding. Train today."; }
-  return {status:"live",left,tier,msg,pct:Math.max(0,Math.min(100,left/windowMs()*100))};
+  return {status:"live",left,tier,msg,sinceAct,pct:Math.max(0,Math.min(100,left/windowMs()*100))};
 }
 function handleExpiry(){
   const st=S.streak;
@@ -522,6 +537,40 @@ function useToken(){
   st.windowEnds = Date.now()+windowMs();
   save(); renderAll();
   toast("🧊 Recovery Token used — momentum protected",true);
+}
+const RECOVERY_TYPES={steps:"10,000+ steps",run:"5km+ run",other:"Other serious activity"};
+function openRecovery(){
+  const used=recoveryDaysSinceWorkout();
+  openSheet(`
+    <h2 style="font-size:20px;font-weight:800;margin-bottom:4px">Log active recovery</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Rest days still count — if you move. A logged recovery day holds your momentum window for another ${S.settings.windowHours}h. Max 2 between workouts.</p>
+    ${S.streak.cur&&used>=2?`<div class="target-banner" style="border-color:rgba(255,174,51,.35);background:rgba(255,174,51,.08);margin:0 0 14px"><div style="font-size:13px;font-weight:700;color:var(--warn)">⚠️ You've used both recovery days since Workout ${lastWorkoutLetter()||""}. This log won't extend your window — training is required.</div></div>`:""}
+    <label class="fld"><span>Date</span><input type="date" id="rec-date" value="${dayISO(Date.now())}"></label>
+    <label class="fld"><span>Activity</span><select id="rec-type">
+      ${Object.entries(RECOVERY_TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}
+    </select></label>
+    <label class="fld"><span>Detail (steps, km, or minutes — optional)</span><input type="number" id="rec-val" inputmode="numeric" placeholder="12500"></label>
+    <button class="btn primary" onclick="saveRecovery()">✓ LOG ACTIVE RECOVERY</button>`);
+}
+function lastWorkoutLetter(){ return S.sessions.length?S.sessions[S.sessions.length-1].workout:null; }
+function saveRecovery(){
+  const date=el("rec-date").value||dayISO(Date.now());
+  const v=parseFloat(el("rec-val").value);
+  const now=Date.now();
+  const entry={date,ts:now,type:el("rec-type").value,value:isNaN(v)?null:v};
+  S.recovery=S.recovery.filter(r=>r.date!==date).concat([entry]).sort((a,b)=>a.date<b.date?-1:1);
+  const st=S.streak;
+  let toastMsg="🚶 Active recovery logged";
+  if(st.cur&&st.windowEnds&&now<st.windowEnds){
+    const used=recoveryDaysSinceWorkout(); // includes this one
+    if(used<=2){
+      st.windowEnds=Math.max(st.windowEnds, now+windowMs());
+      toastMsg=`🚶 Momentum held — ${used===1?"one recovery day left":"training required next"}`;
+    } else {
+      toastMsg="🚶 Logged — but no extension. Train next.";
+    }
+  }
+  save(); closeSheet(); renderAll(); toast(toastMsg,true);
 }
 function bumpStreakOnComplete(now){
   const st=S.streak;
@@ -704,6 +753,7 @@ function renderToday(){
         </div>
       </div>
       <button class="btn primary" onclick="startOrResumeWorkout()">${S.activeSession?"RESUME WORKOUT":"START WORKOUT"}</button>
+      <button class="btn ghost small" style="width:100%;margin-top:10px" onclick="openRecovery()">🚶 ${S.recovery.some(r=>r.date===dayISO(Date.now()))?"Active recovery logged today ✓":"Log active recovery — rest day"}</button>
     </div>
     <div class="statgrid">
       <div class="stat"><div class="l">🏆 Workouts</div><div class="v mono">${S.workoutsDone}</div></div>
@@ -755,10 +805,12 @@ function consistency90(){
   const first=new Date(S.sessions[0].dateISO+"T12:00").getTime();
   const span=Math.min(90,Math.max(1,Math.round((now-first)/86400000)+1));
   // expected sessions: one per window (windowHours), capped at 1/day
-  const perDay=Math.min(1,24/S.settings.windowHours);
-  const expected=Math.max(1,Math.round(span*perDay));
-  const done=S.sessions.filter(s=>new Date(s.dateISO+"T12:00").getTime()>now-90*86400000).length;
-  return Math.min(100,Math.round(done/expected*100));
+  const cut=now-90*86400000;
+  const activeDays=new Set([
+    ...S.sessions.filter(s=>new Date(s.dateISO+"T12:00").getTime()>cut).map(s=>s.dateISO),
+    ...S.recovery.filter(r=>new Date(r.date+"T12:00").getTime()>cut).map(r=>r.date),
+  ]).size;
+  return Math.min(100,Math.round(activeDays/span*100));
 }
 function heatmapHTML(days){
   const today=new Date(); today.setHours(12,0,0,0);
@@ -766,6 +818,7 @@ function heatmapHTML(days){
   for(const s of S.sessions) volByDay[s.dateISO]=(volByDay[s.dateISO]||0)+s.volume;
   const missed=new Set();
   for(const h of S.streak.history) if(h.ended) missed.add(h.ended);
+  const recDays=new Set(S.recovery.map(r=>r.date));
   const vols=Object.values(volByDay).sort((a,b)=>a-b);
   const q=p=>vols.length?vols[Math.min(vols.length-1,Math.floor(vols.length*p))]:0;
   const q1=q(.25),q2=q(.5),q3=q(.75);
@@ -780,6 +833,7 @@ function heatmapHTML(days){
     const v=volByDay[iso];
     let cls="hm-cell";
     if(v){ cls+= v>=q3?" l4": v>=q2?" l3": v>=q1?" l2":" l1"; }
+    else if(recDays.has(iso)) cls+=" rec";
     else if(missed.has(iso)) cls+=" miss";
     if(iso===dayISO(Date.now())) cls+=" today";
     cells+=`<span class="${cls}" title="${iso}"></span>`;
@@ -787,6 +841,7 @@ function heatmapHTML(days){
   return `<div class="heatmap">${cells}</div>
   <div style="display:flex;gap:14px;margin-top:10px;font-size:10px;color:var(--dim);align-items:center">
     <span style="display:flex;gap:4px;align-items:center"><span class="hm-cell l3" style="width:9px;height:9px;display:inline-block"></span> trained</span>
+    <span style="display:flex;gap:4px;align-items:center"><span class="hm-cell rec" style="width:9px;height:9px;display:inline-block"></span> active rest</span>
     <span style="display:flex;gap:4px;align-items:center"><span class="hm-cell" style="width:9px;height:9px;display:inline-block"></span> rest</span>
     <span style="display:flex;gap:4px;align-items:center"><span class="hm-cell miss" style="width:9px;height:9px;display:inline-block"></span> streak broken</span>
   </div>`;
@@ -1254,6 +1309,8 @@ function reportsViewHTML(){
       <span class="mono" style="font-weight:700">${bwWk!==null?bwWk+" → ":""}${bwNow!==null?bwNow+"kg":"—"}</span></div>
     ${bi?`<div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Best improvement</span>
       <span style="font-weight:700;color:var(--accent)">${EXERCISES[bi.ex].short} +${Math.round(bi.pc*10)/10}%</span></div>`:""}
+    <div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Active recovery days</span>
+      <span style="font-weight:700" class="mono">🚶 ${S.recovery.filter(r=>new Date(r.date+"T12:00").getTime()>=now-7*86400000).length}</span></div>
     <div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Momentum</span>
       <span style="font-weight:700">🔥 ${S.streak.cur} workouts</span></div>
     <div class="target-banner" style="margin-bottom:0"><div style="font-size:14px;font-weight:600;line-height:1.5">${recommendation()}</div></div>
@@ -1845,7 +1902,9 @@ setInterval(()=>{
   };
   if(h<=1) fire("h1",`${S.streak.cur} workouts. Don't throw it away now.`);
   else if(h<=6) fire("h6",`6 hours. Don't break ${S.streak.cur}.`);
+  else if(ss.sinceAct>=40) fire("inact2",`🚨 Second day with no activity. ${S.streak.cur}-workout streak at risk.`);
   else if(h<=18) fire("h18",`${Math.ceil(h)} hours left to protect your ${S.streak.cur}-workout streak.`);
+  else if(ss.sinceAct>=26) fire("inact1",`No activity yesterday. Train or log active recovery.`);
 },60000);
 
 /* ---------------- workout clock tick ---------------- */
