@@ -521,7 +521,7 @@ function useToken(){
   st.tokens--; st.protectedDates.push(dayISO(Date.now()));
   st.windowEnds = Date.now()+windowMs();
   save(); renderAll();
-  toast(`${ic("shield",14)} Recovery Token used — momentum protected`,true);
+  toast("🧊 Recovery Token used — momentum protected",true);
 }
 function bumpStreakOnComplete(now){
   const st=S.streak;
@@ -529,7 +529,7 @@ function bumpStreakOnComplete(now){
   st.cur++; st.lastEnd=now; st.windowEnds=now+windowMs();
   if(st.cur>st.longest) st.longest=st.cur;
   st.tokenProgress++;
-  if(st.tokenProgress>=10){ st.tokenProgress=0; if(st.tokens<2){ st.tokens++; toast(`${ic("shield",14)} Recovery Token earned`,true); } }
+  if(st.tokenProgress>=10){ st.tokenProgress=0; if(st.tokens<2){ st.tokens++; toast("🧊 Recovery Token earned",true); } }
 }
 
 /* ---------------- strength score ---------------- */
@@ -566,22 +566,22 @@ function scoreOnDate(iso){
 
 /* ---------------- achievements ---------------- */
 const ACHIEVEMENTS=[
-  {id:"ignition",icon:"flame",name:"Ignition",desc:"Complete your first workout.",check:s=>s.workoutsDone>=1},
-  {id:"momentum",icon:"flame",name:"Momentum",desc:"5 consecutive workouts.",check:s=>s.streak.longest>=5},
-  {id:"double-digits",icon:"flame",name:"Double Digits",desc:"10-workout streak.",check:s=>s.streak.longest>=10},
-  {id:"locked-in",icon:"flame",name:"Locked In",desc:"25-workout streak.",check:s=>s.streak.longest>=25},
-  {id:"unbreakable",icon:"flame",name:"Unbreakable",desc:"50-workout streak.",check:s=>s.streak.longest>=50},
-  {id:"immortal",icon:"crown",name:"Immortal",desc:"100-workout streak.",check:s=>s.streak.longest>=100},
-  {id:"quarter",icon:"medal",name:"First 25",desc:"Complete 25 workouts.",check:s=>s.workoutsDone>=25},
-  {id:"fifty",icon:"medal",name:"Fifty Sessions",desc:"Complete 50 workouts.",check:s=>s.workoutsDone>=50},
-  {id:"century",icon:"medal",name:"Century",desc:"Complete 100 workouts.",check:s=>s.workoutsDone>=100},
-  {id:"warrior",icon:"swords",name:"Warrior",desc:"Complete 10 full A→E cycles.",check:s=>s.cycles>=10},
-  {id:"campaign",icon:"swords",name:"Campaign",desc:"Complete 25 full A→E cycles.",check:s=>s.cycles>=25},
-  {id:"two-plates",icon:"barbell",name:"Two Plates",desc:"Incline bench 100kg for reps.",check:s=>{const p=s.prs["incline-bench"];return p&&p.heaviest&&p.heaviest.w>=100;}},
-  {id:"silverback",icon:"mountain",name:"Silverback",desc:"Barbell row 110kg for reps.",check:s=>{const p=s.prs["barbell-row"];return p&&p.heaviest&&p.heaviest.w>=110;}},
-  {id:"overhead-club",icon:"barbell",name:"Overhead Club",desc:"Press 80kg overhead.",check:s=>{const p=s.prs["ohp"];return p&&p.heaviest&&p.heaviest.w>=80;}},
-  {id:"deep-roots",icon:"tree",name:"Deep Roots",desc:"Front squat 120kg.",check:s=>{const p=s.prs["front-squat"];return p&&p.heaviest&&p.heaviest.w>=120;}},
-  {id:"compound-interest",icon:"chart",name:"Compound Interest",desc:"Improve the same lift 5 exposures running.",check:s=>{
+  {id:"ignition",icon:"🔥",name:"Ignition",desc:"Complete your first workout.",check:s=>s.workoutsDone>=1},
+  {id:"momentum",icon:"🔥",name:"Momentum",desc:"5 consecutive workouts.",check:s=>s.streak.longest>=5},
+  {id:"double-digits",icon:"🔥",name:"Double Digits",desc:"10-workout streak.",check:s=>s.streak.longest>=10},
+  {id:"locked-in",icon:"🔥",name:"Locked In",desc:"25-workout streak.",check:s=>s.streak.longest>=25},
+  {id:"unbreakable",icon:"🔥",name:"Unbreakable",desc:"50-workout streak.",check:s=>s.streak.longest>=50},
+  {id:"immortal",icon:"👑",name:"Immortal",desc:"100-workout streak.",check:s=>s.streak.longest>=100},
+  {id:"quarter",icon:"💪",name:"First 25",desc:"Complete 25 workouts.",check:s=>s.workoutsDone>=25},
+  {id:"fifty",icon:"💪",name:"Fifty Sessions",desc:"Complete 50 workouts.",check:s=>s.workoutsDone>=50},
+  {id:"century",icon:"💯",name:"Century",desc:"Complete 100 workouts.",check:s=>s.workoutsDone>=100},
+  {id:"warrior",icon:"⚔️",name:"Warrior",desc:"Complete 10 full A→E cycles.",check:s=>s.cycles>=10},
+  {id:"campaign",icon:"⚔️",name:"Campaign",desc:"Complete 25 full A→E cycles.",check:s=>s.cycles>=25},
+  {id:"two-plates",icon:"🏋️",name:"Two Plates",desc:"Incline bench 100kg for reps.",check:s=>{const p=s.prs["incline-bench"];return p&&p.heaviest&&p.heaviest.w>=100;}},
+  {id:"silverback",icon:"🦍",name:"Silverback",desc:"Barbell row 110kg for reps.",check:s=>{const p=s.prs["barbell-row"];return p&&p.heaviest&&p.heaviest.w>=110;}},
+  {id:"overhead-club",icon:"🗿",name:"Overhead Club",desc:"Press 80kg overhead.",check:s=>{const p=s.prs["ohp"];return p&&p.heaviest&&p.heaviest.w>=80;}},
+  {id:"deep-roots",icon:"🌳",name:"Deep Roots",desc:"Front squat 120kg.",check:s=>{const p=s.prs["front-squat"];return p&&p.heaviest&&p.heaviest.w>=120;}},
+  {id:"compound-interest",icon:"📈",name:"Compound Interest",desc:"Improve the same lift 5 exposures running.",check:s=>{
     return Object.keys(EXERCISES).some(ex=>{
       const e=exposuresOf(ex); if(e.length<6) return false;
       for(let i=e.length-5;i<e.length;i++){
@@ -589,14 +589,14 @@ const ACHIEVEMENTS=[
         if(!(b.bestE1>a.bestE1+0.01 || b.volume>a.volume)) return false;
       } return true;
     });}},
-  {id:"pr-10",icon:"trophy",name:"Record Setter",desc:"Set 10 personal records.",check:s=>s.prLog.length>=10},
-  {id:"pr-machine",icon:"crown",name:"PR Machine",desc:"Set 25 personal records.",check:s=>s.prLog.length>=25},
-  {id:"pr-50",icon:"crown",name:"Half-Century of PRs",desc:"Set 50 personal records.",check:s=>s.prLog.length>=50},
-  {id:"tonnage-100",icon:"stack",name:"100 Tonnes",desc:"Lift 100,000kg lifetime volume.",check:s=>sum(s.sessions.map(x=>x.volume))>=100000},
-  {id:"tonnage-500",icon:"stack",name:"Half a Million",desc:"Lift 500,000kg lifetime volume.",check:s=>sum(s.sessions.map(x=>x.volume))>=500000},
-  {id:"level-10",icon:"bolt",name:"Level 10",desc:"Reach level 10.",check:s=>levelInfo(s.xp).lvl>=10},
-  {id:"level-25",icon:"bolt",name:"Level 25",desc:"Reach level 25.",check:s=>levelInfo(s.xp).lvl>=25},
-  {id:"elite",icon:"crown",name:"Elite Status",desc:"Take any exercise to Elite level.",check:s=>Object.values(s.exState).some(x=>exLevelInfo(x.xp).lvl>=6)},
+  {id:"pr-10",icon:"🏆",name:"Record Setter",desc:"Set 10 personal records.",check:s=>s.prLog.length>=10},
+  {id:"pr-machine",icon:"👑",name:"PR Machine",desc:"Set 25 personal records.",check:s=>s.prLog.length>=25},
+  {id:"pr-50",icon:"👑",name:"Half-Century of PRs",desc:"Set 50 personal records.",check:s=>s.prLog.length>=50},
+  {id:"tonnage-100",icon:"🚚",name:"100 Tonnes",desc:"Lift 100,000kg lifetime volume.",check:s=>sum(s.sessions.map(x=>x.volume))>=100000},
+  {id:"tonnage-500",icon:"🚂",name:"Half a Million",desc:"Lift 500,000kg lifetime volume.",check:s=>sum(s.sessions.map(x=>x.volume))>=500000},
+  {id:"level-10",icon:"⚡",name:"Level 10",desc:"Reach level 10.",check:s=>levelInfo(s.xp).lvl>=10},
+  {id:"level-25",icon:"⚡",name:"Level 25",desc:"Reach level 25.",check:s=>levelInfo(s.xp).lvl>=25},
+  {id:"elite",icon:"🎖️",name:"Elite Status",desc:"Take any exercise to Elite level.",check:s=>Object.values(s.exState).some(x=>exLevelInfo(x.xp).lvl>=6)},
 ];
 function evalAchievements(){
   const unlocked=[];
@@ -661,8 +661,8 @@ function renderToday(){
     const tierCls = ss.tier==="critical"||ss.tier==="danger"?"danger":(ss.tier==="due"||ss.tier==="soon"?"warn":"");
     streakCard=`<div class="streak-hero ${ss.tier==="critical"||ss.tier==="danger"?"danger":""}">
       <div class="spread">
-        <div class="eyebrow acc" style="display:flex;align-items:center;gap:6px"><span class="flame" style="color:var(--accent)">${ic("flame",14)}</span> Current streak</div>
-        ${st.tokens>0?`<div class="tag acc">${ic("shield",11)} ×${st.tokens}</div>`:""}
+        <div class="eyebrow acc"><span class="flame">🔥</span> Current streak</div>
+        ${st.tokens>0?`<div class="tag acc">🧊 ×${st.tokens}</div>`:""}
       </div>
       <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px">
         <div class="big-num" id="streak-num">${st.cur}</div>
@@ -706,15 +706,15 @@ function renderToday(){
       <button class="btn primary" onclick="startOrResumeWorkout()">${S.activeSession?"RESUME WORKOUT":"START WORKOUT"}</button>
     </div>
     <div class="statgrid">
-      <div class="stat"><div class="l">${ic("trophy",12)} Workouts</div><div class="v mono">${S.workoutsDone}</div></div>
-      <div class="stat"><div class="l">${ic("bolt",12)} PRs this month</div><div class="v mono">${prsMonth}</div></div>
-      <div class="stat"><div class="l">${ic("flame",12)} Longest streak</div><div class="v mono">${st.longest}</div></div>
+      <div class="stat"><div class="l">🏆 Workouts</div><div class="v mono">${S.workoutsDone}</div></div>
+      <div class="stat"><div class="l">⚡ PRs this month</div><div class="v mono">${prsMonth}</div></div>
+      <div class="stat"><div class="l">🔥 Longest streak</div><div class="v mono">${st.longest}</div></div>
       <div class="stat"><div class="l">Total XP</div><div class="v mono">${S.xp.toLocaleString("en-GB")}</div></div>
     </div>
     ${near.length?`<div class="card" style="margin-top:14px">
       <div class="eyebrow" style="margin-bottom:10px">Chasing</div>
       ${near.map(n=>`<div class="spread" style="padding:7px 0">
-        <div style="display:flex;gap:10px;align-items:center"><span style="color:var(--dim)">${ic(n.icon,18)}</span>
+        <div style="display:flex;gap:10px;align-items:center"><span style="font-size:18px">${n.icon}</span>
         <div><div style="font-weight:700;font-size:14px">${n.name}</div><div style="font-size:12px;color:var(--muted)">${n.desc}</div></div></div>
         <div class="mono" style="font-size:12px;color:var(--accent);font-weight:700">${n.progress}</div>
       </div>`).join("")}
@@ -1147,7 +1147,7 @@ function openMuscle(g){
     }).join("")}
     ${recentPRs.length?`<div class="card"><div class="eyebrow" style="margin-bottom:8px">Recent PRs</div>
       ${recentPRs.map(p=>`<div class="spread" style="padding:6px 0;font-size:14px">
-        <span>${ic("trophy",13,"color:var(--gold)")} ${EXERCISES[p.ex].short}</span><span style="color:var(--muted)">${p.label}</span></div>`).join("")}</div>`:""}`);
+        <span>🏆 ${EXERCISES[p.ex].short}</span><span style="color:var(--muted)">${p.label}</span></div>`).join("")}</div>`:""}`);
 }
 /* ---------------- history ---------------- */
 function historyViewHTML(){
@@ -1158,7 +1158,7 @@ function historyViewHTML(){
       <span style="display:flex;gap:14px;align-items:center">
         <span style="width:38px;height:38px;border-radius:12px;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:17px">${s.workout}</span>
         <span><div style="font-weight:700;font-size:14px">${fmtDate(s.dateISO)}</div>
-        <div style="font-size:12px;color:var(--muted)">${WORKOUTS[s.workout].title} · ${fmtKg(s.volume)}kg${s.prs.length?` · ${ic("trophy",11,"color:var(--gold)")} ${s.prs.length}`:""}</div></span>
+        <div style="font-size:12px;color:var(--muted)">${WORKOUTS[s.workout].title} · ${fmtKg(s.volume)}kg${s.prs.length?` · 🏆 ${s.prs.length}`:""}</div></span>
       </span><span style="color:var(--dim)">›</span>
     </div>`).join("")}</div>`;
 }
@@ -1178,7 +1178,7 @@ function openSession(id){
           <span style="color:var(--dim)">Set ${i+1}</span><span style="font-weight:700">${fmtKg(x.w)}${EXERCISES[ex].unit} × ${x.reps}</span></div>`).join("")}
       </div>`).join("")}
     ${s.prs.length?`<div class="card" style="border-color:rgba(240,194,75,.3)">
-      <div class="eyebrow" style="color:var(--gold);margin-bottom:8px">${ic("trophy",13)} Records set</div>
+      <div class="eyebrow" style="color:var(--gold);margin-bottom:8px">🏆 Records set</div>
       ${s.prs.map(p=>`<div style="padding:4px 0;font-size:14px;font-weight:600">${EXERCISES[p.ex].short}: ${p.label} <span style="color:var(--gold)">${p.delta||""}</span></div>`).join("")}</div>`:""}`);
 }
 
@@ -1255,7 +1255,7 @@ function reportsViewHTML(){
     ${bi?`<div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Best improvement</span>
       <span style="font-weight:700;color:var(--accent)">${EXERCISES[bi.ex].short} +${Math.round(bi.pc*10)/10}%</span></div>`:""}
     <div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Momentum</span>
-      <span style="font-weight:700">${ic("flame",13,"color:var(--accent)")} ${S.streak.cur} workouts</span></div>
+      <span style="font-weight:700">🔥 ${S.streak.cur} workouts</span></div>
     <div class="target-banner" style="margin-bottom:0"><div style="font-size:14px;font-weight:600;line-height:1.5">${recommendation()}</div></div>
   </div>
   <div class="card" style="background:linear-gradient(165deg,#15151A,#0A0A0D);border-color:var(--line2)">
@@ -1264,8 +1264,8 @@ function reportsViewHTML(){
     <div class="divider"></div>
     <div class="big-num" style="font-size:44px">${mo.n}<span style="font-size:16px;color:var(--muted);font-weight:700;letter-spacing:.06em"> WORKOUTS</span></div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
-      <span class="tag acc">${ic("flame",11)} ${S.streak.longest} best streak</span>
-      <span class="tag gold">${ic("trophy",11)} ${mo.prs} PRs</span>
+      <span class="tag acc">🔥 ${S.streak.longest} best streak</span>
+      <span class="tag gold">🏆 ${mo.prs} PRs</span>
       <span class="tag acc">${fmtKg(mo.vol)} kg lifted</span>
       ${lvlNow>lvlMo?`<span class="tag acc">Level ${lvlMo} → ${lvlNow}</span>`:`<span class="tag acc">Level ${lvlNow}</span>`}
       ${bwMo!==null&&bwNow!==null?`<span class="tag acc">${(bwNow-bwMo>=0?"+":"")+(Math.round((bwNow-bwMo)*10)/10)}kg bodyweight</span>`:""}
@@ -1308,7 +1308,7 @@ function openExercise(ex){
       <div style="font-size:13px;color:var(--muted);margin-top:2px">${t.detail}</div>
     </div>
     <div class="chart-box"><div class="spread" style="padding:0 6px 8px"><span class="eyebrow">Strength progression (est. 1RM)</span></div>${lineChart(pts)}</div>
-    ${prRows.length?`<div class="card"><div class="eyebrow" style="margin-bottom:10px">${ic("trophy",13,"color:var(--gold)")} Personal records</div>
+    ${prRows.length?`<div class="card"><div class="eyebrow" style="margin-bottom:10px">🏆 Personal records</div>
       ${prRows.map(r=>`<div class="spread" style="padding:6px 0"><span style="font-size:14px;color:var(--muted)">${r[0]}</span>
         <span style="font-weight:800" class="mono">${r[1]}</span></div>`).join("")}</div>`:""}
     ${exp.length?`<div class="card"><div class="eyebrow" style="margin-bottom:10px">Recent sessions</div>
@@ -1336,17 +1336,17 @@ function renderAwards(){
     </div>
     ${unlocked.length?`<div class="eyebrow" style="margin:18px 0 10px">Unlocked</div>`+
       unlocked.map(a=>`<div class="trophy">
-        <div class="ic" style="color:var(--gold)">${ic(a.icon,22)}</div>
+        <div class="ic">${a.icon}</div>
         <div style="flex:1"><div style="font-weight:800">${a.name}</div>
           <div style="font-size:13px;color:var(--muted)">${a.desc}</div></div>
         <div style="font-size:11px;color:var(--dim)" class="mono">${fmtDateShort(dayISO(S.achievements[a.id]))}</div>
       </div>`).join(""):""}
     <div class="eyebrow" style="margin:18px 0 10px">Locked — keep chasing</div>
     ${locked.map(a=>`<div class="trophy locked">
-      <div class="ic" style="color:var(--muted)">${ic(a.icon,22)}</div>
+      <div class="ic">${a.icon}</div>
       <div style="flex:1"><div style="font-weight:800">${a.name}</div>
         <div style="font-size:13px;color:var(--muted)">${a.desc}</div></div>
-      <div style="color:var(--dim)">${ic("lock",17)}</div>
+      <div style="font-size:16px">🔒</div>
     </div>`).join("")}`;
 }
 
@@ -1367,13 +1367,13 @@ function renderProfile(){
     <div class="statgrid">
       <div class="stat"><div class="l">Lifetime volume</div><div class="v mono" style="font-size:19px">${fmtKg(totVol)}kg</div></div>
       <div class="stat"><div class="l">Cycles done</div><div class="v mono">${S.cycles}</div></div>
-      <div class="stat"><div class="l">${ic("shield",12)} Recovery tokens</div><div class="v mono">${S.streak.tokens} / 2</div></div>
+      <div class="stat"><div class="l">🧊 Recovery tokens</div><div class="v mono">${S.streak.tokens} / 2</div></div>
       <div class="stat"><div class="l">Next token</div><div class="v mono" style="font-size:19px">${10-S.streak.tokenProgress} workouts</div></div>
     </div>
     ${S.streak.history.length?`<div class="card" style="margin-top:14px">
       <div class="eyebrow" style="margin-bottom:10px">Past streaks</div>
       ${[...S.streak.history].reverse().slice(0,5).map(h=>`<div class="spread" style="padding:6px 0;font-size:14px">
-        <span>${ic("flame",13,"color:var(--muted)")} ${h.len} workouts</span><span style="color:var(--muted)">${h.days} days · ended ${fmtDateShort(h.ended)}</span></div>`).join("")}
+        <span>🔥 ${h.len} workouts</span><span style="color:var(--muted)">${h.days} days · ended ${fmtDateShort(h.ended)}</span></div>`).join("")}
     </div>`:""}
     <div class="card" style="margin-top:14px">
       <div class="eyebrow" style="margin-bottom:6px">Settings</div>
@@ -1493,7 +1493,7 @@ function renderWorkout(){
         <div class="eyebrow acc">Workout ${A.workout}</div>
         <div style="font-size:12px;color:var(--muted);font-weight:600" class="mono" id="wk-clock">${fmtDur((Date.now()-A.start)/1000)}</div>
       </div>
-      <button class="icon-btn" onclick="abandonWorkout()" title="Discard">${ic("trash",17)}</button>
+      <button class="icon-btn" onclick="abandonWorkout()" title="Discard">🗑</button>
     </div>
     <div style="text-align:center;margin-bottom:6px">
       <div class="eyebrow" style="margin-bottom:6px">Exercise ${A.exIndex+1} of ${wk.ex.length}</div>
@@ -1508,12 +1508,12 @@ function renderWorkout(){
       ${t.mode==="beat"?`<div style="font-size:13px;color:var(--muted);margin-top:2px">So far: <b class="mono">${repsSoFar}</b> · need <b class="mono">${Math.max(0,t.prevReps+1-repsSoFar)}</b> more</div>`:`<div style="font-size:13px;color:var(--muted);margin-top:2px">${t.detail}</div>`}
     </div>
     ${(()=>{ // progressive overload tracker
-      if(t.mode==="increase") return `<div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;color:var(--accent);font-weight:700;margin-bottom:4px">${ic("chart",13)} New weight unlocked — you mastered ${fmtKg(t.prevW)}${def.unit}</div>`;
+      if(t.mode==="increase") return `<div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;color:var(--accent);font-weight:700;margin-bottom:4px">📈 New weight unlocked — you mastered ${fmtKg(t.prevW)}${def.unit}</div>`;
       const nextW=(last?last.topW:w)+def.inc;
       const atTop=doneSets.filter(s=>s.reps>=def.repHi).length;
       const failed=doneSets.some(s=>s.reps<def.repHi);
-      if(failed) return `<div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;color:var(--dim);font-weight:600;margin-bottom:4px">${ic("target",13)} ${fmtKg(nextW)}${def.unit} unlocks when every set hits ${def.repHi} reps</div>`;
-      return `<div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px">${ic("target",13,"color:var(--accent)")} Unlock ${fmtKg(nextW)}${def.unit}: hit ${def.repHi} reps every set · <b class="mono" style="color:var(--accent)">${atTop}/${def.sets}</b></div>`;
+      if(failed) return `<div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;color:var(--dim);font-weight:600;margin-bottom:4px">🎯 ${fmtKg(nextW)}${def.unit} unlocks when every set hits ${def.repHi} reps</div>`;
+      return `<div style="display:flex;justify-content:center;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:4px">🎯 Unlock ${fmtKg(nextW)}${def.unit}: hit ${def.repHi} reps every set · <b class="mono" style="color:var(--accent)">${atTop}/${def.sets}</b></div>`;
     })()}
     <div class="setdots">${Array.from({length:totalSets},(_,i)=>`<i class="${i<doneSets.length?"done":i===doneSets.length?"cur":""}"></i>`).join("")}</div>
     <div class="eyebrow" style="text-align:center;margin-bottom:12px">Set ${Math.min(setN,totalSets)} of ${totalSets}</div>
@@ -1558,7 +1558,7 @@ function completeSet(){
   for(const pr of prs){
     A.prs.push(pr); A.xp+=XP.PR;
     S.prLog.push({date:dayISO(Date.now()),ex,type:pr.type,label:pr.label});
-    toast(`${ic("trophy",15,"color:var(--gold)")} NEW PR — ${pr.label} <b style="color:var(--gold)">${pr.delta}</b>`);
+    toast(`🏆 NEW PR — ${pr.label} <b style="color:var(--gold)">${pr.delta}</b>`);
     sndPR(); haptic([30,60,30,60,80]);
   }
   if(!prs.length){ sndSet(); haptic(15); }
@@ -1577,7 +1577,7 @@ function finishExercise(ex,sets){
   for(const pr of sesPRs){
     A.prs.push(pr); A.xp+=XP.PR;
     S.prLog.push({date:dayISO(Date.now()),ex,type:pr.type,label:pr.label});
-    toast(`${ic("trophy",15,"color:var(--gold)")} ${pr.label} <b style="color:var(--gold)">${pr.delta}</b>`);
+    toast(`🏆 ${pr.label} <b style="color:var(--gold)">${pr.delta}</b>`);
     sndPR();
   }
   // mastery check
@@ -1587,7 +1587,7 @@ function finishExercise(ex,sets){
   if(mastered && !S.exState[ex].mastered.includes(topW)){
     S.exState[ex].mastered.push(topW);
     A.xp+=XP.MASTER;
-    toast(`${ic("barbell",15)} WEIGHT MASTERED — ${fmtKg(topW)}${def.unit} complete. Next: ${fmtKg(topW+def.inc)}${def.unit}`,true);
+    toast(`🏋️ WEIGHT MASTERED — ${fmtKg(topW)}${def.unit} complete. Next: ${fmtKg(topW+def.inc)}${def.unit}`,true);
     sndPR(); haptic([40,80,40,80,120]);
   }
   const wk=WORKOUTS[A.workout];
@@ -1711,14 +1711,14 @@ function renderPost(s,x){
       <div class="stat"><div class="l">XP earned</div><div class="v mono" style="color:var(--accent)" id="post-xp">0</div></div>
     </div>
     <div class="card reveal" style="margin-top:14px;text-align:center;background:linear-gradient(160deg,#141418,#0C0C0F);animation-delay:.25s">
-      <div class="eyebrow acc" style="display:flex;align-items:center;justify-content:center;gap:6px"><span class="flame" style="color:var(--accent)">${ic("flame",13)}</span> Streak</div>
+      <div class="eyebrow acc"><span class="flame">🔥</span> Streak</div>
       <div class="big-num" id="post-streak" style="margin-top:4px">${S.streak.cur}</div>
       <div style="color:var(--muted);font-size:13px;margin-top:4px">Momentum secured. Window resets: ${S.settings.windowHours}h.</div>
       ${x.streakBonus?`<div class="tag acc" style="margin-top:8px">+${x.streakBonus} XP streak bonus</div>`:""}
       ${x.cycleDone?`<div class="tag acc" style="margin-top:8px">FULL A→E CYCLE · +${XP.CYCLE} XP</div>`:""}
     </div>
     ${s.prs.length?`<div class="card reveal" style="border-color:rgba(240,194,75,.35);animation-delay:.35s">
-      <div class="eyebrow" style="color:var(--gold);margin-bottom:10px">${ic("trophy",13)} ${s.prs.length} new PR${s.prs.length>1?"s":""}</div>
+      <div class="eyebrow" style="color:var(--gold);margin-bottom:10px">🏆 ${s.prs.length} new PR${s.prs.length>1?"s":""}</div>
       ${s.prs.map(p=>`<div class="spread" style="padding:5px 0">
         <span style="font-weight:700;font-size:14px">${EXERCISES[p.ex].short}</span>
         <span style="font-size:13px;color:var(--gold)" class="mono">${p.label} ${p.delta||""}</span></div>`).join("")}</div>`:""}
@@ -1730,7 +1730,7 @@ function renderPost(s,x){
       <span class="mono" style="font-weight:800;font-size:18px">${x.scoreBefore} → <span style="color:var(--accent)">${x.scoreAfter}</span>
       <span style="font-size:13px;color:var(--accent)">+${x.scoreAfter-x.scoreBefore}</span></span></div></div>`:""}
     ${x.newAch.length?x.newAch.map(a=>`<div class="trophy" style="animation:pop .5s .3s both;border-color:var(--gold)">
-      <div class="ic" style="color:var(--gold)">${ic(a.icon,22)}</div>
+      <div class="ic">${a.icon}</div>
       <div style="flex:1"><div class="eyebrow" style="color:var(--gold)">Achievement unlocked</div>
         <div style="font-weight:800">${a.name}</div><div style="font-size:12px;color:var(--muted)">${a.desc}</div></div>
     </div>`).join(""):""}
@@ -1741,7 +1741,7 @@ function renderPost(s,x){
         return `<div class="spread" style="padding:5px 0">
           <span style="font-weight:700;font-size:14px">${def.short}</span>
           ${t.mode==="increase"
-            ?`<span style="font-size:13px;font-weight:700;color:var(--accent)">${ic("chart",12)} Increase to ${fmtKg(t.weight)}${def.unit}</span>`
+            ?`<span style="font-size:13px;font-weight:700;color:var(--accent)">📈 Increase to ${fmtKg(t.weight)}${def.unit}</span>`
             :`<span style="font-size:13px;color:var(--muted)">Hold ${fmtKg(t.weight)}${def.unit} — beat ${t.prevReps} reps</span>`}
         </div>`;
       }).join("")}
@@ -1797,11 +1797,11 @@ function celebrate(){
 function showTokenModal(){
   openSheet(`
     <div style="text-align:center;padding:10px 0">
-      <div style="color:var(--accent)">${ic("shield",48)}</div>
+      <div style="font-size:44px">🧊</div>
       <h2 style="font-size:22px;font-weight:800;margin:10px 0 6px">Window expired</h2>
       <p style="color:var(--muted);font-size:14px;line-height:1.5">Your ${S.streak.cur}-workout streak is on the line.<br>
       Use a Recovery Token to protect it? You have ${S.streak.tokens}.</p>
-      <button class="btn primary" style="margin-top:18px" onclick="closeSheet();useToken()">${ic("shield",16)} USE RECOVERY TOKEN</button>
+      <button class="btn primary" style="margin-top:18px" onclick="closeSheet();useToken()">🧊 USE RECOVERY TOKEN</button>
       <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();breakStreak()">Accept the loss</button>
     </div>`);
 }

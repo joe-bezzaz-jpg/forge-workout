@@ -1,7 +1,7 @@
 /* FORGE service worker — offline app shell.
    Network-first for the page (so git pushes reach the phone quickly),
    cache-first for static assets. */
-const CACHE = "forge-v2";
+const CACHE = "forge-v3";
 const ASSETS = ["./", "index.html", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"];
 
