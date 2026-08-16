@@ -65,6 +65,7 @@ b,strong{font-weight:600}
 .icn{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;display:inline-block;flex-shrink:0}
 .reveal{opacity:0;animation:fadeUp .5s cubic-bezier(.2,.8,.2,1) forwards}
 @keyframes shine{from{transform:translateX(-130%) skewX(-18deg)}to{transform:translateX(230%) skewX(-18deg)}}
+@keyframes crateShake{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-7deg)}94%{transform:rotate(7deg)}97%{transform:rotate(-4deg)}}
 @keyframes ringPulse{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .eyebrow{font-size:14px;font-weight:400;letter-spacing:-.006em;color:var(--muted)}
@@ -115,9 +116,9 @@ b,strong{font-weight:600}
 .tab.train:active .train-btn{filter:brightness(1.12);transform:scale(.95)}
 
 /* ---------- header pills / xp ---------- */
-.pills{display:flex;gap:8px;align-items:center}
-.pill{display:inline-flex;align-items:center;gap:6px;border-radius:9999px;background:var(--card);
-  padding:8px 14px;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap;color:var(--text);letter-spacing:-.01em}
+.pills{display:flex;gap:6px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:9999px;background:var(--card);
+  padding:7px 12px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap;color:var(--text);letter-spacing:-.01em}
 .pill.xp,.pill.streak{background:var(--card)}
 .xpchip{display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.08);color:var(--text);border-radius:9999px;
   padding:4px 10px;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;vertical-align:middle;letter-spacing:-.01em}
@@ -137,12 +138,16 @@ b,strong{font-weight:600}
 .qbar i{display:block;height:100%;background:var(--brand);border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 /* ---------- profile header ---------- */
 .phead{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.avatar{width:46px;height:46px;border-radius:50%;background:var(--card3);display:flex;align-items:center;justify-content:center;
-  font-size:19px;font-weight:600;color:var(--text);overflow:hidden;flex-shrink:0;cursor:pointer}
+.avwrap{position:relative;width:54px;height:54px;flex-shrink:0;cursor:pointer}
+.avwrap svg.ring{position:absolute;inset:0;transform:rotate(-90deg)}
+.avatar{position:absolute;inset:5px;border-radius:50%;background:var(--card3);display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:600;color:var(--text);overflow:hidden}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avbadge{position:absolute;right:-3px;bottom:-3px;width:22px;height:22px;border-radius:50%;background:#000;border:1.5px solid var(--bg);
+  display:flex;align-items:center;justify-content:center;color:var(--link)}
 .phead .who{flex:1;min-width:0}
-.phead .g{font-size:14px;color:var(--muted);letter-spacing:-.006em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.phead .n{font-size:22px;font-weight:600;letter-spacing:.011em;line-height:1.19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phead .g{font-size:13px;color:var(--muted);letter-spacing:-.006em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phead .n{font-size:21px;font-weight:600;letter-spacing:.011em;line-height:1.19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ---------- day strip (chain) ---------- */
 .daystrip{display:flex;gap:6px;margin:0 0 16px}
 .dcard{flex:1;min-width:0;border-radius:20px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
@@ -452,7 +457,11 @@ function freshState(){
     prLog:[],           // {date,ex,type,label}
     streak:{cur:0,longest:0,lastEnd:null,windowEnds:null,tokens:0,tokenProgress:0,history:[],startedAt:null,protectedDates:[]},
     recovery:[],        // active rest days: {date,ts,type,value}
-    health:[],          // {date,steps,kcal} — manual or via Shortcuts URL
+    health:[],          // {date,steps,kcal,water}
+    buffs:{},           // {doubleNext:true} etc
+    relics:[],          // rare collectibles {id,date}
+    crates:[],          // {date,reward,grade}
+    redemption:null,    // {until,lost,target,done}
     xpLog:[],           // [{ts,amount,reason}] — backfilled from sessions on first load
     quests:{date:null,done:{},perfect:false},  // per-day quest completion
     league:{tier:0,weekKey:null,best:0,history:[]},
@@ -479,6 +488,8 @@ function load(){
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
   if(!S.health) S.health=[];
   if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3000};
+  if(!S.buffs) S.buffs={}; if(!S.relics) S.relics=[]; if(!S.crates) S.crates=[];
+  if(S.redemption===undefined) S.redemption=null;
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
 }
 
@@ -486,6 +497,7 @@ function load(){
 const $ = s => document.querySelector(s);
 const el = (id) => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const abbr = n => n>=10000?(n/1000).toFixed(0)+'k':n>=1000?(n/1000).toFixed(1)+'k':String(n);
 const fmtKg = v => (Math.round(v*10)/10).toLocaleString("en-GB");
 const dayISO = ts => { const d=new Date(ts); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 const fmtDate = iso => new Date(iso+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
@@ -688,6 +700,7 @@ function handleExpiry(){
   if(st.tokens>0){ showTokenModal(); return; }
   breakStreak();
 }
+function redemptionActive(){ return !!(S.redemption && !S.redemption.done && Date.now()<S.redemption.until); }
 function breakStreak(){
   const st=S.streak;
   const days = st.startedAt ? Math.max(1,Math.round((Date.now()-st.startedAt)/86400000)) : 0;
@@ -695,6 +708,7 @@ function breakStreak(){
   const lost={len:st.cur,days,prs:prsIn,ended:dayISO(Date.now()),started:st.startedAt?dayISO(st.startedAt):null};
   st.history.push(lost);
   st.cur=0; st.windowEnds=null; st.startedAt=null;
+  S.redemption={until:Date.now()+7*86400000,lost:lost.len,target:Math.min(5,Math.max(3,Math.round(lost.len/4))),count:0,done:false};
   save();
   showStreakLost(lost);
 }
@@ -805,7 +819,7 @@ function xpThisWeek(){ const wk=weekKey(Date.now()); const c=new Date(wk+"T00:00
 function pillsHTML(){
   return `<div class="pills" style="flex-shrink:0">
     <span class="pill streak" onclick="switchTab('today')">🔥 ${S.streak.cur}</span>
-    <span class="pill xp" onclick="openXPSheet()">⚡ ${xpToday().toLocaleString("en-GB")}</span>
+    <span class="pill xp" onclick="openXPSheet()">⚡ ${abbr(xpToday())}</span>
   </div>`;
 }
 function openXPSheet(){
@@ -1046,6 +1060,146 @@ function scheduleQuote(){ clearTimeout(quoteT); quoteT=setTimeout(()=>{ if(activ
 scheduleQuote();
 
 
+/* ---------------- rank ladder ---------------- */
+const RANKS=[
+  {n:"Recruit",   lvl:1,  em:"recruit"},
+  {n:"Grinder",   lvl:5,  em:"grinder"},
+  {n:"Iron",      lvl:10, em:"iron"},
+  {n:"Brute",     lvl:18, em:"brute"},
+  {n:"Silverback",lvl:28, em:"silverback"},
+  {n:"Immortal",  lvl:40, em:"immortal"},
+];
+const EMBLEMS={
+  recruit:'<path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7z"/>',
+  grinder:'<path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7z"/><path d="M8.5 12h7M12 8.5v7"/>',
+  iron:'<path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7z"/><path d="M7.5 9.5v5M16.5 9.5v5M7.5 12h9"/>',
+  brute:'<path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7z"/><path d="M8 8.5 12 15l4-6.5M9.5 16h5"/>',
+  silverback:'<path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7z"/><path d="M12 7.5 9 12l3 4.5 3-4.5z"/><path d="M6.5 9.5 12 6l5.5 3.5"/>',
+  immortal:'<path d="M12 3 4 7v5c0 5 3.4 8.3 8 9 4.6-.7 8-4 8-9V7z"/><path d="M12 6.5 13.6 10l3.9.4-2.9 2.6.8 3.8L12 15l-3.4 1.8.8-3.8L6.5 10.4 10.4 10z"/>',
+};
+function emblemSVG(key,size,color){
+  return `<svg viewBox="0 0 24 24" style="width:${size}px;height:${size}px;fill:none;stroke:${color||"currentColor"};stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block">${EMBLEMS[key]||EMBLEMS.recruit}</svg>`;
+}
+function rankInfo(){
+  const lvl=levelInfo(S.xp).lvl;
+  let i=0; RANKS.forEach((r,k)=>{ if(lvl>=r.lvl) i=k; });
+  const cur=RANKS[i], next=RANKS[i+1];
+  const span=next?next.lvl-cur.lvl:1, into=lvl-cur.lvl;
+  return {...cur,idx:i,next,lvl,pct:next?Math.min(100,Math.round(into/span*100)):100,toNext:next?next.lvl-lvl:0};
+}
+
+/* ---------------- session grade ---------------- */
+function gradeSession(A,session){
+  let got=0,max=0,notes=[];
+  for(const ex of WORKOUTS[A.workout].ex){
+    const pr=presc(ex,A.workout);
+    const sets=session.sets.filter(x=>x.ex===ex);
+    if(!sets.length) continue;
+    max+=3;
+    const exp=exposuresOf(ex,A.workout);
+    const prev=exp.length>=2?exp[exp.length-2]:null;
+    const cur=exp[exp.length-1];
+    if(!prev){ got+=2; }
+    else if(cur.totalReps>prev.totalReps||cur.topW>prev.topW||cur.bestE1>prev.bestE1+.01){ got+=2; notes.push(EXERCISES[ex].short+" beaten"); }
+    if(sets.length>=pr.sets && sets.every(x=>x.reps>=pr.repLo)){ got+=1; }
+  }
+  got+=Math.min(3,session.prs.length);  max+=3;
+  const pct=max?got/max:0;
+  const g=pct>=.9?"S":pct>=.75?"A":pct>=.55?"B":"C";
+  return {grade:g,pct:Math.round(pct*100),notes};
+}
+const GRADE_COL={S:"#f5f5f7",A:"#2997ff",B:"#86868b",C:"#86868b"};
+const GRADE_MSG={S:"Flawless session.",A:"Strong work.",B:"Banked it.",C:"Showed up. That still counts."};
+
+/* ---------------- crate (variable reward) ---------------- */
+const RELICS=[
+  {id:"chalk",n:"Chalk of the Ancients",e:"🪨"},
+  {id:"knurl",n:"Perfect Knurling",e:"⚙️"},
+  {id:"iron-heart",n:"Iron Heart",e:"🫀"},
+  {id:"black-plate",n:"Blackened Plate",e:"⬛"},
+  {id:"ox",n:"Ox Token",e:"🐂"},
+  {id:"forge-key",n:"Key to the Forge",e:"🗝️"},
+  {id:"anvil",n:"Anvil Fragment",e:"🔨"},
+  {id:"crown",n:"Iron Crown",e:"👑"},
+];
+function rollCrate(grade){
+  const rolls=grade==="S"?3:grade==="A"?2:1;   // better grade, better odds
+  let best=null;
+  for(let i=0;i<rolls;i++){
+    const r=Math.random()*100;
+    let x;
+    if(r<50)      x={t:"xp",v:25+Math.floor(Math.random()*4)*25,rank:1,label:"XP bonus"};
+    else if(r<72) x={t:"xp",v:150,rank:2,label:"Big XP bonus"};
+    else if(r<86) x={t:"double",rank:3,label:"Double XP next workout"};
+    else if(r<95) x={t:"token",rank:4,label:"Recovery token"};
+    else          x={t:"relic",rank:5,label:"Relic"};
+    if(!best||x.rank>best.rank) best=x;
+  }
+  if(best.t==="token" && S.streak.tokens>=2) best={t:"xp",v:150,rank:2,label:"Big XP bonus"};
+  if(best.t==="relic"){
+    const owned=new Set(S.relics.map(r=>r.id));
+    const pool=RELICS.filter(r=>!owned.has(r.id));
+    if(!pool.length) best={t:"double",rank:3,label:"Double XP next workout"};
+    else best.relic=pool[Math.floor(Math.random()*pool.length)];
+  }
+  return best;
+}
+function applyCrate(rw){
+  if(rw.t==="xp") addXP(rw.v,"Crate bonus");
+  else if(rw.t==="double"){ S.buffs.doubleNext=true; }
+  else if(rw.t==="token"){ if(S.streak.tokens<2) S.streak.tokens++; }
+  else if(rw.t==="relic"){ S.relics.push({id:rw.relic.id,date:dayISO(Date.now())}); }
+  S.crates.push({date:dayISO(Date.now()),reward:rw.t});
+  save();
+}
+function openCrateSheet(grade){
+  const rw=rollCrate(grade);
+  openSheet(`<div style="text-align:center;padding:6px 0 4px">
+    <div class="eyebrow">Session reward</div>
+    <div id="crate-box" style="font-size:76px;margin:22px 0 6px;cursor:pointer;transition:transform .2s;animation:crateShake 1.6s ease-in-out infinite" onclick="revealCrate()">📦</div>
+    <div id="crate-hint" style="color:var(--muted);font-size:15px">Tap to open</div>
+    <div id="crate-out"></div>
+  </div>`);
+  window.__crate=rw;
+}
+function revealCrate(){
+  const rw=window.__crate; if(!rw) return;
+  applyCrate(rw);
+  const box=el("crate-box"); if(!box) return;
+  box.style.animation=""; box.onclick=null;
+  box.textContent = rw.t==="relic"?rw.relic.e : rw.t==="token"?"🧊" : rw.t==="double"?"✷" : "⚡";
+  box.style.transform="scale(1.18)";
+  el("crate-hint").textContent="";
+  const big = rw.t==="relic"||rw.t==="token"||rw.t==="double";
+  el("crate-out").innerHTML=`<div style="animation:pop .5s cubic-bezier(.2,.9,.3,1.3) both">
+    <div style="font-size:24px;font-weight:600;letter-spacing:.007em;margin-top:6px">${rw.t==="xp"?"+"+rw.v+" XP":rw.t==="relic"?rw.relic.n:rw.label}</div>
+    <div style="color:var(--muted);font-size:15px;margin-top:6px">${
+      rw.t==="xp"?"Straight into the bank.":
+      rw.t==="double"?"Your next workout earns double XP.":
+      rw.t==="token"?"Banked. It can save a streak.":
+      "Rare find — added to your relics."}</div>
+    ${big?`<div class="tag acc" style="margin-top:14px">${rw.t==="relic"?"Rare":"Uncommon"}</div>`:""}
+    <button class="btn primary" style="margin-top:22px" onclick="closeSheet()">Collect</button>
+  </div>`;
+  if(big){ sndPR(); haptic([40,70,40,70,120]); celebrateAt(box); } else { sndSet(); haptic(25); }
+  window.__crate=null;
+  window.__pendingCrate=false;
+  renderAll();
+}
+function celebrateAt(node){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r=node.getBoundingClientRect();
+  for(let i=0;i<18;i++){
+    const d=document.createElement("div");
+    const a=Math.random()*Math.PI*2, dist=60+Math.random()*90;
+    d.style.cssText=`position:fixed;left:${r.left+r.width/2}px;top:${r.top+r.height/2}px;width:6px;height:6px;border-radius:2px;
+      background:${["#0090f7","#ba62fc","#f2416b","#f55600"][i%4]};z-index:600;pointer-events:none;transition:transform .9s cubic-bezier(.1,.7,.3,1),opacity .9s`;
+    document.body.appendChild(d);
+    requestAnimationFrame(()=>{ d.style.transform=`translate(${Math.cos(a)*dist}px,${Math.sin(a)*dist}px) rotate(${Math.random()*360}deg)`; d.style.opacity="0"; });
+    setTimeout(()=>d.remove(),950);
+  }
+}
+
 /* ---------------- greeting ---------------- */
 const GREETINGS=["Let's get it","Let's work","Let's get after it","Time to work","Earn it today","Show up","No days off","Build it","Own today","Stack another one"];
 function greeting(){
@@ -1055,6 +1209,44 @@ function greeting(){
 function avatarHTML(){
   const ph=[...S.photos].sort((a,b)=>a.date<b.date?1:-1)[0];
   return ph?`<img src="${ph.dataUrl}" alt="">`:esc((S.profile.name||"J")[0].toUpperCase());
+}
+function avatarBlockHTML(){
+  const R=rankInfo(), C=2*Math.PI*25;
+  return `<div class="avwrap" onclick="openRankSheet()">
+    <svg class="ring" width="54" height="54" viewBox="0 0 54 54">
+      <circle cx="27" cy="27" r="25" fill="none" stroke="#2c2c2e" stroke-width="2.5"/>
+      <circle cx="27" cy="27" r="25" fill="none" stroke="var(--link)" stroke-width="2.5" stroke-linecap="round"
+        stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-R.pct/100)).toFixed(1)}"/>
+    </svg>
+    <div class="avatar">${avatarHTML()}</div>
+    <div class="avbadge">${emblemSVG(R.em,14)}</div>
+  </div>`;
+}
+function openRankSheet(){
+  const R=rankInfo();
+  openSheet(`<div style="text-align:center;padding:4px 0 0">
+      <div style="color:var(--link);display:flex;justify-content:center;margin-bottom:10px">${emblemSVG(R.em,64)}</div>
+      <div style="font-size:28px;font-weight:600;letter-spacing:.007em">${R.n}</div>
+      <div style="color:var(--muted);font-size:15px;margin-top:4px">Level ${R.lvl} · ${S.xp.toLocaleString("en-GB")} XP</div>
+      ${R.next?`<div class="qbar" style="margin:18px 0 6px"><i style="width:${R.pct}%"></i></div>
+        <div style="font-size:14px;color:var(--muted)">${R.toNext} level${R.toNext>1?"s":""} to <b style="color:var(--text)">${R.next.n}</b></div>`
+      :`<div style="font-size:15px;color:var(--link);margin-top:16px">Top rank. Nothing above this.</div>`}
+    </div>
+    <div class="card" style="margin-top:20px">
+      <div class="eyebrow" style="margin-bottom:12px">Ranks</div>
+      ${RANKS.map((r,i)=>`<div class="spread" style="padding:9px 0;opacity:${i<=R.idx?1:.45}">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="color:${i<=R.idx?"var(--link)":"var(--dim)"};display:flex">${emblemSVG(r.em,26)}</span>
+          <div><div style="font-weight:600;font-size:16px">${r.n}</div>
+            <div style="font-size:13px;color:var(--muted)">Level ${r.lvl}+</div></div>
+        </div>
+        ${i===R.idx?`<span class="tag acc">Current</span>`:i<R.idx?`<span style="color:var(--muted);font-size:14px">✓</span>`:""}
+      </div>`).join("")}
+    </div>
+    ${S.relics.length?`<div class="card"><div class="eyebrow" style="margin-bottom:10px">Relics found</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">${S.relics.map(r=>{const R2=RELICS.find(x=>x.id===r.id)||{e:"?",n:r.id};
+        return `<div style="text-align:center;width:64px"><div class="emo" style="margin:0 auto">${R2.e}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.2">${R2.n}</div></div>`;}).join("")}</div></div>`:""}`);
 }
 
 /* ---------------- daily activity (steps · kcal · water) ---------------- */
@@ -1370,7 +1562,7 @@ function renderToday(){
 
   el("screen-today").innerHTML=`
     <div class="phead">
-      <div class="avatar" onclick="switchTab('profile')">${avatarHTML()}</div>
+      ${avatarBlockHTML()}
       <div class="who">
         <div class="g">Welcome back, ${esc(S.profile.name)}!</div>
         <div class="n" id="greet-h1">${greeting()}</div>
@@ -1399,6 +1591,8 @@ function renderToday(){
       <button class="btn ghost small" style="width:100%;margin-top:14px" onclick="openRecovery()">🚶 ${recWeek.some(r=>r.date===todayISO)?"Active recovery logged ✓":"Log active recovery"}</button>
     </div>
 
+    ${redemptionHTML()}
+    ${photoPromptHTML()}
     ${quoteHTML()}
     ${activityHTML()}
 
@@ -1440,6 +1634,35 @@ function renderToday(){
       ${heatmapHTML(90)}
     </div>`;
   requestAnimationFrame(startEmbers);
+}
+function photoPromptHTML(){
+  const mon=dayISO(Date.now()).slice(0,7);
+  if(S.photos.some(p=>p.date.startsWith(mon))) return "";
+  if(!S.sessions.length) return "";
+  const prev=[...S.photos].sort((a,b)=>a.date<b.date?-1:1)[0];
+  const day=new Date().getDate();
+  if(day>7 && S.photos.length) return "";   // nudge early in the month once you're rolling
+  return `<div class="card" style="cursor:pointer" onclick="openPhotoAdd()">
+    <div class="spread">
+      <div style="min-width:0;padding-right:12px">
+        <div style="font-size:17px;font-weight:600">${prev?"Monthly progress photo":"Take your first progress photo"}</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:3px">${prev?`Your last one was ${fmtDateShort(prev.date)}. 20 seconds — you'll want the comparison later.`:"The before shot only exists if you take it today."}</div>
+      </div>
+      <span style="font-size:26px">📸</span>
+    </div>
+  </div>`;
+}
+function redemptionHTML(){
+  if(!redemptionActive()) return "";
+  const R=S.redemption;
+  const daysLeft=Math.max(1,Math.ceil((R.until-Date.now())/86400000));
+  const done=R.count||0, pct=Math.min(100,done/R.target*100);
+  return `<div class="card" style="border:1px solid rgba(41,151,255,.3)">
+    <div class="spread"><span style="font-size:17px;font-weight:600">Redemption week</span>
+      <span class="tag acc">1.5× XP</span></div>
+    <div style="font-size:14px;color:var(--muted);margin-top:4px">${done} of ${R.target} sessions · ${daysLeft} day${daysLeft>1?"s":""} left to rebuild what you lost</div>
+    <div class="qbar"><i style="width:${pct}%"></i></div>
+  </div>`;
 }
 function cyclePosition(){
   const i=CYCLE.indexOf(S.nextWorkout);
@@ -1757,7 +1980,8 @@ function savePhoto(){
     const dataUrl=c.toDataURL("image/jpeg",0.72);
     try{
       S.photos.push({id:Date.now(),date:el("ph-date").value||dayISO(Date.now()),type:el("ph-type").value,dataUrl});
-      save(); closeSheet(); renderProgress(); toast("Photo saved",true);
+      save(); closeSheet(); renderAll(); toast("Photo saved",true);
+      if(S.photos.length>=2) setTimeout(()=>openCompare(),500);
     }catch(e){ toast("Storage full — delete old photos"); }
     URL.revokeObjectURL(img.src);
   };
@@ -1885,7 +2109,8 @@ function historyViewHTML(){
         <span style="width:42px;height:42px;border-radius:50%;background:var(--accent-dim);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:18px">${s.workout}</span>
         <span><div style="font-weight:600;font-size:14px">${fmtDate(s.dateISO)}</div>
         <div style="font-size:12px;color:var(--muted)">${wkDef(s.workout).title} · ${fmtKg(s.volume)}kg${s.prs.length?` · 🏆 ${s.prs.length}`:""}</div></span>
-      </span><span style="color:var(--dim)">›</span>
+      <span style="display:flex;align-items:center;gap:10px">${s.grade?`<span class="mono" style="font-size:17px;font-weight:600;color:${GRADE_COL[s.grade]}">${s.grade}</span>`:""}
+      <span style="color:var(--dim)">›</span></span>
     </div>`).join("")}</div>`;
 }
 function openSession(id){
@@ -2052,6 +2277,26 @@ function renderAwards(){
   el("screen-awards").innerHTML=`
     <div class="spread" style="margin-bottom:4px"><h1>Awards</h1>${pillsHTML()}</div>
     <div style="color:var(--muted);font-size:14px;margin-bottom:18px;font-weight:600">${unlocked.length} of ${ACHIEVEMENTS.length} trophies unlocked</div>
+    <div class="card" style="cursor:pointer" onclick="openRankSheet()">
+      <div class="spread">
+        <div style="display:flex;align-items:center;gap:14px">
+          <span style="color:var(--link);display:flex">${emblemSVG(rankInfo().em,40)}</span>
+          <div><div class="eyebrow">Your rank</div>
+            <div style="font-size:22px;font-weight:600;letter-spacing:.011em">${rankInfo().n}</div></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:14px;color:var(--muted)">Level ${rankInfo().lvl}</div>
+          ${rankInfo().next?`<div style="font-size:13px;color:var(--dim)">${rankInfo().toNext} to ${rankInfo().next.n}</div>`:""}
+        </div>
+      </div>
+      <div class="qbar" style="margin-bottom:0"><i style="width:${rankInfo().pct}%"></i></div>
+    </div>
+    ${S.relics.length?`<div class="card">
+      <div class="spread" style="margin-bottom:12px"><span class="eyebrow">Relics</span><span style="font-size:14px;color:var(--muted)">${S.relics.length} of ${RELICS.length}</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">${RELICS.map(r=>{const has=S.relics.some(x=>x.id===r.id);
+        return `<div style="text-align:center;width:66px;opacity:${has?1:.28}"><div class="emo" style="margin:0 auto;${has?"":"filter:grayscale(1)"}">${has?r.e:"❔"}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.2">${has?r.n:"Undiscovered"}</div></div>`;}).join("")}</div>
+    </div>`:""}
     ${leagueHTML(false)}
     <div class="card">
       <div class="eyebrow" style="margin-bottom:12px">Exercise mastery</div>
@@ -2472,9 +2717,20 @@ function finishWorkout(){
     id:now, workout:A.workout, dateISO:dayISO(now), start:A.start, end:now,
     dur:Math.round((now-A.start)/1000), sets:A.sets, volume, xp:A.xp, prs:A.prs,
   };
+  // multipliers: double-XP crate buff and redemption week
+  let mult=1, multWhy=[];
+  if(S.buffs.doubleNext){ mult*=2; multWhy.push("Double XP crate"); S.buffs.doubleNext=false; }
+  if(redemptionActive()){ mult*=1.5; multWhy.push("Redemption week"); }
+  if(mult!==1){ A.xp=Math.round(A.xp*mult); session.xp=A.xp; }
   S.sessions.push(session);
   S.workoutsDone++;
+  const gr=gradeSession(A,session);
+  session.grade=gr.grade;
   addXP(A.xp,"Workout "+A.workout,true);
+  if(S.redemption&&!S.redemption.done){
+    S.redemption.count=(S.redemption.count||0)+1;
+    if(S.redemption.count>=S.redemption.target){ S.redemption.done=true; setTimeout(()=>toast("Redemption complete — you rebuilt it.",true),1400); }
+  }
   S.nextWorkout=CYCLE[(CYCLE.indexOf(A.workout)+1)%CYCLE.length];
   const scoreAfter=computeScore().overall;
   S.scoreHistory.push({date:dayISO(now),score:scoreAfter});
@@ -2483,7 +2739,8 @@ function finishWorkout(){
   save();
   sndDone(); haptic([50,100,50,100,50,100,150]);
   el("workout-overlay").classList.remove("open");
-  renderPost(session,{scoreBefore,scoreAfter,streakBonus,cycleDone,newAch});
+  window.__pendingCrate=true;
+  renderPost(session,{scoreBefore,scoreAfter,streakBonus,cycleDone,newAch,grade:gr,mult,multWhy});
 }
 function renderPost(s,x){
   const nw=S.nextWorkout;
@@ -2501,9 +2758,10 @@ function renderPost(s,x){
   el("post-overlay").innerHTML=`<div class="wk-wrap" style="justify-content:flex-start">
     <div class="onband" style="text-align:center;margin:26px 0 8px;animation:pop .5s cubic-bezier(.2,.9,.3,1.3) both;position:relative">
       <span style="position:absolute;left:50%;top:56%;width:110px;height:110px;margin:-55px;border-radius:50%;border:2px solid var(--link);animation:ringPulse 1s ease-out .2s both;pointer-events:none"></span>
-      <div class="eyebrow acc">Workout complete</div>
-      <div style="font-size:80px;font-weight:600;letter-spacing:-.015em;line-height:1.05;margin:8px 0 2px;font-family:'SF Pro Display',-apple-system,sans-serif">${s.workout}</div>
-      <div style="font-weight:600;opacity:.9">${wkDef(s.workout).title}</div>
+      <div class="eyebrow acc">Workout ${s.workout} complete</div>
+      <div style="font-size:96px;font-weight:600;letter-spacing:-.015em;line-height:1;margin:6px 0 0;font-family:'SF Pro Display',-apple-system,sans-serif;color:${GRADE_COL[x.grade.grade]}">${x.grade.grade}</div>
+      <div style="font-size:15px;color:var(--muted);margin-top:2px">${GRADE_MSG[x.grade.grade]} · ${wkDef(s.workout).title}</div>
+      ${x.mult!==1?`<div class="tag acc" style="margin-top:10px">${x.mult}× XP · ${x.multWhy.join(" + ")}</div>`:""}
     </div>
     <div class="statgrid reveal" style="margin-top:14px;animation-delay:.12s">
       <div class="stat"><div class="l">Duration</div><div class="v mono">${fmtDur(s.dur)}</div></div>
@@ -2555,7 +2813,7 @@ function renderPost(s,x){
         <div class="wletter" style="font-size:40px">${nw}</div>
       </div>
     </div>
-    <button class="btn primary reveal" style="margin-top:8px;animation-delay:.7s" onclick="el('post-overlay').classList.remove('open');switchTab('today')">Done</button>
+    <button class="btn primary reveal" style="margin-top:8px;animation-delay:.7s" onclick="el('post-overlay').classList.remove('open');switchTab('today');if(window.__pendingCrate)setTimeout(()=>openCrateSheet('${x.grade.grade}'),380)">Open reward 📦</button>
   </div>`;
   el("post-overlay").classList.add("open");
   setTimeout(settleQuests,900);
@@ -2627,7 +2885,11 @@ function showStreakLost(lost){
         <div class="stat"><div class="l">PRs in that run</div><div class="v mono">${lost.prs}</div></div>
         <div class="stat"><div class="l">Avg strength gain</div><div class="v mono">${avgImp!==null?(avgImp>=0?"+":"")+avgImp+"%":"—"}</div></div>
       </div>
-      <p style="color:var(--muted);font-size:15px;font-weight:600">That run is over.<br>Start the next one.</p>
+      <div class="card" style="text-align:left;margin-top:4px">
+        <div class="eyebrow acc" style="margin-bottom:6px">Redemption week unlocked</div>
+        <div style="font-size:15px;color:var(--text)">Every workout earns <b>1.5× XP</b> for 7 days. Complete <b>${S.redemption?S.redemption.target:4}</b> sessions to close it out.</div>
+      </div>
+      <p style="color:var(--muted);font-size:15px">That run is over.<br>Start the next one.</p>
       <button class="btn primary" style="margin-top:16px" onclick="closeSheet();startOrResumeWorkout()">Rebuild — start Workout ${S.nextWorkout}</button>
     </div>`);
 }
