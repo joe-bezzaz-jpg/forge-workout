@@ -35,6 +35,7 @@
   --r:28px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+button,a,.tab,.quest,.dcard,.chip,.pill,.list-item,.trophy,input,select{touch-action:manipulation}
 html{-webkit-text-size-adjust:100%;height:100%}
 body{
   background:var(--bg); color:var(--text);
@@ -46,7 +47,7 @@ body{
 #app{max-width:520px;margin:0 auto;height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;position:relative;z-index:1}
 html,body{overflow-x:hidden}
-.screen{display:none;padding:calc(14px + var(--sat)) 16px calc(120px + var(--sab));animation:fadeUp .28s ease both;position:relative;min-height:100%;overflow:hidden}
+.screen{display:none;padding:calc(10px + var(--sat)) 16px calc(104px + var(--sab));animation:fadeUp .28s ease both;position:relative;min-height:100%;overflow:hidden}
 .screen.active{display:block}
 /* brand band curving in from the top (every screen) */
 /* faint volt glow at the top instead of a colour band */
@@ -90,12 +91,13 @@ b,strong{font-weight:600}
 .btn:disabled{opacity:.4;pointer-events:none}
 
 /* ---------- tab bar (floating white pill) ---------- */
-#tabbar{position:fixed;bottom:max(10px,calc(var(--sab) - 16px));left:12px;right:12px;z-index:50;max-width:496px;margin:0 auto;
-  background:rgba(29,29,31,.62);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);
-  border-radius:9999px;display:flex;align-items:center;justify-content:space-around;
-  padding:6px;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(0,0,0,.35),0 12px 40px rgba(0,0,0,.55);
-  border:1px solid rgba(255,255,255,.07)}
-#tab-ind{position:absolute;top:6px;bottom:6px;left:0;width:0;border-radius:9999px;pointer-events:none;
+#tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;width:100%;
+  background:rgba(29,29,31,.72);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);
+  border-radius:26px 26px 0 0;display:flex;align-items:center;justify-content:space-around;
+  padding:6px 8px calc(4px + var(--sab));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 -8px 30px rgba(0,0,0,.5);
+  border-top:1px solid rgba(255,255,255,.07)}
+#tab-ind{position:absolute;top:6px;bottom:calc(4px + var(--sab));left:0;width:0;border-radius:9999px;pointer-events:none;
   background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 2px 10px rgba(0,0,0,.25);
   backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);-webkit-backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);
   transition:left .5s cubic-bezier(.3,1.4,.4,1),width .5s cubic-bezier(.3,1.4,.4,1),transform .5s cubic-bezier(.3,1.4,.4,1);
@@ -133,27 +135,31 @@ b,strong{font-weight:600}
 .quest .qs{font-size:13px;color:var(--muted);font-weight:400;margin-top:1px}
 .qbar{height:8px;border-radius:4px;background:var(--card3);overflow:hidden;margin:12px 0 4px}
 .qbar i{display:block;height:100%;background:var(--brand);border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+/* ---------- profile header ---------- */
+.phead{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+.avatar{width:46px;height:46px;border-radius:50%;background:var(--card3);display:flex;align-items:center;justify-content:center;
+  font-size:19px;font-weight:600;color:var(--text);overflow:hidden;flex-shrink:0;cursor:pointer}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.phead .who{flex:1;min-width:0}
+.phead .g{font-size:14px;color:var(--muted);letter-spacing:-.006em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phead .n{font-size:22px;font-weight:600;letter-spacing:.011em;line-height:1.19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ---------- day strip (chain) ---------- */
-.daystrip{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;padding:6px 0 10px;margin:0 -16px 6px;
-  scrollbar-width:none;-webkit-overflow-scrolling:touch;perspective:600px}
-.daystrip::-webkit-scrollbar{display:none}
-.daystrip::before,.daystrip::after{content:"";flex:0 0 calc(50% - 34px)}
-.dcard{flex:0 0 68px;scroll-snap-align:center;height:104px;border-radius:9999px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  transition:transform .25s ease,opacity .25s ease,background .25s;cursor:pointer;will-change:transform;position:relative;color:var(--muted)}
-.dcard .dw{font-size:12px;line-height:1;letter-spacing:-.006em}
-.dcard .dn{font-size:16px;font-weight:600;line-height:1;margin-top:-4px;color:var(--text);font-variant-numeric:tabular-nums}
-.dcard .dc{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;background:var(--card3);color:rgba(255,255,255,.28)}
+.daystrip{display:flex;gap:6px;margin:0 0 16px}
+.dcard{flex:1;min-width:0;border-radius:20px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:11px 0 9px;transition:transform .2s ease,background .2s;cursor:pointer;position:relative;color:var(--muted)}
+.dcard .dw{font-size:12px;line-height:1;letter-spacing:-.01em}
+.dcard .dn{font-size:17px;font-weight:600;line-height:1.1;color:var(--text);font-variant-numeric:tabular-nums}
+.dcard .dc{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;background:var(--card3);color:transparent;margin-top:2px}
 .dcard.trained .dc{background:var(--brand);color:#fff}
-.dcard.rest .dc{background:var(--card3);color:var(--text)}
-.dcard.missed .dc{background:rgba(255,69,58,.14);color:var(--danger)}
+.dcard.rest .dc{background:#48484a;color:#fff}
+.dcard.missed .dc{background:rgba(255,69,58,.16);color:var(--danger)}
 .dcard.today{background:#f5f5f7;color:#6e6e73}
 .dcard.today .dn{color:#000}
-.dcard.today .dc{box-shadow:0 0 0 2px var(--brand) inset;background:#e8e8ed;color:#c7c7cc}
-.dcard.today.trained .dc,.dcard.today.rest .dc{box-shadow:none}
+.dcard.today .dc{background:#dcdce1;color:#a1a1a6}
 .dcard.today.trained .dc{background:var(--brand);color:#fff}
-.dcard.today.rest .dc{background:#d1d1d6;color:#000}
-.dcard.future{opacity:.55}
-.dcard .dl{position:absolute;bottom:-18px;font-size:11px;color:var(--dim);white-space:nowrap}
+.dcard.today.rest .dc{background:#48484a;color:#fff}
+.dcard.future{opacity:.45}
+.dcard:active{transform:scale(.95)}
 /* ---------- embers/plates canvas ---------- */
 .streak-hero canvas.embers{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .streak-hero>*:not(canvas){position:relative;z-index:1}
@@ -249,13 +255,14 @@ b,strong{font-weight:600}
   border-radius:9999px;padding:7px 14px;font-size:14px;color:var(--muted);font-weight:400}
 .target-banner{background:var(--card);border:none;border-radius:22px;padding:18px 20px;margin:14px 0}
 
-/* rest timer */
-#rest-overlay{position:fixed;inset:0;z-index:120;background:rgba(10,10,12,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  display:none;flex-direction:column;align-items:center;justify-content:center;gap:26px;max-width:520px;margin:0 auto}
-#rest-overlay.open{display:flex;animation:fadeUp .2s ease both}
-.ring-wrap{position:relative;width:240px;height:240px}
-.ring-wrap svg{transform:rotate(-90deg)}
-.ring-wrap .t{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+/* inline rest timer */
+.restbar{background:var(--card);border-radius:22px;padding:14px 16px 12px;margin-bottom:10px;animation:fadeUp .25s ease both}
+.restbar .rdot{width:10px;height:10px;border-radius:50%;background:var(--link);animation:pulseGlow 1.2s ease-in-out infinite;flex-shrink:0}
+.restbar .rtrack{height:6px;border-radius:3px;background:var(--card3);overflow:hidden;margin-top:12px}
+.restbar .rtrack i{display:block;height:100%;background:var(--link);border-radius:3px;transition:width .25s linear}
+.rbtn{border:none;border-radius:9999px;background:var(--card3);color:var(--text);font-family:inherit;font-size:14px;font-weight:500;padding:8px 14px;cursor:pointer}
+.rbtn:active{filter:brightness(1.3)}
+.rbtn.skip{background:var(--brand);color:#fff}
 
 /* PR toast */
 #toast-zone{position:fixed;top:calc(12px + var(--sat));left:0;right:0;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none}
@@ -304,7 +311,7 @@ b,strong{font-weight:600}
 .tag.acc{background:var(--accent-dim);color:var(--link)}
 .tag.gold{background:var(--card3);color:var(--text)}
 .tag.red{background:var(--danger-dim);color:var(--danger)}
-input[type=number],input[type=date],select{background:var(--card2);border:none;color-scheme:dark;border-radius:16px;color:var(--text);
+input[type=text],input[type=number],input[type=date],select{background:var(--card2);border:none;color-scheme:dark;border-radius:16px;color:var(--text);
   font-family:inherit;font-size:16px;font-weight:600;padding:13px 16px;width:100%;outline:none;-webkit-appearance:none}
 label.fld{display:block;margin-bottom:12px}
 label.fld span{display:block;font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:.02em}
@@ -355,7 +362,6 @@ label.fld span{display:block;font-size:12px;color:var(--muted);font-weight:600;m
 
 <div id="workout-overlay" class="overlay"></div>
 <div id="post-overlay" class="overlay"></div>
-<div id="rest-overlay"></div>
 <div id="sheet-veil"></div>
 <div id="sheet"></div>
 <div id="toast-zone"></div>
@@ -432,7 +438,7 @@ let S = null;
 function freshState(){
   return {
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95},
-    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false},
+    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000}},
     nextWorkout:"A",
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
@@ -467,6 +473,7 @@ function load(){
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
   if(!S.health) S.health=[];
+  if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3000};
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
 }
 
@@ -791,9 +798,9 @@ function xpFloat(amount){
 function xpToday(){ const c=new Date(); c.setHours(0,0,0,0); return sum(S.xpLog.filter(x=>x.ts>=c.getTime()).map(x=>x.amount)); }
 function xpThisWeek(){ const wk=weekKey(Date.now()); const c=new Date(wk+"T00:00").getTime(); return sum(S.xpLog.filter(x=>x.ts>=c).map(x=>x.amount)); }
 function pillsHTML(){
-  return `<div class="pills">
+  return `<div class="pills" style="flex-shrink:0">
     <span class="pill streak" onclick="switchTab('today')">🔥 ${S.streak.cur}</span>
-    <span class="pill xp" onclick="openXPSheet()">⚡ ${xpToday().toLocaleString("en-GB")} XP</span>
+    <span class="pill xp" onclick="openXPSheet()">⚡ ${xpToday().toLocaleString("en-GB")}</span>
   </div>`;
 }
 function openXPSheet(){
@@ -1029,6 +1036,66 @@ function scheduleQuote(){ clearTimeout(quoteT); quoteT=setTimeout(()=>{ if(activ
 scheduleQuote();
 
 
+/* ---------------- greeting ---------------- */
+const GREETINGS=["Let's get it","Let's work","Let's get after it","Time to work","Earn it today","Show up","No days off","Build it","Own today","Stack another one"];
+function greeting(){
+  const seed=Math.floor(new Date(dayISO(Date.now())+"T12:00").getTime()/86400000);
+  return GREETINGS[seed%GREETINGS.length];
+}
+function avatarHTML(){
+  const ph=[...S.photos].sort((a,b)=>a.date<b.date?1:-1)[0];
+  return ph?`<img src="${ph.dataUrl}" alt="">`:esc((S.profile.name||"J")[0].toUpperCase());
+}
+
+/* ---------------- daily activity (steps · kcal · water) ---------------- */
+function ring(pct,size,stroke,color){
+  const r=(size-stroke)/2, C=2*Math.PI*r, off=C*(1-Math.min(1,pct));
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="#2c2c2e" stroke-width="${stroke}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="${stroke}" stroke-linecap="round"
+      stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" style="transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1)"/></svg>`;
+}
+function activityHTML(){
+  const d=dayISO(Date.now());
+  const h=S.health.find(x=>x.date===d)||{steps:0,kcal:0,water:0};
+  const g=S.settings.goals||{steps:10000,kcal:600,water:3000};
+  const items=[
+    {k:"Steps",v:h.steps||0,goal:g.steps,fmt:v=>v.toLocaleString("en-GB"),col:"#2997ff"},
+    {k:"Active kcal",v:h.kcal||0,goal:g.kcal,fmt:v=>v.toLocaleString("en-GB"),col:"#0071e3"},
+    {k:"Water",v:h.water||0,goal:g.water,fmt:v=>(v/1000).toFixed(1)+"L",col:"#5ac8fa"},
+  ];
+  const done=items.filter(i=>i.v>=i.goal).length;
+  return `<div class="card">
+    <div class="spread" style="margin-bottom:16px">
+      <span class="eyebrow">Daily activity</span>
+      <span style="font-size:14px;color:${done===3?"var(--link)":"var(--muted)"}">${done}/3 goals${done===3?" ✓":""}</span>
+    </div>
+    <div style="display:flex;justify-content:space-around;gap:8px">
+      ${items.map(i=>`<div style="text-align:center;flex:1;min-width:0;cursor:pointer" onclick="openHealthLog()">
+        <div style="position:relative;width:76px;height:76px;margin:0 auto">
+          ${ring(i.v/i.goal,76,7,i.col)}
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">${i.fmt(i.v)}</div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-top:8px">${i.k}</div>
+        <div style="font-size:12px;color:var(--dim)">of ${i.fmt(i.goal)}</div>
+      </div>`).join("")}
+    </div>
+    <div class="row" style="margin-top:16px;gap:8px">
+      <button class="btn ghost small" style="width:100%" onclick="addWater(250)">＋250 ml</button>
+      <button class="btn ghost small" style="width:100%" onclick="openHealthLog()">Log steps · kcal</button>
+    </div>
+  </div>`;
+}
+function addWater(ml){
+  const d=dayISO(Date.now());
+  const e=S.health.find(x=>x.date===d);
+  if(e) e.water=(e.water||0)+ml; else S.health.push({date:d,steps:0,kcal:0,water:ml});
+  save(); haptic(12); renderToday();
+  const g=(S.settings.goals&&S.settings.goals.water)||3000;
+  const cur=S.health.find(x=>x.date===d).water;
+  if(cur>=g && cur-ml<g) toast("💧 Water goal hit",true);
+}
+
 /* ---------------- health quick-log (steps / active kcal) ---------------- */
 function openHealthLog(){
   const d=dayISO(Date.now()); const h=S.health.find(x=>x.date===d)||{};
@@ -1039,6 +1106,7 @@ function openHealthLog(){
       <label class="fld"><span>Steps</span><input type="number" id="hl-steps" inputmode="numeric" placeholder="10000" value="${h.steps||""}"></label>
       <label class="fld"><span>Active kcal</span><input type="number" id="hl-kcal" inputmode="numeric" placeholder="600" value="${h.kcal||""}"></label>
     </div>
+    <label class="fld"><span>Water (ml)</span><input type="number" id="hl-water" inputmode="numeric" placeholder="3000" value="${h.water||""}"></label>
     <button class="btn primary" onclick="saveHealth()">Save</button>
     <div class="card" style="margin-top:16px;background:#000">
       <div style="font-size:15px;font-weight:600">Automate with Shortcuts</div>
@@ -1053,12 +1121,13 @@ function openHealthLog(){
 }
 function saveHealth(){
   const d=dayISO(Date.now());
-  const st=parseInt(el("hl-steps").value)||0, kc=parseInt(el("hl-kcal").value)||0;
-  upsertHealth(d,st,kc); closeSheet(); renderAll(); toast("❤️ Activity logged",true);
+  const st=parseInt(el("hl-steps").value)||0, kc=parseInt(el("hl-kcal").value)||0, wa=parseInt(el("hl-water").value)||0;
+  upsertHealth(d,st,kc,wa); closeSheet(); renderAll(); toast("Activity logged",true);
 }
-function upsertHealth(d,steps,kcal){
+function upsertHealth(d,steps,kcal,water){
   const e=S.health.find(x=>x.date===d);
-  if(e){ if(steps) e.steps=steps; if(kcal) e.kcal=kcal; } else S.health.push({date:d,steps:steps||0,kcal:kcal||0});
+  if(e){ if(steps) e.steps=steps; if(kcal) e.kcal=kcal; if(water) e.water=water; }
+  else S.health.push({date:d,steps:steps||0,kcal:kcal||0,water:water||0});
   // 10k+ steps counts as active recovery automatically
   if(steps>=10000 && !S.recovery.some(r=>r.date===d)){
     S.recovery.push({date:d,ts:Date.now(),type:"steps",value:steps});
@@ -1072,7 +1141,7 @@ function upsertHealth(d,steps,kcal){
   try{
     const q=new URLSearchParams(location.search);
     if(q.has("steps")||q.has("kcal")){
-      upsertHealth(dayISO(Date.now()),parseInt(q.get("steps"))||0,parseInt(q.get("kcal"))||0);
+      upsertHealth(dayISO(Date.now()),parseInt(q.get("steps"))||0,parseInt(q.get("kcal"))||0,parseInt(q.get("water"))||0);
       history.replaceState(null,"",location.pathname);
       setTimeout(()=>toast("❤️ Health data imported",true),600);
     }
@@ -1128,7 +1197,10 @@ function evalAchievements(){
    ================================================================ */
 let activeTab="today";
 function switchTab(t){
+  // never let a stray sheet/veil block navigation
+  if(el("sheet").classList.contains("open")||el("sheet-veil").classList.contains("open")) closeSheet();
   if(t==="train"){ startOrResumeWorkout(); return; }
+  if(t===activeTab){ moveTabInd(false); return; }   // re-tapping the current tab is a no-op
   activeTab=t; if(t!=="today") stopEmbers();
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   el("screen-"+t).classList.add("active");
@@ -1173,46 +1245,27 @@ el("sheet-veil").addEventListener("click",closeSheet);
 
 /* ---------------- TODAY ---------------- */
 function dayStripHTML(){
-  const today=dayISO(Date.now()); const t0=new Date(today+"T12:00").getTime();
+  const today=dayISO(Date.now());
+  const t0=new Date(today+"T12:00").getTime();
+  const mon=t0-((new Date().getDay()+6)%7)*86400000;   // Monday of this week
   const trained=new Set(S.sessions.map(x=>x.dateISO)), rest=new Set(S.recovery.map(r=>r.date));
-  const firstEver=S.sessions.length?S.sessions[0].dateISO:null;
+  const broken=new Set(S.streak.history.map(h=>h.ended).filter(Boolean));
   const sesByDay={}; for(const x of S.sessions) sesByDay[x.dateISO]=x;
-  const cards=[];
-  for(let i=-21;i<=7;i++){
-    const ts=t0+i*86400000, d=new Date(ts), iso=dayISO(ts);
-    const isT=trained.has(iso), isR=rest.has(iso), isToday=i===0, fut=i>0;
-    const missed=!fut&&!isToday&&!isT&&!isR&&firstEver&&iso>firstEver;
-    const cls=["dcard",isT?"trained":"",isR&&!isT?"rest":"",missed?"missed":"",isToday?"today":"",fut?"future":""].join(" ");
-    const icon=isT?"✓":isR?"🚶":missed?"·":"✓";
-    const onclick=isT?`openSession('${sesByDay[iso].id}')`:isToday?"startOrResumeWorkout()":"";
-    cards.push(`<div class="${cls}" data-i="${i}" ${onclick?`onclick="${onclick}"`:""}>
-      <div class="dw">${d.toLocaleDateString("en-GB",{weekday:"short"})}</div>
+  let out="";
+  for(let i=0;i<7;i++){
+    const ts=mon+i*86400000, d=new Date(ts), iso=dayISO(ts);
+    const isT=trained.has(iso), isR=rest.has(iso), isToday=iso===today, fut=ts>t0;
+    const missed=broken.has(iso);
+    const cls=["dcard",isT?"trained":"",isR&&!isT?"rest":"",missed?"missed":"",isToday?"today":"",fut?"future":""].filter(Boolean).join(" ");
+    const icon=isT?"✓":isR?"🚶":missed?"✕":"";
+    const click=isT?`openSession('${sesByDay[iso].id}')`:isToday?"startOrResumeWorkout()":"";
+    out+=`<div class="${cls}" ${click?`onclick="${click}"`:""}>
+      <div class="dw">${["M","T","W","T","F","S","S"][i]}</div>
       <div class="dn">${d.getDate()}</div>
       <div class="dc">${icon}</div>
-      ${isT?`<div class="dl">${sesByDay[iso].workout}</div>`:""}
-    </div>`);
+    </div>`;
   }
-  return `<div class="daystrip" id="daystrip">${cards.join("")}</div>`;
-}
-function initDayStrip(){
-  const strip=el("daystrip"); if(!strip) return;
-  const today=strip.querySelector('.dcard.today'); if(!today) return;
-  const center=()=>{ strip.scrollLeft = today.offsetLeft - (strip.clientWidth/2 - today.offsetWidth/2); };
-  center();
-  const cards=[...strip.querySelectorAll(".dcard")];
-  let raf=null;
-  const layout=()=>{
-    raf=null;
-    const mid=strip.scrollLeft+strip.clientWidth/2;
-    for(const c of cards){
-      const cc=c.offsetLeft+c.offsetWidth/2, d=(cc-mid)/78; // in card units
-      const a=Math.min(Math.abs(d),3.2);
-      c.style.transform=`translateY(${(a*a*5).toFixed(1)}px) rotate(${(d*5).toFixed(2)}deg) scale(${(1.08-a*.07).toFixed(3)})`;
-      c.style.opacity=(1-a*.16).toFixed(2);
-    }
-  };
-  strip.addEventListener("scroll",()=>{ if(!raf) raf=requestAnimationFrame(layout); },{passive:true});
-  requestAnimationFrame(()=>{ center(); layout(); });
+  return `<div class="daystrip">${out}</div>`;
 }
 function renderToday(){
   const li=levelInfo(S.xp);
@@ -1267,19 +1320,17 @@ function renderToday(){
   const weekRow=Array.from({length:7},(_,i)=>{const d=dayISO(wkStart+i*86400000);const trained=S.sessions.some(x=>x.dateISO===d);const rec=S.recovery.some(r=>r.date===d);return {d,i,trained,rec,future:i>dow,today:i===dow};});
 
   el("screen-today").innerHTML=`
-    <div class="spread" style="margin-bottom:18px">
-      <div>
-        <div class="eyebrow">${new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}</div>
-        <h1 style="font-size:28px;font-weight:600;margin-top:2px">FORGE</h1>
+    <div class="phead">
+      <div class="avatar" onclick="switchTab('profile')">${avatarHTML()}</div>
+      <div class="who">
+        <div class="g">Welcome back, ${esc(S.profile.name)}!</div>
+        <div class="n" id="greet-h1">${greeting()}</div>
       </div>
-      <div style="text-align:right">
-        ${pillsHTML()}
-        <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:8px">
-          <span class="eyebrow" style="font-size:13px">Level ${li.lvl}</span>
-          <span class="xpbar" style="width:80px;margin:0"><i style="width:${li.pct}%"></i></span>
-          <span style="font-size:12px;color:var(--dim)" class="mono">${li.pct}%</span>
-        </div>
-      </div>
+      ${pillsHTML()}
+    </div>
+    <div class="spread" style="margin-bottom:10px">
+      <span style="font-size:19px;font-weight:600;letter-spacing:.012em">Weekly goal</span>
+      <span style="font-size:17px;color:${sesWeek.length>=5?"var(--link)":"var(--muted)"}"><b style="color:var(--text)">${sesWeek.length}</b>/5${sesWeek.length>=5?" ✓":""}</span>
     </div>
     ${dayStripHTML()}
     ${streakCard}
@@ -1296,11 +1347,11 @@ function renderToday(){
         </div>
         <button class="btn primary small" style="flex-shrink:0" onclick="startOrResumeWorkout()">${S.activeSession?"Resume":"Start"}</button>
       </div>
-      <div class="row" style="margin-top:14px;gap:8px">
-        <button class="btn ghost small" style="width:100%;white-space:nowrap;padding:10px 12px" onclick="openRecovery()">🚶 ${recWeek.some(r=>r.date===todayISO)?"Recovery ✓":"Recovery"}</button>
-        <button class="btn ghost small" style="width:100%;white-space:nowrap;padding:10px 12px" onclick="openHealthLog()">❤️ ${health.steps||health.kcal?"Health ✓":"Steps · kcal"}</button>
-      </div>
+      <button class="btn ghost small" style="width:100%;margin-top:14px" onclick="openRecovery()">🚶 ${recWeek.some(r=>r.date===todayISO)?"Active recovery logged ✓":"Log active recovery"}</button>
     </div>
+
+    ${quoteHTML()}
+    ${activityHTML()}
 
     <!-- progress overview -->
     <div class="card">
@@ -1320,14 +1371,13 @@ function renderToday(){
         <div class="stat" style="background:#000"><div class="l">Volume · week</div><div class="v mono" style="font-size:24px;white-space:nowrap">${Math.round(volWeek).toLocaleString("en-GB")}<span style="font-size:14px;color:var(--muted)"> kg</span></div>
           ${volDelta!==null?`<div style="font-size:13px;color:${volDelta>=0?"var(--link)":"var(--danger)"}">${volDelta>=0?"+":""}${volDelta}% vs last week</div>`:`<div style="font-size:13px;color:var(--dim)">First week logged</div>`}</div>
         <div class="stat" style="background:#000"><div class="l">PRs this month</div><div class="v mono" style="font-size:24px">${prsMonth}</div><div style="font-size:13px;color:var(--dim)">${S.prLog.length} lifetime</div></div>
-        <div class="stat" style="background:#000"><div class="l">Steps today</div><div class="v mono" style="font-size:24px">${health.steps?health.steps.toLocaleString("en-GB"):"—"}</div><div style="font-size:13px;color:var(--dim)">${health.steps>=10000?"10k hit ✓":"target 10,000"}</div></div>
-        <div class="stat" style="background:#000"><div class="l">Active kcal</div><div class="v mono" style="font-size:24px">${health.kcal?health.kcal.toLocaleString("en-GB"):"—"}</div><div style="font-size:13px;color:var(--dim)">${health.kcal?"logged":"tap ❤️ to log"}</div></div>
+        <div class="stat" style="background:#000"><div class="l">Longest streak</div><div class="v mono" style="font-size:24px">${S.streak.longest}</div><div style="font-size:13px;color:var(--dim)">current ${S.streak.cur}</div></div>
+        <div class="stat" style="background:#000"><div class="l">Total XP</div><div class="v mono" style="font-size:24px">${S.xp.toLocaleString("en-GB")}</div><div style="font-size:13px;color:var(--dim)">level ${li.lvl}</div></div>
       </div>
     </div>
 
     ${questsHTML()}
     ${leagueHTML(true)}
-    ${quoteHTML()}
     ${near.length?`<div class="card">
       <div class="eyebrow" style="margin-bottom:10px">Chasing</div>
       ${near.map(n=>`<div class="spread" style="padding:7px 0">
@@ -1341,7 +1391,6 @@ function renderToday(){
       ${heatmapHTML(90)}
     </div>`;
   requestAnimationFrame(startEmbers);
-  initDayStrip();
 }
 function cyclePosition(){
   const i=CYCLE.indexOf(S.nextWorkout);
@@ -1477,7 +1526,7 @@ function renderProgress(){
   const scMonthAgo=scoreOnDate(monthAgo);
   const delta=scMonthAgo!==null?sc.overall-scMonthAgo:null;
   el("screen-progress").innerHTML=`
-    <div class="spread" style="margin-bottom:16px"><h1 style="font-size:26px;font-weight:600;letter-spacing:-.02em">Progress</h1>${pillsHTML()}</div>
+    <div class="spread" style="margin-bottom:18px"><h1>Progress</h1>${pillsHTML()}</div>
     <div class="card">
       <div class="eyebrow">Strength score</div>
       <div style="display:flex;align-items:baseline;gap:12px;margin-top:6px">
@@ -1952,7 +2001,7 @@ function renderAwards(){
   const unlocked=ACHIEVEMENTS.filter(a=>S.achievements[a.id]);
   const locked=ACHIEVEMENTS.filter(a=>!S.achievements[a.id]);
   el("screen-awards").innerHTML=`
-    <div class="spread" style="margin-bottom:4px"><h1 style="font-size:26px;font-weight:600;letter-spacing:-.02em">Awards</h1>${pillsHTML()}</div>
+    <div class="spread" style="margin-bottom:4px"><h1>Awards</h1>${pillsHTML()}</div>
     <div style="color:var(--muted);font-size:14px;margin-bottom:18px;font-weight:600">${unlocked.length} of ${ACHIEVEMENTS.length} trophies unlocked</div>
     ${leagueHTML(false)}
     <div class="card">
@@ -1986,7 +2035,7 @@ function renderProfile(){
   const li=levelInfo(S.xp);
   const totVol=sum(S.sessions.map(s=>s.volume));
   el("screen-profile").innerHTML=`
-    <div class="spread" style="margin-bottom:16px"><h1 style="font-size:26px;font-weight:600;letter-spacing:-.02em">Profile</h1>${pillsHTML()}</div>
+    <div class="spread" style="margin-bottom:18px"><h1>Profile</h1>${pillsHTML()}</div>
     <div class="card" style="display:flex;gap:16px;align-items:center">
       <div style="width:64px;height:64px;border-radius:50%;background:var(--brand);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:26px">${esc(S.profile.name[0]||"J")}</div>
       <div style="flex:1">
@@ -2008,6 +2057,16 @@ function renderProfile(){
     </div>`:""}
     <div class="card" style="margin-top:14px">
       <div class="eyebrow" style="margin-bottom:6px">Settings</div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Your name</div>
+          <div style="font-size:12px;color:var(--muted)">Used in your daily greeting</div></div>
+        <input type="text" style="width:130px;text-align:right" value="${esc(S.profile.name)}" onchange="S.profile.name=this.value.trim().slice(0,18)||'Joe';save();renderProfile()">
+      </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Daily goals</div>
+          <div style="font-size:12px;color:var(--muted)">Steps · kcal · water</div></div>
+        <button class="btn ghost small" onclick="openGoals()">Edit</button>
+      </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Session window</div>
           <div style="font-size:12px;color:var(--muted)">Max recovery time between workouts</div></div>
@@ -2048,6 +2107,20 @@ function renderProfile(){
       <button class="btn danger small" style="width:100%" onclick="resetAll()">Reset all data</button>
     </div>
     <div style="text-align:center;color:var(--dim);font-size:11px;margin-top:6px">FORGE · your data never leaves this device</div>`;
+}
+function openGoals(){
+  const g=S.settings.goals;
+  openSheet(`<h2 style="font-size:24px;margin-bottom:16px">Daily goals</h2>
+    <div class="row">
+      <label class="fld"><span>Steps</span><input type="number" id="g-steps" inputmode="numeric" value="${g.steps}"></label>
+      <label class="fld"><span>Active kcal</span><input type="number" id="g-kcal" inputmode="numeric" value="${g.kcal}"></label>
+    </div>
+    <label class="fld"><span>Water (ml)</span><input type="number" id="g-water" inputmode="numeric" value="${g.water}"></label>
+    <button class="btn primary" onclick="saveGoals()">Save goals</button>`);
+}
+function saveGoals(){
+  S.settings.goals={steps:parseInt(el("g-steps").value)||10000,kcal:parseInt(el("g-kcal").value)||600,water:parseInt(el("g-water").value)||3000};
+  save(); closeSheet(); renderProfile(); toast("Goals updated",true);
 }
 function toggleNotify(on){
   if(on && "Notification" in window && Notification.permission!=="granted"){
@@ -2098,12 +2171,14 @@ function startOrResumeWorkout(){
 }
 function quitWorkout(){
   if(S.activeSession.sets.length===0 || confirm("Leave workout? Progress so far is kept — you can resume any time.")){
+    clearInterval(restT); restT=null;
     el("workout-overlay").classList.remove("open");
     renderAll();
   }
 }
 function abandonWorkout(){
   if(!confirm("Discard this workout entirely? Logged sets will be lost.")) return;
+  clearInterval(restT); restT=null;
   S.activeSession=null; save();
   el("workout-overlay").classList.remove("open");
   renderAll();
@@ -2179,16 +2254,17 @@ function renderWorkout(){
       <span style="font-size:15px;color:var(--muted)">Set ${setN} of ${pr.sets}</span>
       <span class="setdots" style="margin:0">${Array.from({length:pr.sets},(_,i)=>`<i class="${i<doneSets.length?"done":i===doneSets.length?"cur":""}" style="width:18px"></i>`).join("")}</span>
     </div>
+    ${restBarHTML()}
     <div class="row" style="gap:10px">
       <div class="tile">
         <div class="tl">${unit}</div>
-        <input class="tv mono" id="in-w" type="number" inputmode="decimal" step="0.5" value="${w}">
-        <div class="tb"><button onclick="bumpW(-${def.inc})">−</button><button onclick="bumpW(${def.inc})">+</button></div>
+        <input class="tv mono" id="in-w" type="number" inputmode="decimal" step="0.5" value="${w}" readonly onclick="editNum(this)" onblur="this.readOnly=true">
+        <div class="tb"><button onpointerdown="event.preventDefault()" onclick="bumpW(-${def.inc})">−</button><button onpointerdown="event.preventDefault()" onclick="bumpW(${def.inc})">+</button></div>
       </div>
       <div class="tile">
         <div class="tl">Reps${def.perLeg?" / leg":""}</div>
-        <input class="tv mono" id="in-r" type="number" inputmode="numeric" value="${suggReps}">
-        <div class="tb"><button onclick="bumpR(-1)">−</button><button onclick="bumpR(1)">+</button></div>
+        <input class="tv mono" id="in-r" type="number" inputmode="numeric" value="${suggReps}" readonly onclick="editNum(this)" onblur="this.readOnly=true">
+        <div class="tb"><button onpointerdown="event.preventDefault()" onclick="bumpR(-1)">−</button><button onpointerdown="event.preventDefault()" onclick="bumpR(1)">+</button></div>
       </div>
     </div>
     ${doneSets.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${doneSets.map((s,i)=>`<span class="tag gold mono">${i+1} · ${fmtKg(s.w)}×${s.reps}</span>`).join("")}<span class="tag gold mono" style="opacity:.7">${fmtKg(volSoFar)}kg</span></div>`:""}
@@ -2196,8 +2272,9 @@ function renderWorkout(){
     <button class="btn primary" style="margin-top:20px" onclick="completeSet()">Complete set <span class="xpchip" style="background:rgba(255,255,255,.18);color:#fff">⚡ +${XP.SET}</span></button>
   </div>`;
 }
-function bumpW(d){ const i=el("in-w"); i.value=Math.max(0,Math.round((parseFloat(i.value||0)+d)*10)/10); }
-function bumpR(d){ const i=el("in-r"); i.value=Math.max(0,parseInt(i.value||0)+d); }
+function bumpW(d){ const i=el("in-w"); i.value=Math.max(0,Math.round((parseFloat(i.value||0)+d)*10)/10); haptic(8); }
+function bumpR(d){ const i=el("in-r"); i.value=Math.max(0,parseInt(i.value||0)+d); haptic(8); }
+function editNum(inp){ inp.readOnly=false; inp.focus(); try{ inp.select(); }catch(e){} }
 
 function completeSet(){
   const A=S.activeSession, wk=WORKOUTS[A.workout];
@@ -2268,52 +2345,59 @@ function advanceAfter(idx){
   } else finishWorkout();
 }
 
-/* ---------------- rest timer ---------------- */
-let restT=null, restLeft=0, restTotal=0, restNext=null;
+/* ---------------- rest timer (inline, non-blocking) ---------------- */
+let restT=null;
+function restMs(){ const A=S.activeSession; return A&&A.rest?Math.max(0,A.rest.until-Date.now()):0; }
 function startRest(betweenEx,secs){
-  restTotal=(S.settings.restSec>0?S.settings.restSec:null)||secs||120; restLeft=restTotal;
-  restNext=betweenEx||false;
-  drawRest();
-  el("rest-overlay").classList.add("open");
-  clearInterval(restT);
-  restT=setInterval(()=>{
-    restLeft--;
-    if(restLeft<=0){ endRest(true); return; }
-    drawRest();
-  },1000);
+  const A=S.activeSession; if(!A) return;
+  const total=(S.settings.restSec>0?S.settings.restSec:null)||secs||120;
+  A.rest={until:Date.now()+total*1000,total,next:!!betweenEx};
+  save(); renderWorkout();
+  clearInterval(restT); restT=setInterval(tickRest,250); tickRest();
 }
-function drawRest(){
-  const R=104, C=2*Math.PI*R;
-  const p=restLeft/restTotal;
-  const A=S.activeSession, wk=WORKOUTS[A.workout];
-  const nextEx=EXERCISES[wk.ex[A.exIndex]];
-  el("rest-overlay").innerHTML=`
-    <div class="eyebrow">${restNext?"Next exercise in":"Next set in"}</div>
-    <div class="ring-wrap">
-      <svg width="240" height="240" viewBox="0 0 240 240">
-        <circle cx="120" cy="120" r="${R}" fill="none" stroke="var(--card3)" stroke-width="12"/>
-        <circle cx="120" cy="120" r="${R}" fill="none" stroke="var(--brand)" stroke-width="12" stroke-linecap="round"
-          stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}" style="transition:stroke-dashoffset 1s linear"/>
-      </svg>
-      <div class="t">
-        <div class="big-num mono" style="font-size:56px">${fmtDur(restLeft)}</div>
-        <div style="color:var(--muted);font-weight:600;font-size:14px">${restNext?"Up next: ":""}${nextEx.short}</div>
-      </div>
-    </div>
-    <div class="row" style="width:260px">
-      <button class="btn ghost" onclick="restLeft+=30;restTotal=Math.max(restTotal,restLeft);drawRest()">+30 sec</button>
-      <button class="btn primary" onclick="endRest(false)">Skip rest</button>
-    </div>`;
+function tickRest(){
+  const A=S.activeSession;
+  if(!A||!A.rest){ clearInterval(restT); restT=null; return; }
+  const left=restMs(), t=el("rest-time"), b=el("rest-bar");
+  if(!t){ return; }
+  t.textContent=fmtDur(Math.ceil(left/1000));
+  if(b) b.style.width=(left/(A.rest.total*1000)*100)+"%";
+  if(left<=0) endRest(true);
 }
+function addRest(sec){ const A=S.activeSession; if(A&&A.rest){ A.rest.until+=sec*1000; A.rest.total+=sec; save(); tickRest(); haptic(10); } }
 function endRest(natural){
-  clearInterval(restT);
-  el("rest-overlay").classList.remove("open");
+  clearInterval(restT); restT=null;
+  const A=S.activeSession; if(A) A.rest=null;
+  save();
   if(natural){ sndTimer(); haptic([60,80,60,80,60]); }
   renderWorkout();
+}
+function restBarHTML(){
+  const A=S.activeSession; if(!A||!A.rest) return "";
+  const wk=WORKOUTS[A.workout], nextEx=EXERCISES[wk.ex[A.exIndex]];
+  const left=restMs(), pct=left/(A.rest.total*1000)*100;
+  return `<div class="restbar">
+    <div class="spread">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <span class="rdot"></span>
+        <div style="min-width:0">
+          <div style="font-size:15px;font-weight:600">Rest</div>
+          <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${A.rest.next?"Next: "+nextEx.short:"Next set"}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="mono" id="rest-time" style="font-size:26px;font-weight:600;font-family:'SF Pro Display',-apple-system,sans-serif">${fmtDur(Math.ceil(left/1000))}</span>
+        <button class="rbtn" onclick="addRest(30)">+30s</button>
+        <button class="rbtn skip" onclick="endRest(false)">Skip</button>
+      </div>
+    </div>
+    <div class="rtrack"><i id="rest-bar" style="width:${pct}%"></i></div>
+  </div>`;
 }
 
 /* ---------------- finish workout ---------------- */
 function finishWorkout(){
+  clearInterval(restT); restT=null;
   const A=S.activeSession;
   const now=Date.now();
   A.xp+=XP.WORKOUT;
@@ -2582,7 +2666,9 @@ handleExpiry();
 renderToday();
 if(S.activeSession){
   // resume in-progress workout after refresh
+  if(S.activeSession.rest && S.activeSession.rest.until<=Date.now()) S.activeSession.rest=null;
   renderWorkout(); el("workout-overlay").classList.add("open");
+  if(S.activeSession.rest){ restT=setInterval(tickRest,250); tickRest(); }
 }
 
 /* ---------------- PWA + update banner ---------------- */
