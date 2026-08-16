@@ -66,7 +66,7 @@ b,strong{font-weight:600}
 @keyframes shine{from{transform:translateX(-130%) skewX(-18deg)}to{transform:translateX(230%) skewX(-18deg)}}
 @keyframes ringPulse{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-.eyebrow{font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.eyebrow{font-size:14px;font-weight:400;letter-spacing:-.006em;color:var(--muted)}
 .eyebrow.acc{color:var(--link)}
 .big-num{font-size:56px;font-weight:600;letter-spacing:-.005em;line-height:1.07;font-variant-numeric:tabular-nums}
 .mono{font-variant-numeric:tabular-nums}
@@ -121,7 +121,7 @@ b,strong{font-weight:600}
 .quest.done{background:rgba(41,151,255,.08);border-color:rgba(41,151,255,.25)}
 .quest.done .chk{background:var(--brand);color:#fff;animation:pop .4s cubic-bezier(.2,.9,.3,1.3)}
 .quest.done .qt{text-decoration:line-through;color:var(--muted)}
-.quest .qt{flex:1;font-weight:600;font-size:16px;letter-spacing:-.01em}
+.quest .qt{flex:1;font-weight:500;font-size:16px;letter-spacing:-.022em}
 .quest .qs{font-size:13px;color:var(--muted);font-weight:400;margin-top:1px}
 .qbar{height:8px;border-radius:4px;background:var(--card3);overflow:hidden;margin:12px 0 4px}
 .qbar i{display:block;height:100%;background:var(--brand);border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
@@ -151,7 +151,7 @@ b,strong{font-weight:600}
 .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat{background:var(--card);border:none;border-radius:20px;padding:16px}
 .stat .v{font-size:28px;font-weight:600;letter-spacing:.007em;margin-top:2px;font-family:"SF Pro Display",-apple-system,sans-serif}
-.stat .l{font-size:12px;color:var(--muted);font-weight:500;letter-spacing:.04em;text-transform:uppercase}
+.stat .l{font-size:14px;color:var(--muted);font-weight:400;letter-spacing:-.006em}
 .xpbar{height:8px;border-radius:4px;background:var(--card3);overflow:hidden;margin-top:8px}
 .xpbar i{display:block;height:100%;background:var(--brand);border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .screen>.spread:first-child .xpbar{background:var(--card3)} .screen>.spread:first-child .xpbar i{background:var(--brand)}
@@ -197,14 +197,14 @@ b,strong{font-weight:600}
 .input-stepper .val{flex:1;text-align:center;background:none;border:none;color:var(--text);font-family:"SF Pro Display",-apple-system,sans-serif;
   font-size:40px;font-weight:600;letter-spacing:0;width:90px;font-variant-numeric:tabular-nums;outline:none}
 .tile{background:var(--card2);border-radius:22px;padding:14px 14px 12px}
-.tile .tl{font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:500;margin-bottom:4px}
+.tile .tl{font-size:14px;color:var(--muted);letter-spacing:-.006em;font-weight:400;margin-bottom:4px}
 .tile .tv{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:44px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-align:center;background:none;border:none;color:var(--text);width:100%;outline:none}
 .tile .tb{display:flex;gap:8px;margin-top:10px}
 .tile .tb button{flex:1;height:44px;border-radius:9999px;border:none;background:var(--card3);color:var(--text);font-size:24px;font-family:inherit;cursor:pointer}
 .tile .tb button:active{filter:brightness(1.2)}
 .score{background:var(--card);border-radius:var(--r);padding:20px 22px;margin:14px 0 12px}
 .score .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px}
-.score .side .k{font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.score .side .k{font-size:14px;color:var(--muted);letter-spacing:-.006em;font-weight:400}
 .score .side .n{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:40px;font-weight:600;line-height:1.05;letter-spacing:-.005em;font-variant-numeric:tabular-nums}
 .score .side .u{font-size:13px;color:var(--muted);margin-top:2px}
 .score .side.right{text-align:right}
@@ -411,6 +411,7 @@ function freshState(){
     prLog:[],           // {date,ex,type,label}
     streak:{cur:0,longest:0,lastEnd:null,windowEnds:null,tokens:0,tokenProgress:0,history:[],startedAt:null,protectedDates:[]},
     recovery:[],        // active rest days: {date,ts,type,value}
+    health:[],          // {date,steps,kcal} — manual or via Shortcuts URL
     xpLog:[],           // [{ts,amount,reason}] — backfilled from sessions on first load
     quests:{date:null,done:{},perfect:false},  // per-day quest completion
     league:{tier:0,weekKey:null,best:0,history:[]},
@@ -435,6 +436,7 @@ function load(){
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
+  if(!S.health) S.health=[];
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
 }
 
@@ -673,7 +675,7 @@ function openRecovery(){
       ${Object.entries(RECOVERY_TYPES).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}
     </select></label>
     <label class="fld"><span>Detail (steps, km, or minutes — optional)</span><input type="number" id="rec-val" inputmode="numeric" placeholder="12500"></label>
-    <button class="btn primary" onclick="saveRecovery()">✓ LOG ACTIVE RECOVERY</button>`);
+    <button class="btn primary" onclick="saveRecovery()">Log active recovery</button>`);
 }
 function lastWorkoutLetter(){ return S.sessions.length?S.sessions[S.sessions.length-1].workout:null; }
 function saveRecovery(){
@@ -996,6 +998,57 @@ function nextQuote(manual){
 function scheduleQuote(){ clearTimeout(quoteT); quoteT=setTimeout(()=>{ if(activeTab==="today"&&!document.hidden) nextQuote(false); else scheduleQuote(); },10000); }
 scheduleQuote();
 
+
+/* ---------------- health quick-log (steps / active kcal) ---------------- */
+function openHealthLog(){
+  const d=dayISO(Date.now()); const h=S.health.find(x=>x.date===d)||{};
+  openSheet(`
+    <h2 style="font-size:24px;margin-bottom:4px">Today's activity</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Web apps can't read Apple Health directly. Log the two numbers that matter, or automate it with the Shortcut below.</p>
+    <div class="row">
+      <label class="fld"><span>Steps</span><input type="number" id="hl-steps" inputmode="numeric" placeholder="10000" value="${h.steps||""}"></label>
+      <label class="fld"><span>Active kcal</span><input type="number" id="hl-kcal" inputmode="numeric" placeholder="600" value="${h.kcal||""}"></label>
+    </div>
+    <button class="btn primary" onclick="saveHealth()">Save</button>
+    <div class="card" style="margin-top:16px;background:#000">
+      <div style="font-size:15px;font-weight:600">Automate with Shortcuts</div>
+      <ol style="font-size:14px;color:var(--muted);margin:8px 0 0 18px;line-height:1.5">
+        <li>Shortcuts → + → <b>Find Health Samples</b> (Steps, Today, Sum) → Set variable <i>Steps</i></li>
+        <li><b>Find Health Samples</b> (Active Energy, Today, Sum) → Set variable <i>Kcal</i></li>
+        <li><b>Open URLs</b>: <code style="font-size:12px;color:var(--text);word-break:break-all">https://joe-bezzaz-jpg.github.io/forge-workout/?steps=[Steps]&kcal=[Kcal]</code></li>
+        <li>Automation → Time of Day → 9 pm → Run immediately.</li>
+      </ol>
+      <div style="font-size:13px;color:var(--dim);margin-top:8px">Note: iOS may open that link in Safari rather than the installed app; if the numbers don't show up in FORGE, use manual entry — it takes 5 seconds.</div>
+    </div>`);
+}
+function saveHealth(){
+  const d=dayISO(Date.now());
+  const st=parseInt(el("hl-steps").value)||0, kc=parseInt(el("hl-kcal").value)||0;
+  upsertHealth(d,st,kc); closeSheet(); renderAll(); toast("❤️ Activity logged",true);
+}
+function upsertHealth(d,steps,kcal){
+  const e=S.health.find(x=>x.date===d);
+  if(e){ if(steps) e.steps=steps; if(kcal) e.kcal=kcal; } else S.health.push({date:d,steps:steps||0,kcal:kcal||0});
+  // 10k+ steps counts as active recovery automatically
+  if(steps>=10000 && !S.recovery.some(r=>r.date===d)){
+    S.recovery.push({date:d,ts:Date.now(),type:"steps",value:steps});
+    const stk=S.streak;
+    if(stk.cur&&stk.windowEnds&&Date.now()<stk.windowEnds&&recoveryDaysSinceWorkout()<=2) stk.windowEnds=Math.max(stk.windowEnds,Date.now()+windowMs());
+    if(!S.xpLog.some(x=>x.reason==="Active recovery"&&dayISO(x.ts)===d)) addXP(XP.RECOVERY,"Active recovery");
+  }
+  save();
+}
+(function importHealthFromURL(){
+  try{
+    const q=new URLSearchParams(location.search);
+    if(q.has("steps")||q.has("kcal")){
+      upsertHealth(dayISO(Date.now()),parseInt(q.get("steps"))||0,parseInt(q.get("kcal"))||0);
+      history.replaceState(null,"",location.pathname);
+      setTimeout(()=>toast("❤️ Health data imported",true),600);
+    }
+  }catch(e){}
+})();
+
 /* ---------------- achievements ---------------- */
 const ACHIEVEMENTS=[
   {id:"ignition",icon:"🔥",name:"Ignition",desc:"Complete your first workout.",check:s=>s.workoutsDone>=1},
@@ -1113,6 +1166,23 @@ function renderToday(){
     </div>`;
   }
 
+  // ---- progress overview numbers ----
+  const sc=computeScore();
+  const scMonthAgo=scoreOnDate(dayISO(Date.now()-30*86400000));
+  const scDelta=scMonthAgo!==null?sc.overall-scMonthAgo:null;
+  const scPts=S.scoreHistory.slice(-24).map(x=>({x:new Date(x.date+"T12:00").getTime(),y:x.score}));
+  const wkKey=weekKey(Date.now()), wkStart=new Date(wkKey+"T00:00").getTime();
+  const sesWeek=S.sessions.filter(x=>new Date(x.dateISO+"T12:00").getTime()>=wkStart);
+  const recWeek=S.recovery.filter(r=>new Date(r.date+"T12:00").getTime()>=wkStart);
+  const volWeek=sum(sesWeek.map(x=>x.volume));
+  const lastWkStart=wkStart-7*86400000;
+  const volLast=sum(S.sessions.filter(x=>{const t=new Date(x.dateISO+"T12:00").getTime();return t>=lastWkStart&&t<wkStart;}).map(x=>x.volume));
+  const volDelta=volLast>0?Math.round((volWeek-volLast)/volLast*100):null;
+  const todayISO=dayISO(Date.now());
+  const health=S.health.find(h=>h.date===todayISO)||{};
+  const dow=(new Date().getDay()+6)%7; // 0=Mon
+  const weekRow=Array.from({length:7},(_,i)=>{const d=dayISO(wkStart+i*86400000);const trained=S.sessions.some(x=>x.dateISO===d);const rec=S.recovery.some(r=>r.date===d);return {d,i,trained,rec,future:i>dow,today:i===dow};});
+
   el("screen-today").innerHTML=`
     <div class="spread" style="margin-bottom:18px">
       <div>
@@ -1122,48 +1192,74 @@ function renderToday(){
       <div style="text-align:right">
         ${pillsHTML()}
         <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:8px">
-          <span class="eyebrow">Lvl ${li.lvl}</span>
+          <span class="eyebrow" style="font-size:13px">Level ${li.lvl}</span>
           <span class="xpbar" style="width:80px;margin:0"><i style="width:${li.pct}%"></i></span>
-          <span style="font-size:11px;color:var(--dim);font-weight:600" class="mono">${li.pct}%</span>
+          <span style="font-size:12px;color:var(--dim)" class="mono">${li.pct}%</span>
         </div>
       </div>
     </div>
     ${streakCard}
-    ${quoteHTML()}
-    <div class="nextup">
-      <div class="spread">
-        <div class="eyebrow acc">Next up</div>
-        <div class="eyebrow">${cyclePosition()}</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:18px;margin:14px 0 16px">
-        <div class="wletter">${nw}</div>
-        <div>
-          <div style="font-size:19px;font-weight:600;letter-spacing:-.01em">${wk.title.toUpperCase()}</div>
-          <div style="color:var(--muted);font-size:14px;margin-top:4px">${wk.ex.map(e=>EXERCISES[e].short).join(" · ")}</div>
-          ${wk.ex.map(e=>{const t=targetFor(e,nw),pr=wk.p[e];return `<div style="font-size:12px;color:var(--dim);margin-top:2px">${EXERCISES[e].short} <span style="color:var(--muted)">${pr.sets}×${pr.repLo}–${pr.repHi}</span>: ${t.mode==="first"?"first session":t.mode==="increase"?"⬆ "+fmtKg(t.weight)+EXERCISES[e].unit:"beat "+t.prevReps+" reps @ "+fmtKg(t.weight)+EXERCISES[e].unit}</div>`;}).join("")}
+
+    <!-- next up: one line, no exercise list -->
+    <div class="nextup" style="padding:18px 20px">
+      <div class="spread" style="gap:14px">
+        <div style="display:flex;align-items:center;gap:14px;min-width:0">
+          <div class="wletter" style="font-size:40px">${nw}</div>
+          <div style="min-width:0">
+            <div style="font-size:14px;color:var(--muted)">Next up · ${cyclePosition()}</div>
+            <div style="font-size:19px;font-weight:600;letter-spacing:.012em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wk.title}</div>
+          </div>
         </div>
+        <button class="btn primary small" style="flex-shrink:0" onclick="startOrResumeWorkout()">${S.activeSession?"Resume":"Start"}</button>
       </div>
-      <button class="btn primary" onclick="startOrResumeWorkout()">${S.activeSession?"RESUME WORKOUT":"START WORKOUT"} <span class="xpchip" style="background:rgba(255,255,255,.18);color:#fff">⚡ +${XP.WORKOUT}</span></button>
-      <button class="btn ghost small" style="width:100%;margin-top:10px" onclick="openRecovery()">🚶 ${S.recovery.some(r=>r.date===dayISO(Date.now()))?"Active recovery logged ✓":"Log active recovery"} ${S.recovery.some(r=>r.date===dayISO(Date.now()))?"":`<span class="xpchip">⚡ +${XP.RECOVERY}</span>`}</button>
+      <div class="row" style="margin-top:14px;gap:8px">
+        <button class="btn ghost small" style="width:100%;white-space:nowrap;padding:10px 12px" onclick="openRecovery()">🚶 ${recWeek.some(r=>r.date===todayISO)?"Recovery ✓":"Recovery"}</button>
+        <button class="btn ghost small" style="width:100%;white-space:nowrap;padding:10px 12px" onclick="openHealthLog()">❤️ ${health.steps||health.kcal?"Health ✓":"Steps · kcal"}</button>
+      </div>
     </div>
+
+    <!-- progress overview -->
+    <div class="card">
+      <div class="spread" style="align-items:flex-end;gap:12px">
+        <div style="flex-shrink:0">
+          <div class="eyebrow">Strength score</div>
+          <div style="display:flex;align-items:baseline;gap:8px;white-space:nowrap">
+            <div class="big-num" style="font-size:44px">${sc.overall||"—"}</div>
+            ${scDelta!==null&&scDelta!==0?`<span style="font-size:15px;color:${scDelta>0?"var(--link)":"var(--danger)"}">${scDelta>0?"↑":"↓"}${Math.abs(scDelta)}</span>`:""}
+          </div>
+        </div>
+        <div style="flex:1;min-width:0;max-width:170px">${scPts.length>=2?lineChart(scPts,{w:170,h:60,fill:true,mini:true}):`<div style="font-size:12px;color:var(--dim);text-align:right">Trend appears after a few sessions</div>`}</div>
+      </div>
+      ${scDelta!==null&&scDelta!==0?`<div style="font-size:13px;color:var(--muted);margin-top:2px">${scDelta>0?"Up":"Down"} ${Math.abs(scDelta)} in the last 30 days</div>`:""}
+      <div style="display:flex;justify-content:space-between;gap:6px;margin:18px 0 6px">
+        ${weekRow.map(d=>`<div style="text-align:center;flex:1">
+          <div style="width:34px;height:34px;margin:0 auto;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;
+            background:${d.trained?"var(--brand)":d.rec?"var(--card3)":"transparent"};border:${d.trained||d.rec?"none":d.future?"1px dashed var(--line2)":"1px solid var(--line2)"};color:${d.trained?"#fff":d.rec?"var(--text)":"var(--dim)"};${d.today&&!d.trained&&!d.rec?"box-shadow:0 0 0 2px var(--link) inset":""}">${d.trained?"✓":d.rec?"🚶":""}</div>
+          <div style="font-size:11px;color:${d.today?"var(--text)":"var(--dim)"};margin-top:4px">${["M","T","W","T","F","S","S"][d.i]}</div></div>`).join("")}
+      </div>
+      <div style="font-size:14px;color:var(--muted);text-align:center;margin-bottom:14px">${sesWeek.length} of 5 sessions this week${recWeek.length?` · ${recWeek.length} active rest`:""}</div>
+      <div class="statgrid">
+        <div class="stat" style="background:#000"><div class="l">Volume · week</div><div class="v mono" style="font-size:24px;white-space:nowrap">${Math.round(volWeek).toLocaleString("en-GB")}<span style="font-size:14px;color:var(--muted)"> kg</span></div>
+          ${volDelta!==null?`<div style="font-size:13px;color:${volDelta>=0?"var(--link)":"var(--danger)"}">${volDelta>=0?"+":""}${volDelta}% vs last week</div>`:`<div style="font-size:13px;color:var(--dim)">First week logged</div>`}</div>
+        <div class="stat" style="background:#000"><div class="l">PRs this month</div><div class="v mono" style="font-size:24px">${prsMonth}</div><div style="font-size:13px;color:var(--dim)">${S.prLog.length} lifetime</div></div>
+        <div class="stat" style="background:#000"><div class="l">Steps today</div><div class="v mono" style="font-size:24px">${health.steps?health.steps.toLocaleString("en-GB"):"—"}</div><div style="font-size:13px;color:var(--dim)">${health.steps>=10000?"10k hit ✓":"target 10,000"}</div></div>
+        <div class="stat" style="background:#000"><div class="l">Active kcal</div><div class="v mono" style="font-size:24px">${health.kcal?health.kcal.toLocaleString("en-GB"):"—"}</div><div style="font-size:13px;color:var(--dim)">${health.kcal?"logged":"tap ❤️ to log"}</div></div>
+      </div>
+    </div>
+
     ${questsHTML()}
     ${leagueHTML(true)}
-    <div class="statgrid">
-      <div class="stat"><div class="l">🏆 Workouts</div><div class="v mono">${S.workoutsDone}</div></div>
-      <div class="stat"><div class="l">⚡ PRs this month</div><div class="v mono">${prsMonth}</div></div>
-      <div class="stat"><div class="l">🔥 Longest streak</div><div class="v mono">${st.longest}</div></div>
-      <div class="stat"><div class="l">Total XP</div><div class="v mono">${S.xp.toLocaleString("en-GB")}</div></div>
-    </div>
-    ${near.length?`<div class="card" style="margin-top:14px">
+    ${quoteHTML()}
+    ${near.length?`<div class="card">
       <div class="eyebrow" style="margin-bottom:10px">Chasing</div>
       ${near.map(n=>`<div class="spread" style="padding:7px 0">
         <div style="display:flex;gap:12px;align-items:center"><span class="emo" style="width:40px;height:40px;font-size:20px">${n.icon}</span>
-        <div><div style="font-weight:600;font-size:14px">${n.name}</div><div style="font-size:12px;color:var(--muted)">${n.desc}</div></div></div>
-        <div class="mono" style="font-size:12px;color:var(--accent);font-weight:600">${n.progress}</div>
+        <div><div style="font-weight:600;font-size:15px">${n.name}</div><div style="font-size:13px;color:var(--muted)">${n.desc}</div></div></div>
+        <div class="mono" style="font-size:14px;color:var(--link)">${n.progress}</div>
       </div>`).join("")}
     </div>`:""}
-    <div class="card" style="margin-top:14px">
-      <div class="hd"><span class="eyebrow">Last 90 days</span><span style="font-size:13px;font-weight:600;color:var(--accent)" class="mono">${consistency90()}% consistent</span></div>
+    <div class="card">
+      <div class="hd"><span class="eyebrow">Last 90 days</span><span style="font-size:14px;color:var(--link)" class="mono">${consistency90()}% consistent</span></div>
       ${heatmapHTML(90)}
     </div>`;
   requestAnimationFrame(startEmbers);
@@ -1252,9 +1348,9 @@ setInterval(()=>{
 },1000);
 
 /* ---------------- SVG line chart ---------------- */
-function lineChart(pts,{w=340,h=160,unit="",accent="var(--accent)",fill=true}={}){
+function lineChart(pts,{w=340,h=160,unit="",accent="var(--accent)",fill=true,mini=false}={}){
   if(pts.length===0) return `<div style="padding:30px 10px;text-align:center;color:var(--dim);font-size:13px">No data yet — log workouts to see progression.</div>`;
-  const pad={l:34,r:10,t:14,b:22};
+  const pad=mini?{l:2,r:6,t:6,b:6}:{l:34,r:10,t:14,b:22};
   const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
   const x0=Math.min(...xs), x1=Math.max(...xs);
   let y0=Math.min(...ys), y1=Math.max(...ys);
@@ -1266,13 +1362,13 @@ function lineChart(pts,{w=340,h=160,unit="",accent="var(--accent)",fill=true}={}
   const area=path+` L${X(x1).toFixed(1)} ${h-pad.b} L${X(x0).toFixed(1)} ${h-pad.b} Z`;
   const gid="g"+Math.random().toString(36).slice(2,8);
   let grid="";
-  for(let i=0;i<=3;i++){
+  if(!mini) for(let i=0;i<=3;i++){
     const gy=pad.t+(h-pad.t-pad.b)*i/3;
     const gv=y1-(y1-y0)*i/3;
     grid+=`<line x1="${pad.l}" y1="${gy}" x2="${w-pad.r}" y2="${gy}" stroke="rgba(255,255,255,.06)"/>
     <text x="${pad.l-6}" y="${gy+3}" text-anchor="end" class="axis-lbl">${Math.round(gv)}</text>`;
   }
-  const xl=pts.length>1?`<text x="${pad.l}" y="${h-6}" class="axis-lbl">${fmtDateShort(dayISO(x0))}</text>
+  const xl=pts.length>1&&!mini?`<text x="${pad.l}" y="${h-6}" class="axis-lbl">${fmtDateShort(dayISO(x0))}</text>
   <text x="${w-pad.r}" y="${h-6}" text-anchor="end" class="axis-lbl">${fmtDateShort(dayISO(x1))}</text>`:"";
   const last=pts[pts.length-1];
   return `<svg viewBox="0 0 ${w} ${h}">
@@ -1285,7 +1381,7 @@ function lineChart(pts,{w=340,h=160,unit="",accent="var(--accent)",fill=true}={}
     ${grid}
     ${fill?`<path d="${area}" fill="url(#${gid})"/>`:""}
     <path d="${path}" fill="none" stroke="url(#${gid}s)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    ${pts.length<=40?pts.map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="3" fill="var(--bg)" stroke="#fff" stroke-width="1.6"/>`).join(""):""}
+    ${pts.length<=40&&!mini?pts.map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="3" fill="var(--bg)" stroke="#fff" stroke-width="1.6"/>`).join(""):""}
     <circle cx="${X(last.x).toFixed(1)}" cy="${Y(last.y).toFixed(1)}" r="5" fill="#f55600" stroke="#fff" stroke-width="2"/>
     ${xl}
   </svg>`;
@@ -1685,7 +1781,7 @@ function reportsViewHTML(){
   // monthly
   const mStart=new Date(); mStart.setDate(1); mStart.setHours(0,0,0,0);
   const mo=periodStats(mStart.getTime(),now+1);
-  const moName=mStart.toLocaleDateString("en-GB",{month:"long"}).toUpperCase();
+  const moName=mStart.toLocaleDateString("en-GB",{month:"long"});
   const biM=bestImprovement(mStart.getTime());
   const lvlNow=levelInfo(S.xp).lvl;
   const lvlMo=levelInfo(Math.max(0,S.xp-mo.xp)).lvl;
@@ -1715,9 +1811,9 @@ function reportsViewHTML(){
   </div>
   <div class="card" style="background:#000;border:1px solid var(--line2)">
     <div class="eyebrow acc" style="margin-bottom:4px">Monthly report</div>
-    <div style="font-size:34px;font-weight:600;letter-spacing:-.02em">${moName}</div>
+    <div style="font-size:34px;font-weight:600;letter-spacing:-.005em">${moName}</div>
     <div class="divider"></div>
-    <div class="big-num" style="font-size:44px">${mo.n}<span style="font-size:16px;color:var(--muted);font-weight:600;letter-spacing:.06em"> WORKOUTS</span></div>
+    <div class="big-num" style="font-size:44px">${mo.n}<span style="font-size:17px;color:var(--muted);font-weight:400"> workouts</span></div>
     <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:14px">
       <span class="tag acc">🔥 ${S.streak.longest} best streak</span>
       <span class="tag gold">🏆 ${mo.prs} PRs</span>
@@ -1979,7 +2075,7 @@ function renderWorkout(){
     </div>`;
   } else {
     score=`<div class="score">
-      <div class="k" style="font-size:12px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Set the bar</div>
+      <div class="k" style="font-size:14px;color:var(--muted)">Set the bar</div>
       <div class="msg" style="margin-top:6px">First ${pr.sets}×${pr.repLo}–${pr.repHi} session. ${t.weight?`Start around ${fmtKg(t.weight)}${def.unit}. `:""}Everything you log today is the score to beat next time.</div>
     </div>`;
   }
@@ -2001,7 +2097,7 @@ function renderWorkout(){
     </div>
     ${score}
     <div class="spread" style="margin:4px 2px 10px">
-      <span style="font-size:13px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase">Set ${setN} of ${pr.sets}</span>
+      <span style="font-size:15px;color:var(--muted)">Set ${setN} of ${pr.sets}</span>
       <span class="setdots" style="margin:0">${Array.from({length:pr.sets},(_,i)=>`<i class="${i<doneSets.length?"done":i===doneSets.length?"cur":""}" style="width:18px"></i>`).join("")}</span>
     </div>
     <div class="row" style="gap:10px">
@@ -2113,7 +2209,7 @@ function drawRest(){
   const A=S.activeSession, wk=WORKOUTS[A.workout];
   const nextEx=EXERCISES[wk.ex[A.exIndex]];
   el("rest-overlay").innerHTML=`
-    <div class="eyebrow" style="letter-spacing:.2em">${restNext?"NEXT EXERCISE":"NEXT SET IN"}</div>
+    <div class="eyebrow">${restNext?"Next exercise in":"Next set in"}</div>
     <div class="ring-wrap">
       <svg width="240" height="240" viewBox="0 0 240 240">
         <circle cx="120" cy="120" r="${R}" fill="none" stroke="var(--card3)" stroke-width="12"/>
@@ -2193,7 +2289,7 @@ function renderPost(s,x){
   el("post-overlay").innerHTML=`<div class="wk-wrap" style="justify-content:flex-start">
     <div class="onband" style="text-align:center;margin:26px 0 8px;animation:pop .5s cubic-bezier(.2,.9,.3,1.3) both;position:relative">
       <span style="position:absolute;left:50%;top:56%;width:110px;height:110px;margin:-55px;border-radius:50%;border:2px solid var(--link);animation:ringPulse 1s ease-out .2s both;pointer-events:none"></span>
-      <div class="eyebrow acc" style="letter-spacing:.22em">Workout complete</div>
+      <div class="eyebrow acc">Workout complete</div>
       <div style="font-size:80px;font-weight:600;letter-spacing:-.015em;line-height:1.05;margin:8px 0 2px;font-family:'SF Pro Display',-apple-system,sans-serif">${s.workout}</div>
       <div style="font-weight:600;opacity:.9">${wkDef(s.workout).title}</div>
     </div>
@@ -2208,7 +2304,7 @@ function renderPost(s,x){
       <div class="big-num" id="post-streak" style="margin-top:4px">${S.streak.cur}</div>
       <div style="color:var(--muted);font-size:13px;margin-top:4px">Momentum secured. Window resets: ${S.settings.windowHours}h.</div>
       ${x.streakBonus?`<div class="tag acc" style="margin-top:8px">+${x.streakBonus} XP streak bonus</div>`:""}
-      ${x.cycleDone?`<div class="tag acc" style="margin-top:8px">FULL A→D CYCLE · +${XP.CYCLE} XP</div>`:""}
+      ${x.cycleDone?`<div class="tag acc" style="margin-top:8px">Full A→D cycle · +${XP.CYCLE} XP</div>`:""}
     </div>
     ${s.prs.length?`<div class="card reveal" style="animation-delay:.35s">
       <div class="eyebrow" style="color:var(--gold);margin-bottom:10px">🏆 ${s.prs.length} new PR${s.prs.length>1?"s":""}</div>
@@ -2247,7 +2343,7 @@ function renderPost(s,x){
         <div class="wletter" style="font-size:40px">${nw}</div>
       </div>
     </div>
-    <button class="btn primary reveal" style="margin-top:8px;animation-delay:.7s" onclick="el('post-overlay').classList.remove('open');switchTab('today')">DONE</button>
+    <button class="btn primary reveal" style="margin-top:8px;animation-delay:.7s" onclick="el('post-overlay').classList.remove('open');switchTab('today')">Done</button>
   </div>`;
   el("post-overlay").classList.add("open");
   setTimeout(settleQuests,900);
@@ -2295,7 +2391,7 @@ function showTokenModal(){
       <h2 style="font-size:22px;font-weight:600;margin:10px 0 6px">Window expired</h2>
       <p style="color:var(--muted);font-size:14px;line-height:1.5">Your ${S.streak.cur}-workout streak is on the line.<br>
       Use a Recovery Token to protect it? You have ${S.streak.tokens}.</p>
-      <button class="btn primary" style="margin-top:18px" onclick="closeSheet();useToken()">🧊 USE RECOVERY TOKEN</button>
+      <button class="btn primary" style="margin-top:18px" onclick="closeSheet();useToken()">🧊 Use recovery token</button>
       <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();breakStreak()">Accept the loss</button>
     </div>`);
 }
@@ -2310,7 +2406,7 @@ function showStreakLost(lost){
   })();
   openSheet(`
     <div style="text-align:center;padding:10px 0">
-      <div class="eyebrow" style="color:var(--danger);letter-spacing:.22em">Momentum lost</div>
+      <div class="eyebrow" style="color:var(--danger)">Momentum lost</div>
       <div class="big-num" style="margin:14px 0 4px">${lost.len}</div>
       <div style="color:var(--muted);font-weight:600">workout streak ended</div>
       <div class="statgrid" style="margin:20px 0;text-align:left">
@@ -2320,7 +2416,7 @@ function showStreakLost(lost){
         <div class="stat"><div class="l">Avg strength gain</div><div class="v mono">${avgImp!==null?(avgImp>=0?"+":"")+avgImp+"%":"—"}</div></div>
       </div>
       <p style="color:var(--muted);font-size:15px;font-weight:600">That run is over.<br>Start the next one.</p>
-      <button class="btn primary" style="margin-top:16px" onclick="closeSheet();startOrResumeWorkout()">REBUILD — START WORKOUT ${S.nextWorkout}</button>
+      <button class="btn primary" style="margin-top:16px" onclick="closeSheet();startOrResumeWorkout()">Rebuild — start Workout ${S.nextWorkout}</button>
     </div>`);
 }
 
