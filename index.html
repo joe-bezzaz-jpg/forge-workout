@@ -260,6 +260,11 @@ b,strong{font-weight:600}
   border-radius:9999px;padding:7px 14px;font-size:14px;color:var(--muted);font-weight:400}
 .target-banner{background:var(--card);border:none;border-radius:22px;padding:18px 20px;margin:14px 0}
 
+/* editable set chips */
+.chipset{border:none;border-radius:9999px;background:var(--card3);color:var(--text);font-family:inherit;
+  font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;padding:7px 13px;cursor:pointer}
+.chipset:active{filter:brightness(1.4)}
+.chipset.undo{background:transparent;color:var(--muted);padding:7px 8px}
 /* superset stacked pair */
 .sscard{background:var(--card);border-radius:22px;padding:16px;margin-bottom:10px;border:1px solid rgba(41,151,255,.18)}
 .ssnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--link);
@@ -616,12 +621,12 @@ function exLevelInfo(xp){
 }
 
 /* ---------------- PR engine ---------------- */
-function checkSetPRs(ex,w,reps,dateISO,silent){
+function checkSetPRs(ex,w,reps,dateISO,hadHistOverride){
   // returns list of PR objects triggered by one set
   if(reps<=0) return [];
   const p = S.prs[ex] = S.prs[ex] || {heaviest:null,e1rm:null,repsAt:{},sesVol:null,best5:null};
   const out=[];
-  const hadHistory = exposuresOf(ex).length>0;
+  const hadHistory = hadHistOverride!==undefined?hadHistOverride:exposuresOf(ex).length>0;
   if(w>0 && (!p.heaviest || w>p.heaviest.w)){
     const prev=p.heaviest; p.heaviest={w,reps,date:dateISO};
     if(prev&&hadHistory) out.push({ex,type:"weight",label:`${fmtKg(w)}kg — heaviest ever`,delta:`+${fmtKg(w-prev.w)}kg`});
@@ -643,11 +648,11 @@ function checkSetPRs(ex,w,reps,dateISO,silent){
   }
   return out;
 }
-function checkSessionPRs(ex,sets,dateISO){
+function checkSessionPRs(ex,sets,dateISO,hadHistOverride){
   const p = S.prs[ex]; if(!p) return [];
   const out=[];
   const vol = sum(sets.map(s=>s.w*s.reps));
-  const hadHistory = exposuresOf(ex).length>0;
+  const hadHistory = hadHistOverride!==undefined?hadHistOverride:exposuresOf(ex).length>0;
   if(vol>0 && (!p.sesVol || vol>p.sesVol.v)){
     const prev=p.sesVol; p.sesVol={v:vol,date:dateISO};
     if(prev&&hadHistory) out.push({ex,type:"volume",label:`${fmtKg(vol)}kg session volume`,delta:`+${fmtKg(vol-prev.v)}kg`});
@@ -2151,13 +2156,14 @@ function openSession(id){
   openSheet(`
     <div class="spread"><h2 style="font-size:22px;font-weight:600">Workout ${s.workout}</h2><span class="tag acc">+${s.xp} XP</span></div>
     <div style="color:var(--muted);font-size:13px;margin:4px 0 14px">${fmtDate(s.dateISO)} · ${wkDef(s.workout).title}${s.dur?` · ${fmtDur(s.dur)}`:""} · ${fmtKg(s.volume)}kg volume</div>
+    <div style="font-size:13px;color:var(--dim);margin-bottom:10px">Tap any set to correct it.</div>
     ${Object.entries(byEx).map(([ex,sets])=>`
       <div class="card">
         <div class="spread"><span style="font-weight:600">${EXERCISES[ex].short}</span>
           <span class="mono" style="color:var(--muted);font-size:13px">${fmtKg(sum(sets.map(x=>x.w*x.reps)))}kg</span></div>
         <div class="divider" style="margin:10px 0"></div>
-        ${sets.map((x,i)=>`<div class="spread mono" style="padding:4px 0;font-size:15px">
-          <span style="color:var(--dim)">Set ${i+1}</span><span style="font-weight:600">${fmtKg(x.w)}${EXERCISES[ex].unit} × ${x.reps}</span></div>`).join("")}
+        ${sets.map((x,i)=>`<div class="spread mono" style="padding:8px 0;font-size:15px;cursor:pointer;border-bottom:1px solid var(--line)" onclick="openEditSet('saved','${s.id}','${ex}',${s.sets.indexOf(x)})">
+          <span style="color:var(--dim)">Set ${i+1}</span><span><span style="font-weight:600">${fmtKg(x.w)}${EXERCISES[ex].unit} \u00D7 ${x.reps}</span><span style="color:var(--dim);margin-left:10px">Edit</span></span></div>`).join("")}
       </div>`).join("")}
     ${s.prs.length?`<div class="card">
       <div class="eyebrow" style="color:var(--gold);margin-bottom:8px">🏆 Records set</div>
@@ -2489,6 +2495,7 @@ function startOrResumeWorkout(){
       })),
       lastReps:{},
     };
+    snapshotSession(S.activeSession);
     save();
   }
   renderWorkout();
@@ -2571,10 +2578,14 @@ function suggestReps(A,ex,pr,doneSets){
   const last=lastExposure(ex,A.workout);
   return last?last.sets[Math.min(doneSets.length,last.sets.length-1)].reps:pr.repHi;
 }
-function setChips(doneSets){
+function setChips(doneSets,ex){
   if(!doneSets.length) return "";
   const vol=sum(doneSets.map(s=>s.w*s.reps));
-  return `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${doneSets.map((s,i)=>`<span class="tag gold mono">${i+1} · ${fmtKg(s.w)}×${s.reps}</span>`).join("")}${vol?`<span class="tag gold mono" style="opacity:.7">${fmtKg(vol)}kg</span>`:""}</div>`;
+  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px">
+    ${doneSets.map((s,i)=>`<button class="chipset" onclick="openEditSet('live','${ex}',${i})">${i+1} \u00B7 ${fmtKg(s.w)}\u00D7${s.reps}</button>`).join("")}
+    ${vol?`<span class="tag gold mono" style="opacity:.6">${fmtKg(vol)}kg</span>`:""}
+    <button class="chipset undo" onclick="undoLastSet()">\u21A9 Undo last</button>
+  </div>`;
 }
 function renderWorkout(){
   const A=S.activeSession, wk=WORKOUTS[A.workout];
@@ -2620,7 +2631,7 @@ function renderWorkout(){
           <span class="mono" style="font-size:13px;color:${o.done.length>=o.pr.sets?"var(--link)":"var(--dim)"};flex-shrink:0">${o.done.length}/${o.pr.sets}</span>
         </div>
         ${tileHTML(o.k,o.def,A.weights[o.k],suggestReps(A,o.k,o.pr,o.done),i)}
-        ${setChips(o.done)}
+        ${setChips(o.done,o.k)}
       </div>`).join("")}
       <div style="flex:1"></div>
       <button class="btn primary" style="margin-top:18px" onclick="completeSuperset()">Complete both <span class="xpchip" style="background:rgba(255,255,255,.18);color:#fff">⚡ +${XP.SET*2}</span></button>
@@ -2640,7 +2651,7 @@ function renderWorkout(){
     </div>
     ${restBarHTML()}
     ${tileHTML(ex,def,A.weights[ex],suggestReps(A,ex,pr,doneSets),null)}
-    ${setChips(doneSets)}
+    ${setChips(doneSets,ex)}
     <div style="flex:1"></div>
     <button class="btn primary" style="margin-top:20px" onclick="completeSet()">Complete set <span class="xpchip" style="background:rgba(255,255,255,.18);color:#fff">⚡ +${XP.SET}</span></button>
   </div>`;
@@ -2731,6 +2742,134 @@ function scoreExercise(ex,sets){
     toast(`\U0001F3CB️ ${total} total ${def.timed?"sec":"reps"} — next session go ${fmtKg(topW+def.inc)}${def.unit}`,true);
     sndPR(); haptic([40,80,40,80,120]);
   }
+}
+
+/* ---------------- editing logged sets ---------------- */
+function snapshotSession(A){
+  A.snap={
+    prs:JSON.parse(JSON.stringify(S.prs||{})),
+    prLogLen:S.prLog.length,
+    mastered:Object.fromEntries(Object.keys(S.exState).map(k=>[k,[...(S.exState[k].mastered||[])]])),
+  };
+}
+/* rebuild everything this session derived, from its raw sets */
+function replaySession(){
+  const A=S.activeSession; if(!A) return;
+  if(!A.snap) snapshotSession(A);
+  S.prs=JSON.parse(JSON.stringify(A.snap.prs));
+  S.prLog.length=A.snap.prLogLen;
+  for(const k in A.snap.mastered) if(S.exState[k]) S.exState[k].mastered=[...A.snap.mastered[k]];
+  A.prs=[]; A.xp=0; A.finished=[];
+  const d=dayISO(Date.now());
+  const seen=new Set(S.sessions.flatMap(x=>x.sets.map(y=>y.ex)));
+  const byEx={};
+  for(const st of A.sets){
+    (byEx[st.ex]=byEx[st.ex]||[]).push(st);
+    A.xp+=XP.SET;
+    const prs=checkSetPRs(st.ex,st.w,st.reps,d,seen.has(st.ex));
+    for(const pp of prs){ A.prs.push(pp); A.xp+=XP.PR; S.prLog.push({date:d,ex:st.ex,type:pp.type,label:pp.label}); }
+  }
+  for(const ex of WORKOUTS[A.workout].ex){
+    const sets=byEx[ex]||[]; const pr=presc(ex,A.workout);
+    if(sets.length<pr.sets) continue;
+    A.finished.push(ex); A.xp+=XP.EXERCISE;
+    const sesPRs=checkSessionPRs(ex,sets,d,seen.has(ex));
+    for(const pp of sesPRs){ A.prs.push(pp); A.xp+=XP.PR; S.prLog.push({date:d,ex,type:pp.type,label:pp.label}); }
+    const topW=Math.max(...sets.map(x=>x.w));
+    const key=A.workout+":"+topW;
+    if(sum(sets.map(x=>x.reps))>=upThreshold(ex,A.workout) && !S.exState[ex].mastered.includes(key)){
+      S.exState[ex].mastered.push(key); A.xp+=XP.MASTER;
+    }
+  }
+  const n=nextIncompleteIdx();
+  if(n>=0) A.exIndex=n;
+  save();
+}
+function undoLastSet(){
+  const A=S.activeSession; if(!A||!A.sets.length) return;
+  const last=A.sets[A.sets.length-1];
+  A.sets.pop();
+  replaySession();
+  clearInterval(restT); restT=null; A.rest=null; save();
+  renderWorkout(); haptic(20);
+  toast("Removed "+EXERCISES[last.ex].short+" "+fmtKg(last.w)+"×"+last.reps);
+}
+/* unified set editor — works on the live session and on saved ones */
+function openEditSet(scope,exOrId,arg1,arg2){
+  let ex,set,label;
+  if(scope==="live"){
+    const A=S.activeSession; ex=exOrId;
+    const list=A.sets.filter(x=>x.ex===ex); set=list[arg1];
+    label="Set "+(arg1+1)+" · "+EXERCISES[ex].short;
+  } else {
+    const ses=S.sessions.find(x=>String(x.id)===String(exOrId)); if(!ses) return;
+    ex=arg1; set=ses.sets[arg2];
+    label="Set · "+EXERCISES[ex].short+" · "+fmtDateShort(ses.dateISO);
+  }
+  if(!set) return;
+  const def=EXERCISES[ex];
+  openSheet(`<h2 style="font-size:22px;margin-bottom:2px">Edit set</h2>
+    <div style="color:var(--muted);font-size:15px;margin-bottom:16px">${label}</div>
+    <div class="row" style="gap:10px">
+      <div class="tile"><div class="tl">${unitLabel(def)}</div>
+        <input class="tv mono" id="ed-w" type="number" inputmode="decimal" step="0.5" value="${set.w}" readonly onclick="editNum(this)" onblur="this.readOnly=true">
+        <div class="tb"><button onpointerdown="event.preventDefault()" onclick="bumpN('ed-w',-${def.inc})">−</button><button onpointerdown="event.preventDefault()" onclick="bumpN('ed-w',${def.inc})">+</button></div></div>
+      <div class="tile"><div class="tl">${repLabel(def)}</div>
+        <input class="tv mono" id="ed-r" type="number" inputmode="numeric" value="${set.reps}" readonly onclick="editNum(this)" onblur="this.readOnly=true">
+        <div class="tb"><button onpointerdown="event.preventDefault()" onclick="bumpN('ed-r',-${def.timed?5:1})">−</button><button onpointerdown="event.preventDefault()" onclick="bumpN('ed-r',${def.timed?5:1})">+</button></div></div>
+    </div>
+    <button class="btn primary" style="margin-top:18px" onclick="saveEditSet('${scope}','${exOrId}','${arg1}','${arg2===undefined?"":arg2}')">Save changes</button>
+    <button class="btn danger" style="margin-top:10px" onclick="deleteSet('${scope}','${exOrId}','${arg1}','${arg2===undefined?"":arg2}')">Delete this set</button>`);
+}
+function saveEditSet(scope,a,b,c){
+  const w=parseFloat(el("ed-w").value)||0, reps=parseInt(el("ed-r").value)||0;
+  if(reps<=0){ toast("Reps must be more than zero"); return; }
+  if(scope==="live"){
+    const A=S.activeSession, list=A.sets.filter(x=>x.ex===a);
+    const target=list[+b]; target.w=w; target.reps=reps;
+    A.weights[a]=w;
+    replaySession(); closeSheet(); renderWorkout();
+  } else {
+    const ses=S.sessions.find(x=>String(x.id)===String(a));
+    ses.sets[+c].w=w; ses.sets[+c].reps=reps;
+    rebuildHistory(); closeSheet(); renderAll(); openSession(a);
+  }
+  haptic(15); toast("Set updated",true);
+}
+function deleteSet(scope,a,b,c){
+  if(scope==="live"){
+    const A=S.activeSession, list=A.sets.filter(x=>x.ex===a), target=list[+b];
+    A.sets.splice(A.sets.indexOf(target),1);
+    replaySession(); closeSheet(); renderWorkout();
+  } else {
+    const ses=S.sessions.find(x=>String(x.id)===String(a));
+    ses.sets.splice(+c,1);
+    if(!ses.sets.length){ S.sessions=S.sessions.filter(x=>x!==ses); S.workoutsDone=Math.max(0,S.workoutsDone-1); }
+    rebuildHistory(); closeSheet(); renderAll();
+    if(S.sessions.some(x=>String(x.id)===String(a))) openSession(a);
+  }
+  haptic(20); toast("Set deleted");
+}
+/* replay every saved session so PRs, volumes and grades stay truthful after an edit */
+function rebuildHistory(){
+  S.prs={}; S.prLog=[];
+  const seen=new Set();
+  for(const ses of S.sessions){
+    const byEx={}; const prs=[];
+    for(const st of ses.sets){
+      (byEx[st.ex]=byEx[st.ex]||[]).push(st);
+      const got=checkSetPRs(st.ex,st.w,st.reps,ses.dateISO,seen.has(st.ex));
+      for(const pp of got){ prs.push(pp); S.prLog.push({date:ses.dateISO,ex:st.ex,type:pp.type,label:pp.label}); }
+    }
+    for(const ex in byEx){
+      const got=checkSessionPRs(ex,byEx[ex],ses.dateISO,seen.has(ex));
+      for(const pp of got){ prs.push(pp); S.prLog.push({date:ses.dateISO,ex,type:pp.type,label:pp.label}); }
+      seen.add(ex);
+    }
+    ses.volume=sum(ses.sets.map(x=>x.w*x.reps));
+    ses.prs=prs;
+  }
+  save();
 }
 
 /* ---------------- rest timer (inline, non-blocking) ---------------- */
