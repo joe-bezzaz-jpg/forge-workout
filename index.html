@@ -117,8 +117,8 @@ b,strong{font-weight:600}
 
 /* ---------- header pills / xp ---------- */
 .pills{display:flex;gap:6px;align-items:center}
-.pill{display:inline-flex;align-items:center;gap:5px;border-radius:9999px;background:var(--card);
-  padding:7px 12px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap;color:var(--text);letter-spacing:-.01em}
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:9999px;background:var(--card);
+  padding:6px 10px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer;white-space:nowrap;color:var(--text);letter-spacing:-.01em}
 .pill.xp,.pill.streak{background:var(--card)}
 .xpchip{display:inline-flex;align-items:center;gap:3px;background:rgba(255,255,255,.08);color:var(--text);border-radius:9999px;
   padding:4px 10px;font-size:12px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap;vertical-align:middle;letter-spacing:-.01em}
@@ -147,7 +147,7 @@ b,strong{font-weight:600}
   display:flex;align-items:center;justify-content:center;color:var(--link)}
 .phead .who{flex:1;min-width:0}
 .phead .g{font-size:13px;color:var(--muted);letter-spacing:-.006em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.phead .n{font-size:21px;font-weight:600;letter-spacing:.011em;line-height:1.19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phead .n{font-size:20px;font-weight:600;letter-spacing:.011em;line-height:1.19;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ---------- day strip (chain) ---------- */
 .daystrip{display:flex;gap:6px;margin:0 0 16px}
 .dcard{flex:1;min-width:0;border-radius:20px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
@@ -465,7 +465,8 @@ const SCORE_GROUPS = {
 };
 const EX_LEVELS = ["Recruit","Novice","Trained","Strong","Powerful","Elite"];
 const EX_LEVEL_XP = [0,150,400,800,1400,2200]; // cumulative XP to reach level i+1
-const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOVERY:30, PERFECT:50};
+const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOVERY:30, PERFECT:50,
+  WALK:15, STEPS_5K:20, STEPS_10K:40, STEPS_15K:40, KCAL_GOAL:30, MOVE_DAY:60};
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
@@ -473,8 +474,8 @@ let S = null;
 
 function freshState(){
   return {
-    profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95},
-    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000}},
+    profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
+    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
     programmeVersion:3,
     xp:0,
@@ -485,6 +486,8 @@ function freshState(){
     streak:{cur:0,longest:0,lastEnd:null,windowEnds:null,tokens:0,tokenProgress:0,history:[],startedAt:null,protectedDates:[]},
     recovery:[],        // active rest days: {date,ts,type,value}
     health:[],          // {date,steps,kcal,water}
+    walks:[],           // {date,ts,mins}
+    moveStreak:{cur:0,longest:0,lastDay:null},
     buffs:{},           // {doubleNext:true} etc
     relics:[],          // rare collectibles {id,date}
     crates:[],          // {date,reward,grade}
@@ -517,6 +520,9 @@ function load(){
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
   if(!S.health) S.health=[];
+  if(!S.walks) S.walks=[];
+  if(!S.moveStreak) S.moveStreak={cur:0,longest:0,lastDay:null};
+  if(!S.settings.walk) S.settings.walk={every:2.5,from:8,to:20,on:true};
   if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3000};
   if(!S.buffs) S.buffs={}; if(!S.relics) S.relics=[]; if(!S.crates) S.crates=[];
   if(S.redemption===undefined) S.redemption=null;
@@ -864,7 +870,8 @@ function openXPSheet(){
   const li=levelInfo(S.xp);
   openSheet(`
     <div class="spread"><h2 style="font-size:22px;font-weight:600">⚡ XP</h2><span class="tag gold">Level ${li.lvl}</span></div>
-    <div style="color:var(--muted);font-size:13px;margin:4px 0 14px">${li.into.toLocaleString("en-GB")} / ${li.need.toLocaleString("en-GB")} to Level ${li.lvl+1}</div>
+    <div style="color:var(--muted);font-size:13px;margin:4px 0 6px">${li.into.toLocaleString("en-GB")} / ${li.need.toLocaleString("en-GB")} to Level ${li.lvl+1}</div>
+    <div style="color:var(--dim);font-size:13px;margin-bottom:14px">Levels rise the moment you earn XP — any day. Only the league resets weekly.</div>
     <div class="xpbar" style="height:8px"><i style="width:${li.pct}%"></i></div>
     <div class="statgrid" style="margin:16px 0">
       <div class="stat"><div class="l">Today</div><div class="v mono" style="color:var(--gold)">+${xpToday()}</div></div>
@@ -909,6 +916,10 @@ function dailyQuests(){
     const nx=WORKOUTS[S.nextWorkout].ex[0];
     q.push({id:"plan",title:`Preview tomorrow's target`,sub:`${EXERCISES[nx].short} — know what to beat`,xp:10,done:!!S.quests.done.plan,action:`markQuest('plan');openExercise('${nx}')`});
   }
+  // movement quests — the daily win condition
+  const mv=moveScoreToday(), wt=walkTarget(), wd=walksToday().length;
+  q.push({id:"walks",title:`${wt} walk breaks`,sub:wd>=wt?"All done — that's the easy fat loss":`${wd} of ${wt} logged · 10 min each`,xp:20,done:wd>=wt,action:"logWalk(10)"});
+  q.push({id:"steps",title:`Hit ${(mv.g.steps/1000)}k steps`,sub:(mv.h.steps||0)>=mv.g.steps?"Step goal cleared":`${(mv.h.steps||0).toLocaleString("en-GB")} so far`,xp:20,done:(mv.h.steps||0)>=mv.g.steps,action:"openHealthLog()"});
   // 4. bodyweight
   const bw=S.bodyLogs.some(b=>b.date===d&&b.weight!=null);
   q.push({id:"bw",title:"Log bodyweight",sub:bw?"Logged":"30 seconds — keeps the chart honest",xp:10,done:bw,action:"openBodyLog()"});
@@ -998,36 +1009,97 @@ function leagueHTML(compact){
 
 /* ---------------- ambient embers (streak hero) ---------------- */
 let emberRAF=null;
+/* forge tiers — the card physically heats up as the streak grows */
+const FORGE_TIERS=[
+  {min:0,  name:"Cold iron", n:16, spd:.30, life:.85, hue:[18,32],  glow:.05, spark:0,   arc:0},
+  {min:3,  name:"Ember",     n:34, spd:.42, life:1.0, hue:[16,34],  glow:.10, spark:.02, arc:0},
+  {min:8,  name:"Kindled",   n:56, spd:.55, life:1.15,hue:[14,38],  glow:.16, spark:.05, arc:0},
+  {min:15, name:"Burning",   n:82, spd:.70, life:1.3, hue:[12,44],  glow:.24, spark:.09, arc:0},
+  {min:30, name:"Molten",    n:110,spd:.86, life:1.45,hue:[10,50],  glow:.34, spark:.14, arc:.004},
+  {min:50, name:"White hot", n:140,spd:1.02,life:1.6, hue:[8,58],   glow:.46, spark:.20, arc:.012},
+  {min:100,name:"Immortal",  n:170,spd:1.18,life:1.75,hue:[6,60],   glow:.58, spark:.28, arc:.024},
+];
+function forgeTier(){
+  const c=S.streak.cur; let t=FORGE_TIERS[0];
+  for(const f of FORGE_TIERS) if(c>=f.min) t=f;
+  return t;
+}
 function startEmbers(){
-  // floating weight plates — the light-theme "clouds", but training-shaped
   stopEmbers();
   const host=document.querySelector(".streak-hero"); if(!host) return;
   if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const c=document.createElement("canvas"); c.className="embers"; host.prepend(c);
   const dpr=Math.min(2,devicePixelRatio||1);
-  const W=host.clientWidth, H=host.clientHeight; c.width=W*dpr; c.height=H*dpr;
+  const W=host.clientWidth, H=host.clientHeight;
+  if(!W||!H) return;
+  c.width=W*dpr; c.height=H*dpr;
   const x=c.getContext("2d"); x.scale(dpr,dpr);
   const danger=host.classList.contains("danger");
-  const n=Math.min(16,5+Math.floor(S.streak.cur/3));
-  const P=Array.from({length:n},()=>spawn(true));
-  function spawn(init){ const r=10+Math.random()*22; return {x:Math.random()*W,y:init?Math.random()*H:H+r*2,r,
-    vx:(Math.random()-.5)*.12,vy:-(.08+Math.random()*.16),a:.05+Math.random()*.08,rot:Math.random()*Math.PI,vr:(Math.random()-.5)*.004}; }
+  const T=forgeTier();
+  const heat=Math.min(1,S.streak.cur/60);
+
+  const P=[],SPK=[],ARC=[];
+  function spawn(init){
+    return {x:Math.random()*W, y:init?Math.random()*H:H+6,
+      vx:(Math.random()-.5)*.28, vy:-(.20+Math.random()*.55)*T.spd,
+      r:.5+Math.random()*1.9, a:(.20+Math.random()*.55)*T.life, ph:Math.random()*Math.PI*2,
+      hue:T.hue[0]+Math.random()*(T.hue[1]-T.hue[0]), wob:.4+Math.random()*1.1};
+  }
+  for(let i=0;i<T.n;i++) P.push(spawn(true));
   let t=0;
   (function tick(){
-    t+=.016; x.clearRect(0,0,W,H);
-    for(const p of P){
-      p.x+=p.vx+Math.sin(t*.7+p.r)*.08; p.y+=p.vy; p.rot+=p.vr;
-      if(p.y<-p.r*2){ Object.assign(p,spawn(false)); }
-      const fade=Math.min(1,p.y/(H*.3));
-      const col=danger?"255,69,58":"245,245,247";
-      x.save(); x.translate(p.x,p.y); x.rotate(p.rot); x.globalAlpha=p.a*fade*.9;
-      // plate: filled disc, rim, hub
-      x.fillStyle=`rgb(${col})`; x.beginPath(); x.arc(0,0,p.r,0,Math.PI*2); x.fill();
-      x.globalAlpha=p.a*fade*1.8; x.strokeStyle="rgba(29,29,31,.95)"; x.lineWidth=Math.max(1.2,p.r*.09);
-      x.beginPath(); x.arc(0,0,p.r*.7,0,Math.PI*2); x.stroke();
-      x.fillStyle="rgba(29,29,31,.95)"; x.beginPath(); x.arc(0,0,p.r*.16,0,Math.PI*2); x.fill();
-      x.restore();
+    t+=.016;
+    x.clearRect(0,0,W,H);
+
+    // molten glow rising from the base of the card
+    if(T.glow>0){
+      const g=x.createLinearGradient(0,H,0,H*(1-.55-heat*.2));
+      const col=danger?"255,69,58":"255,"+Math.round(90+heat*70)+",30";
+      g.addColorStop(0,`rgba(${col},${T.glow})`);
+      g.addColorStop(.55,`rgba(${col},${T.glow*.28})`);
+      g.addColorStop(1,`rgba(${col},0)`);
+      x.fillStyle=g; x.fillRect(0,0,W,H);
     }
+
+    // embers
+    x.globalCompositeOperation="lighter";
+    for(const p of P){
+      p.x+=p.vx+Math.sin(t*p.wob+p.ph)*.35;
+      p.y+=p.vy;
+      p.vy-=.0016;                       // accelerate as they rise
+      if(p.y<-8||p.x<-20||p.x>W+20) Object.assign(p,spawn(false));
+      const fade=Math.min(1,p.y/(H*.42));   // cool off near the top
+      const hue=danger?4:p.hue;
+      const light=danger?58:(52+heat*30);
+      const g=x.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r*3.4);
+      g.addColorStop(0,`hsla(${hue},100%,${light}%,${p.a*fade})`);
+      g.addColorStop(.35,`hsla(${hue},100%,${light*.7}%,${p.a*fade*.42})`);
+      g.addColorStop(1,`hsla(${hue},100%,40%,0)`);
+      x.fillStyle=g; x.beginPath(); x.arc(p.x,p.y,p.r*3.4,0,Math.PI*2); x.fill();
+    }
+
+    // crackling sparks that shoot and die
+    if(Math.random()<T.spark) SPK.push({x:Math.random()*W,y:H+2,vx:(Math.random()-.5)*2.4,vy:-(2+Math.random()*3.4),life:1});
+    for(let i=SPK.length-1;i>=0;i--){
+      const p=SPK[i];
+      p.x+=p.vx; p.y+=p.vy; p.vy+=.055; p.life-=.022;
+      if(p.life<=0){ SPK.splice(i,1); continue; }
+      x.strokeStyle=`hsla(${danger?4:42},100%,${70+heat*25}%,${p.life})`;
+      x.lineWidth=1.4; x.beginPath(); x.moveTo(p.x,p.y); x.lineTo(p.x-p.vx*2.4,p.y-p.vy*2.4); x.stroke();
+    }
+
+    // arcs of heat across the top at the highest tiers
+    if(T.arc&&Math.random()<T.arc){
+      const y0=H*(.18+Math.random()*.5);
+      ARC.push({x0:-10,y0,seg:Array.from({length:7},(_,i)=>({x:(W+20)*(i/6)-10,y:y0+(Math.random()-.5)*26})),life:1});
+    }
+    for(let i=ARC.length-1;i>=0;i--){
+      const A=ARC[i]; A.life-=.075;
+      if(A.life<=0){ ARC.splice(i,1); continue; }
+      x.strokeStyle=`hsla(46,100%,88%,${A.life*.55})`; x.lineWidth=1.1;
+      x.beginPath(); A.seg.forEach((pt,k)=>k?x.lineTo(pt.x,pt.y):x.moveTo(pt.x,pt.y)); x.stroke();
+    }
+    x.globalCompositeOperation="source-over";
     emberRAF=requestAnimationFrame(tick);
   })();
 }
@@ -1040,31 +1112,53 @@ const QUOTES=[
   ["The last three or four reps is what makes the muscle grow.","Arnold Schwarzenegger"],
   ["Strength does not come from winning. Your struggles develop your strengths.","Arnold Schwarzenegger"],
   ["The mind is the limit.","Arnold Schwarzenegger"],
-  ["The resistance you fight in the gym and the resistance you fight in life build a strong character.","Arnold Schwarzenegger"],
   ["Don't stop when you're tired. Stop when you're done.","David Goggins"],
   ["Suffering is the true test of life.","David Goggins"],
   ["Be uncommon amongst uncommon people.","David Goggins"],
-  ["Stay hard.","David Goggins"],
-  ["Who's gonna carry the boats?","David Goggins"],
-  ["You can't put a limit on anything. The more you dream, the farther you get.","Michael Phelps"],
+  ["You are one decision away from a completely different life.","Alex Hormozi"],
+  ["Volume negates luck.","Alex Hormozi"],
+  ["Nobody is coming to save you. Get to work.","Alex Hormozi"],
+  ["Do more than you think you can, more often than you think you should.","Alex Hormozi"],
+  ["The difference between you and the person you envy is the work they did that you didn't.","Alex Hormozi"],
+  ["Discipline equals freedom.","Jocko Willink"],
+  ["Don't count on motivation. Count on discipline.","Jocko Willink"],
+  ["Good.","Jocko Willink"],
+  ["Rest at the end, not in the middle.","Kobe Bryant"],
+  ["If you're afraid to fail, then you're probably going to fail.","Kobe Bryant"],
+  ["Everything negative is a chance to rise.","Kobe Bryant"],
+  ["The impediment to action advances action. What stands in the way becomes the way.","Marcus Aurelius"],
+  ["Waste no more time arguing what a good man should be. Be one.","Marcus Aurelius"],
+  ["No man is free who is not master of himself.","Epictetus"],
+  ["It is not that we have a short time to live, but that we waste a lot of it.","Seneca"],
+  ["He who has a why to live can bear almost any how.","Friedrich Nietzsche"],
+  ["Discipline is the bridge between goals and accomplishment.","Jim Rohn"],
+  ["The only place success comes before work is in the dictionary.","Vince Lombardi"],
+  ["I fear not the man who practised 10,000 kicks once, but the man who practised one kick 10,000 times.","Bruce Lee"],
+  ["There's no talent here. This is hard work. This is an obsession.","Conor McGregor"],
+  ["Effort is between you and you.","Ray Lewis"],
+  ["The mind will quit a thousand times before the body ever does.","Tom Platz"],
+  ["Nobody cares. Work harder.","Dorian Yates"],
+  ["Everybody wants to be a bodybuilder, but nobody wants to lift no heavy-ass weights.","Ronnie Coleman"],
+  ["Discipline is doing what you hate to do, but doing it like you love it.","Mike Tyson"],
+  ["Everyone has a plan until they get punched in the mouth.","Mike Tyson"],
+  ["When you want to succeed as badly as you want to breathe, then you'll be successful.","Eric Thomas"],
+  ["Ideas are worthless without execution.","Gary Vaynerchuk"],
+  ["Play long-term games with long-term people.","Naval Ravikant"],
+  ["Success is not final, failure is not fatal: it is the courage to continue that counts.","Winston Churchill"],
+  ["Do what you can, with what you have, where you are.","Theodore Roosevelt"],
+  ["I hated every minute of training, but I said: suffer now and live the rest of your life as a champion.","Muhammad Ali"],
+  ["I've failed over and over again in my life. And that is why I succeed.","Michael Jordan"],
+  ["You have to expect things of yourself before you can do them.","Michael Jordan"],
   ["Goals should never be easy. They should force you to work.","Michael Phelps"],
   ["If you want to be the best, you have to do things other people aren't willing to do.","Michael Phelps"],
-  ["I hated every minute of training, but I said: don't quit. Suffer now and live the rest of your life as a champion.","Muhammad Ali"],
-  ["I've failed over and over and over again in my life. And that is why I succeed.","Michael Jordan"],
-  ["You have to expect things of yourself before you can do them.","Michael Jordan"],
-  ["Everybody wants to be a bodybuilder, but nobody wants to lift no heavy-ass weights.","Ronnie Coleman"],
-  ["Light weight, baby!","Ronnie Coleman"],
-  ["Discipline is doing what you hate to do, but doing it like you love it.","Mike Tyson"],
-  ["Today I will do what others won't, so tomorrow I can accomplish what others can't.","Jerry Rice"],
-  ["The vision of a champion is bent over, drenched in sweat, at the point of exhaustion, when nobody else is looking.","Mia Hamm"],
-  ["Set your goals high, and don't stop till you get there.","Bo Jackson"],
-  ["Motivation is what gets you started. Habit is what keeps you going.","Jim Ryun"],
-  ["It's hard to beat a person who never gives up.","Babe Ruth"],
-  ["Nobody who ever gave his best regretted it.","George Halas"],
-  ["Champions keep playing until they get it right.","Billie Jean King"],
   ["It's not about how hard you hit. It's about how hard you can get hit and keep moving forward.","Rocky Balboa"],
   ["Hard work beats talent when talent doesn't work hard.","Tim Notke"],
+  ["It's hard to beat a person who never gives up.","Babe Ruth"],
+  ["Champions keep playing until they get it right.","Billie Jean King"],
+  ["The vision of a champion is bent over, drenched in sweat, at the point of exhaustion, when nobody else is looking.","Mia Hamm"],
+  ["Amateurs sit and wait for inspiration. The rest of us just get up and go to work.","Stephen King"],
   ["The road to Easy Street goes through the sewer.","John Madden"],
+  ["Motivation is what gets you started. Habit is what keeps you going.","Jim Ryun"],
 ];
 let quoteIdx=Math.floor(Math.random()*QUOTES.length), quoteT=null;
 function pickQuote(){
@@ -1237,14 +1331,44 @@ function celebrateAt(node){
 }
 
 /* ---------------- greeting ---------------- */
-const GREETINGS=["Let's get it","Let's work","Let's get after it","Time to work","Earn it today","Show up","No days off","Build it","Own today","Stack another one"];
+const GREETINGS=["Let's get it","Let's work","Get after it","Time to work","Earn it","Show up","No days off","Build it","Own today","Go again"];
 function greeting(){
   const seed=Math.floor(new Date(dayISO(Date.now())+"T12:00").getTime()/86400000);
   return GREETINGS[seed%GREETINGS.length];
 }
 function avatarHTML(){
+  if(S.profile.avatar) return `<img src="${S.profile.avatar}" alt="">`;
   const ph=[...S.photos].sort((a,b)=>a.date<b.date?1:-1)[0];
   return ph?`<img src="${ph.dataUrl}" alt="">`:esc((S.profile.name||"J")[0].toUpperCase());
+}
+function openAvatarPicker(){
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Profile photo</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Shown on your home screen. Stored on this device only.</p>
+    <div style="display:flex;justify-content:center;margin-bottom:18px">
+      <div class="avwrap" style="width:96px;height:96px">
+        <div class="avatar" style="inset:0;font-size:34px">${avatarHTML()}</div>
+      </div>
+    </div>
+    <label class="fld"><span>Choose a photo</span><input type="file" id="av-file" accept="image/*" style="width:100%;color:var(--muted)"></label>
+    <button class="btn primary" onclick="saveAvatar()">Save photo</button>
+    ${S.profile.avatar?`<button class="btn ghost" style="margin-top:10px" onclick="S.profile.avatar=null;save();closeSheet();renderAll();toast('Photo removed')">Remove photo</button>`:""}`);
+}
+function saveAvatar(){
+  const f=el("av-file").files[0];
+  if(!f){ toast("Choose a photo first"); return; }
+  const img=new Image();
+  img.onload=()=>{
+    const size=256, c=document.createElement("canvas"); c.width=c.height=size;
+    const x=c.getContext("2d");
+    const m=Math.min(img.width,img.height);
+    x.drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,size,size);
+    try{
+      S.profile.avatar=c.toDataURL("image/jpeg",.82);
+      save(); closeSheet(); renderAll(); toast("Profile photo saved",true);
+    }catch(e){ toast("Couldn't save that image"); }
+    URL.revokeObjectURL(img.src);
+  };
+  img.src=URL.createObjectURL(f);
 }
 function avatarBlockHTML(){
   const R=rankInfo(), C=2*Math.PI*25;
@@ -1319,8 +1443,8 @@ function activityHTML(){
       </div>`).join("")}
     </div>
     <div class="row" style="margin-top:16px;gap:8px">
-      <button class="btn ghost small" style="width:100%" onclick="addWater(250)">＋250 ml</button>
       <button class="btn ghost small" style="width:100%" onclick="openHealthLog()">Log steps · kcal</button>
+      <button class="btn ghost small" style="width:100%" onclick="addWater(250)">＋250 ml</button>
     </div>
   </div>`;
 }
@@ -1333,6 +1457,121 @@ function addWater(ml){
   const cur=S.health.find(x=>x.date===d).water;
   if(cur>=g && cur-ml<g) toast("💧 Water goal hit",true);
 }
+
+/* ---------------- movement: walks, step rewards, move streak ---------------- */
+function awardOnce(key,amount,reason){
+  const d=dayISO(Date.now());
+  if(S.xpLog.some(x=>x.reason===reason&&dayISO(x.ts)===d)) return false;
+  addXP(amount,reason); return true;
+}
+function walksToday(){ const d=dayISO(Date.now()); return S.walks.filter(w=>w.date===d); }
+function walkTarget(){
+  const w=S.settings.walk||{every:2.5,from:8,to:20};
+  return Math.max(1,Math.round((w.to-w.from)/w.every));
+}
+function nextWalkDue(){
+  const cfg=S.settings.walk||{every:2.5,from:8,to:20};
+  const now=new Date(); const today=dayISO(Date.now());
+  const start=new Date(today+"T00:00"); start.setHours(cfg.from,0,0,0);
+  const end=new Date(today+"T00:00"); end.setHours(cfg.to,0,0,0);
+  const list=walksToday().sort((a,b)=>a.ts-b.ts);
+  let due = list.length ? new Date(list[list.length-1].ts+cfg.every*3600000) : start;
+  if(due<start) due=start;
+  if(now<start) return {when:start,state:"early"};
+  if(now>end || list.length>=walkTarget()) return {when:null,state:"done"};
+  return {when:due,state: now>=due?"due":"waiting"};
+}
+function logWalk(mins){
+  const now=Date.now();
+  S.walks.push({date:dayISO(now),ts:now,mins});
+  addXP(XP.WALK,mins+" min walk");
+  haptic([20,40,20]);
+  const t=walksToday().length, target=walkTarget();
+  evalMoveDay();
+  save(); renderAll();
+  toast(t>=target?`Walk logged — all ${target} done today 🚶`:`Walk logged · ${t}/${target} today`,true);
+}
+function moveScoreToday(){
+  const d=dayISO(Date.now());
+  const h=S.health.find(x=>x.date===d)||{};
+  const g=S.settings.goals||{steps:10000,kcal:600};
+  const stepPct=Math.min(1,(h.steps||0)/g.steps);
+  const walkPct=Math.min(1,walksToday().length/walkTarget());
+  const kcalPct=Math.min(1,(h.kcal||0)/g.kcal);
+  return {stepPct,walkPct,kcalPct,pct:Math.round((stepPct*.45+walkPct*.35+kcalPct*.20)*100),h,g};
+}
+function evalMoveDay(){
+  const d=dayISO(Date.now()), m=moveScoreToday();
+  const h=m.h, g=m.g;
+  if((h.steps||0)>=5000) awardOnce("s5",XP.STEPS_5K,"5,000 steps");
+  if((h.steps||0)>=10000) awardOnce("s10",XP.STEPS_10K,"10,000 steps");
+  if((h.steps||0)>=15000) awardOnce("s15",XP.STEPS_15K,"15,000 steps");
+  if((h.kcal||0)>=g.kcal) awardOnce("kc",XP.KCAL_GOAL,"Active calorie goal");
+  // a "move day" = 80%+ of the movement score
+  if(m.pct>=80){
+    const ms=S.moveStreak;
+    if(ms.lastDay!==d){
+      const y=dayISO(Date.now()-86400000);
+      ms.cur = ms.lastDay===y ? ms.cur+1 : 1;
+      ms.lastDay=d;
+      ms.longest=Math.max(ms.longest,ms.cur);
+      addXP(XP.MOVE_DAY,"Move day complete");
+      setTimeout(()=>toast(`🚶 Move day ${ms.cur} — +${XP.MOVE_DAY} XP`,true),300);
+    }
+  }
+  save();
+}
+function moveStreakCur(){
+  const ms=S.moveStreak, d=dayISO(Date.now()), y=dayISO(Date.now()-86400000);
+  if(ms.lastDay===d||ms.lastDay===y) return ms.cur;
+  return 0;
+}
+function movementHTML(){
+  const m=moveScoreToday(), t=walksToday().length, target=walkTarget();
+  const due=nextWalkDue();
+  const cur=moveStreakCur();
+  const dueTxt = due.state==="due"?"Walk due now":
+                 due.state==="done"?(t>=target?"All walks done":"Window closed"):
+                 due.when?("Next walk "+due.when.toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})):"";
+  return `<div class="card">
+    <div class="spread" style="margin-bottom:14px">
+      <span style="font-size:19px;font-weight:600;letter-spacing:.012em">Movement</span>
+      <span style="font-size:14px;color:${cur?"var(--link)":"var(--muted)"}">${cur?`🚶 ${cur} day streak`:"Build a move streak"}</span>
+    </div>
+    <div class="spread" style="align-items:center;gap:14px;margin-bottom:12px">
+      <div style="position:relative;width:66px;height:66px;flex-shrink:0">
+        ${ring(m.pct/100,66,6,m.pct>=80?"#2997ff":"#86868b")}
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">${m.pct}%</div>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:15px;font-weight:600">${m.pct>=80?"Move day secured":"Movement score"}</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px">${(m.h.steps||0).toLocaleString("en-GB")} steps · ${t}/${target} walks · ${(m.h.kcal||0)}/${m.g.kcal} kcal</div>
+        <div style="font-size:13px;color:${due.state==="due"?"var(--link)":"var(--dim)"};margin-top:3px">${dueTxt}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:14px">
+      ${Array.from({length:target},(_,i)=>`<div style="flex:1;height:8px;border-radius:4px;background:${i<t?"var(--link)":"var(--card3)"}"></div>`).join("")}
+    </div>
+    <div class="row" style="gap:8px">
+      <button class="btn ${due.state==="due"?"primary":"ghost"} small" style="width:100%" onclick="logWalk(10)">＋10 min walk</button>
+      <button class="btn ghost small" style="width:100%" onclick="logWalk(15)">＋15 min</button>
+    </div>
+  </div>`;
+}
+/* nudge to move while the app is open */
+let lastWalkNudge=0;
+setInterval(()=>{
+  if(!(S.settings.walk&&S.settings.walk.on)) return;
+  const due=nextWalkDue();
+  if(due.state!=="due") return;
+  if(Date.now()-lastWalkNudge < 25*60000) return;
+  lastWalkNudge=Date.now();
+  const t=walksToday().length,target=walkTarget();
+  if("Notification" in window && Notification.permission==="granted" && S.settings.notify){
+    try{ new Notification("FORGE",{body:`Walk break due — 10 minutes. ${t}/${target} today.`}); }catch(e){}
+  }
+  if(activeTab==="today") toast(`🚶 Walk break due · ${t}/${target} today`,true);
+},60000);
 
 /* ---------------- health quick-log (steps / active kcal) ---------------- */
 function openHealthLog(){
@@ -1366,6 +1605,7 @@ function upsertHealth(d,steps,kcal,water){
   const e=S.health.find(x=>x.date===d);
   if(e){ if(steps) e.steps=steps; if(kcal) e.kcal=kcal; if(water) e.water=water; }
   else S.health.push({date:d,steps:steps||0,kcal:kcal||0,water:water||0});
+  evalMoveDay();
   // 10k+ steps counts as active recovery automatically
   if(steps>=10000 && !S.recovery.some(r=>r.date===d)){
     S.recovery.push({date:d,ts:Date.now(),type:"steps",value:steps});
@@ -1419,6 +1659,10 @@ const ACHIEVEMENTS=[
   {id:"level-10",icon:"⚡",name:"Level 10",desc:"Reach level 10.",check:s=>levelInfo(s.xp).lvl>=10},
   {id:"level-25",icon:"⚡",name:"Level 25",desc:"Reach level 25.",check:s=>levelInfo(s.xp).lvl>=25},
   {id:"elite",icon:"🎖️",name:"Elite Status",desc:"Take any exercise to Elite level.",check:s=>Object.values(s.exState).some(x=>exLevelInfo(x.xp).lvl>=6)},
+  {id:"mover-7",icon:"🚶",name:"On Your Feet",desc:"7-day movement streak.",check:s=>(s.moveStreak&&s.moveStreak.longest||0)>=7},
+  {id:"mover-30",icon:"🚶",name:"Always Moving",desc:"30-day movement streak.",check:s=>(s.moveStreak&&s.moveStreak.longest||0)>=30},
+  {id:"walk-100",icon:"👟",name:"Hundred Walks",desc:"Log 100 walk breaks.",check:s=>(s.walks||[]).length>=100},
+  {id:"steps-mil",icon:"🌍",name:"Million Steps",desc:"Log 1,000,000 steps.",check:s=>(s.health||[]).reduce((a,b)=>a+(b.steps||0),0)>=1000000},
 ];
 function evalAchievements(){
   const unlocked=[];
@@ -1565,7 +1809,7 @@ function renderToday(){
     const tierCls = ss.tier==="critical"||ss.tier==="danger"?"danger":(ss.tier==="due"||ss.tier==="soon"?"warn":"");
     streakCard=`<div class="streak-hero ${ss.tier==="critical"||ss.tier==="danger"?"danger":""}">
       <div class="spread">
-        <div class="eyebrow acc"><span class="flame">🔥</span> Current streak</div>
+        <div class="eyebrow acc"><span class="flame">🔥</span> Current streak · ${forgeTier().name}</div>
         ${st.tokens>0?`<div class="tag acc">🧊 ×${st.tokens}</div>`:""}
       </div>
       <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px">
@@ -1631,6 +1875,7 @@ function renderToday(){
     ${photoPromptHTML()}
     ${quoteHTML()}
     ${activityHTML()}
+    ${movementHTML()}
 
     <!-- progress overview -->
     <div class="card">
@@ -2242,6 +2487,10 @@ function reportsViewHTML(){
       <span class="mono" style="font-weight:600">${bwWk!==null?bwWk+" → ":""}${bwNow!==null?bwNow+"kg":"—"}</span></div>
     ${bi?`<div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Best improvement</span>
       <span style="font-weight:600;color:var(--accent)">${EXERCISES[bi.ex].short} +${Math.round(bi.pc*10)/10}%</span></div>`:""}
+    <div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Walk breaks</span>
+      <span style="font-weight:600" class="mono">🚶 ${S.walks.filter(w=>new Date(w.date+"T12:00").getTime()>=now-7*86400000).length}</span></div>
+    <div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Steps logged</span>
+      <span style="font-weight:600" class="mono">${S.health.filter(h=>new Date(h.date+"T12:00").getTime()>=now-7*86400000).reduce((a,b)=>a+(b.steps||0),0).toLocaleString("en-GB")}</span></div>
     <div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Active recovery days</span>
       <span style="font-weight:600" class="mono">🚶 ${S.recovery.filter(r=>new Date(r.date+"T12:00").getTime()>=now-7*86400000).length}</span></div>
     <div class="spread" style="padding:4px 0"><span style="color:var(--muted);font-size:14px">Momentum</span>
@@ -2389,9 +2638,19 @@ function renderProfile(){
     <div class="card" style="margin-top:14px">
       <div class="eyebrow" style="margin-bottom:6px">Settings</div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Profile photo</div>
+          <div style="font-size:12px;color:var(--muted)">Your home screen icon</div></div>
+        <button class="btn ghost small" onclick="openAvatarPicker()">${S.profile.avatar?"Change":"Add photo"}</button>
+      </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Your name</div>
           <div style="font-size:12px;color:var(--muted)">Used in your daily greeting</div></div>
         <input type="text" style="width:130px;text-align:right" value="${esc(S.profile.name)}" onchange="S.profile.name=this.value.trim().slice(0,18)||'Joe';save();renderProfile()">
+      </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Walk breaks</div>
+          <div style="font-size:12px;color:var(--muted)">${S.settings.walk.on?`Every ${S.settings.walk.every}h · ${S.settings.walk.from}:00–${S.settings.walk.to}:00 · ${walkTarget()} a day`:"Off"}</div></div>
+        <button class="btn ghost small" onclick="openWalkSettings()">Edit</button>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Daily goals</div>
@@ -2438,6 +2697,31 @@ function renderProfile(){
       <button class="btn danger small" style="width:100%" onclick="resetAll()">Reset all data</button>
     </div>
     <div style="text-align:center;color:var(--dim);font-size:11px;margin-top:6px">FORGE · your data never leaves this device</div>`;
+}
+function openWalkSettings(){
+  const w=S.settings.walk;
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Walk breaks</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Short walks through the day burn more than most sessions do. FORGE will nudge you when one is due.</p>
+    <div class="spread" style="padding:10px 0"><div style="font-weight:600">Remind me</div>
+      <label class="switch"><input type="checkbox" ${w.on?"checked":""} onchange="S.settings.walk.on=this.checked;save();renderProfile()"><i></i></label></div>
+    <label class="fld"><span>Every</span><select id="w-every">
+      ${[1.5,2,2.5,3,4].map(v=>`<option value="${v}" ${w.every===v?"selected":""}>${v} hours</option>`).join("")}</select></label>
+    <div class="row">
+      <label class="fld"><span>From</span><select id="w-from">${Array.from({length:12},(_,i)=>i+5).map(h=>`<option value="${h}" ${w.from===h?"selected":""}>${h}:00</option>`).join("")}</select></label>
+      <label class="fld"><span>Until</span><select id="w-to">${Array.from({length:10},(_,i)=>i+15).map(h=>`<option value="${h}" ${w.to===h?"selected":""}>${h}:00</option>`).join("")}</select></label>
+    </div>
+    <button class="btn primary" onclick="saveWalkSettings()">Save</button>
+    <div class="card" style="margin-top:16px;background:#000">
+      <div style="font-size:15px;font-weight:600;margin-bottom:6px">Reminders when the app is closed</div>
+      <div style="font-size:14px;color:var(--muted);line-height:1.5">A web app can't send you notifications while it's shut. For lock-screen nudges, set an iOS Shortcuts <b>Personal Automation</b> → Time of Day → repeat every few hours → action <b>Show Notification</b> ("Walk break"). Takes two minutes and works forever.</div>
+    </div>`);
+}
+function saveWalkSettings(){
+  S.settings.walk.every=parseFloat(el("w-every").value)||2.5;
+  S.settings.walk.from=parseInt(el("w-from").value)||8;
+  S.settings.walk.to=parseInt(el("w-to").value)||20;
+  if(S.settings.walk.to<=S.settings.walk.from) S.settings.walk.to=S.settings.walk.from+8;
+  save(); closeSheet(); renderProfile(); toast("Walk breaks updated",true);
 }
 function openGoals(){
   const g=S.settings.goals;
