@@ -289,6 +289,11 @@ b,strong{font-weight:600}
 .toast::after{content:"";position:absolute;top:0;bottom:0;left:0;width:45%;pointer-events:none;
   background:linear-gradient(105deg,transparent,rgba(255,255,255,.18),transparent);animation:shine 1.1s ease .25s 2}
 .toast.acc{background:rgba(0,113,227,.85)}
+.toast.pr{gap:12px;padding:13px 22px;border:1px solid rgba(255,213,74,.5)}
+.toast.pr .prtrophy{font-size:26px;line-height:1;animation:pop .45s cubic-bezier(.2,.9,.3,1.4) both}
+.toast.pr .prtxt{display:flex;flex-direction:column;line-height:1.25;text-align:left}
+.toast.pr .prtxt b{font-size:16px;font-weight:600;letter-spacing:-.01em}
+.toast.pr .prtxt span{font-size:13px;color:rgba(255,255,255,.75);font-variant-numeric:tabular-nums}
 
 /* ---------- awards ---------- */
 .trophy{display:flex;gap:14px;align-items:center;background:var(--card);border:none;border-radius:20px;padding:14px 16px;margin-bottom:10px}
@@ -568,14 +573,53 @@ const sndPR    = ()=>{ beep(660,.1); beep(880,.1,.1); beep(1108,.22,.2); };
 const sndDone  = ()=>{ beep(523,.12); beep(659,.12,.12); beep(784,.12,.24); beep(1046,.3,.36); };
 const sndTimer = ()=>{ beep(980,.15); beep(980,.15,.25); beep(980,.3,.5); };
 
-function toast(msg,acc){
+function toast(msg,acc,cls){
   const z = el("toast-zone");
   const t = document.createElement("div");
-  t.className="toast"+(acc?" acc":"");
+  t.className="toast"+(acc?" acc":"")+(cls?" "+cls:"");
   t.innerHTML=msg;
   z.appendChild(t);
   setTimeout(()=>{ t.style.transition="opacity .4s,transform .4s"; t.style.opacity="0"; t.style.transform="translateY(-10px)"; },2600);
   setTimeout(()=>t.remove(),3100);
+}
+function prToast(pp){
+  toast(`<span class="prtrophy">🏆</span><span class="prtxt"><b>New PR</b><span>${pp.label}${pp.delta?" \u00B7 "+pp.delta:""}</span></span>`,false,"pr");
+  sndPR(); haptic([30,60,30,60,120]);
+  confetti({count:80});
+}
+/* full-screen confetti — used for PRs and big unlocks */
+function confetti({count=80,colors=["#0090f7","#ba62fc","#f2416b","#f55600","#FFD54A","#f5f5f7"]}={}){
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const W=window.innerWidth, H=window.innerHeight;
+  if(!W||!H) return;
+  const c=document.createElement("canvas");
+  c.style.cssText="position:fixed;inset:0;pointer-events:none;z-index:280";
+  const dpr=Math.min(2,devicePixelRatio||1);
+  c.width=W*dpr; c.height=H*dpr;
+  document.body.appendChild(c);
+  const x=c.getContext("2d"); x.scale(dpr,dpr);
+  const P=Array.from({length:count},(_,i)=>({
+    x:Math.random()*W, y:-20-Math.random()*H*.35,
+    vx:(Math.random()-.5)*3.2, vy:2.4+Math.random()*4.2,
+    w:4+Math.random()*4, h:8+Math.random()*7,
+    rot:Math.random()*Math.PI, vr:(Math.random()-.5)*.34,
+    col:colors[i%colors.length], sway:Math.random()*Math.PI*2,
+  }));
+  let f=0;
+  (function tick(){
+    f++; x.clearRect(0,0,W,H);
+    let alive=false;
+    for(const p of P){
+      p.vy+=.13; p.x+=p.vx+Math.sin(f*.055+p.sway)*1.1; p.y+=p.vy; p.rot+=p.vr;
+      if(p.y>H+40) continue;
+      alive=true;
+      x.save(); x.translate(p.x,p.y); x.rotate(p.rot);
+      x.globalAlpha=Math.max(0,Math.min(1,(H-p.y)/(H*.7)));
+      x.fillStyle=p.col; x.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      x.restore();
+    }
+    if(alive&&f<300) requestAnimationFrame(tick); else c.remove();
+  })();
 }
 function countUp(node,to,dur=800,fmt){
   const start=performance.now();
@@ -1348,7 +1392,7 @@ function revealCrate(){
     ${big?`<div class="tag acc" style="margin-top:14px">${rw.t==="relic"?"Rare":"Uncommon"}</div>`:""}
     <button class="btn primary" style="margin-top:22px" onclick="closeSheet()">Collect</button>
   </div>`;
-  if(big){ sndPR(); haptic([40,70,40,70,120]); celebrateAt(box); } else { sndSet(); haptic(25); }
+  if(big){ sndPR(); haptic([40,70,40,70,120]); celebrateAt(box); confetti({count:70}); } else { sndSet(); haptic(25); }
   window.__crate=null;
   window.__pendingCrate=false;
   renderAll();
@@ -2991,8 +3035,7 @@ function logSet(ex,w,reps){
   for(const pp of prs){
     A.prs.push(pp); A.xp+=XP.PR;
     S.prLog.push({date:dayISO(Date.now()),ex,type:pp.type,label:pp.label});
-    toast(`\U0001F3C6 NEW PR — ${pp.label} <b style="color:var(--gold)">${pp.delta}</b>`);
-    sndPR(); haptic([30,60,30,60,80]);
+    prToast(pp);
   }
   if(!prs.length){ sndSet(); haptic(15); }
 }
@@ -3050,8 +3093,7 @@ function scoreExercise(ex,sets){
   for(const pp of sesPRs){
     A.prs.push(pp); A.xp+=XP.PR;
     S.prLog.push({date:dayISO(Date.now()),ex,type:pp.type,label:pp.label});
-    toast(`\U0001F3C6 ${pp.label} <b style="color:var(--gold)">${pp.delta}</b>`);
-    sndPR();
+    prToast(pp);
   }
   const topW=Math.max(...sets.map(s=>s.w));
   const total=sum(sets.map(x=>x.reps));
@@ -3060,7 +3102,7 @@ function scoreExercise(ex,sets){
   if(mastered && !S.exState[ex].mastered.includes(key)){
     S.exState[ex].mastered.push(key);
     A.xp+=XP.MASTER;
-    toast(`\U0001F3CB️ ${total} total ${def.timed?"sec":"reps"} — next session go ${fmtKg(topW+def.inc)}${def.unit}`,true);
+    toast(`🏋️ ${total} total ${def.timed?"sec":"reps"} \u2014 next session go ${fmtKg(topW+def.inc)}${def.unit}`,true);
     sndPR(); haptic([40,80,40,80,120]);
   }
 }
