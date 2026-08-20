@@ -421,10 +421,10 @@ const ACTIVE_EX = Object.keys(EXERCISES).filter(k=>!EXERCISES[k].legacy);
 // prescription: sets, rep range, rest seconds, RIR, upAt = total-rep threshold to add weight
 const P=(sets,repLo,repHi,rest,rir,upAt)=>({sets,repLo,repHi,rest,rir,upAt});
 const WORKOUTS = {
-  A:{title:"Chest / Push Strength",ex:["incline-bench","dips","lateral-raise"],
-     p:{"incline-bench":P(5,4,6,180,"1–2",27),"dips":P(4,6,12,150,"1–2",44),"lateral-raise":P(4,12,20,75,"0–2")}},
-  B:{title:"Back Thickness / Traps",ex:["barbell-row","lat-pulldown","shrug"],
+  A:{title:"Back Thickness / Traps",ex:["barbell-row","lat-pulldown","shrug"],
      p:{"barbell-row":P(5,5,8,150,"1–2",35),"lat-pulldown":P(4,8,12,120,"1–2"),"shrug":P(4,8,15,105,"1–2")}},
+  B:{title:"Chest / Push Strength",ex:["incline-bench","dips","lateral-raise"],
+     p:{"incline-bench":P(5,4,6,180,"1–2",27),"dips":P(4,6,12,150,"1–2",44),"lateral-raise":P(4,12,20,75,"0–2")}},
   C:{title:"Lower Rehab / Reconditioning",ex:["light-squat","adductor-iso","glute-bridge","calf-raise"],
      note:"Finish with 5–10 min of gentle hip, ankle, adductor and hip-flexor mobility. No aggressive stretching or painful loading.",
      p:{"light-squat":P(3,8,12,90,"3+"),"adductor-iso":P(3,20,40,60,"—"),"glute-bridge":P(3,10,15,75,"2–3"),"calf-raise":P(4,12,20,75,"0–2")}},
@@ -515,7 +515,8 @@ function load(){
   for(const k in f) if(S[k]===undefined) S[k]=f[k];
   for(const k in f.exState) if(!S.exState[k]) S.exState[k]=f.exState[k];
   if(!S.xpLog||(S.xpLog.length===0&&S.sessions.length)){ S.xpLog=S.sessions.map(x=>({ts:x.end||x.id,amount:x.xp,reason:"Workout "+x.workout})); }
-  if(priorVersion!==3){ S.programmeVersion=3; if(S.sessions.length) S.nextWorkout="B"; }  // existing users start the new plan at B
+  if(priorVersion===undefined){ S.programmeVersion=3; if(S.sessions.length) S.nextWorkout="B"; }
+  if(S.programmeVersion<4){ S.programmeVersion=4; retagSessions(); }   // A/B swapped: pull -> push -> legs
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
@@ -610,6 +611,42 @@ const ICONS={
 function ic(n,s=16,extra=""){return `<svg class="icn" style="width:${s}px;height:${s}px;${extra}" viewBox="0 0 24 24">${ICONS[n]||ICONS.star}</svg>`;}
 
 /* ---------------- level maths ---------------- */
+/* match a stored session to the workout it actually was, so reordering letters
+   never mislabels history. Jaccard overlap on the exercises performed. */
+function bestWorkoutFor(sets){
+  const exs=new Set(sets.map(x=>x.ex));
+  let best=null,bestScore=0;
+  for(const w of CYCLE){
+    const list=WORKOUTS[w].ex;
+    const inter=list.filter(k=>exs.has(k)).length;
+    const union=new Set([...list,...exs]).size;
+    const score=union?inter/union:0;
+    if(score>bestScore){ bestScore=score; best=w; }
+  }
+  return bestScore>=0.6?best:null;
+}
+function retagSessions(){
+  for(const ses of S.sessions){
+    const w=bestWorkoutFor(ses.sets);
+    if(w) ses.workout=w;
+  }
+  if(S.activeSession){
+    const w=bestWorkoutFor(S.activeSession.sets);
+    if(w) S.activeSession.workout=w;
+  }
+  // remap the mastery keys, which are stored as "<letter>:<weight>"
+  for(const k in S.exState){
+    const st=S.exState[k];
+    if(!st.mastered) continue;
+    const home=primaryWorkoutOf(k);
+    if(home) st.mastered=st.mastered.map(m=>m.includes(":")?home+":"+m.split(":")[1]:m);
+  }
+  // whatever you did last decides what comes next
+  const last=S.sessions[S.sessions.length-1];
+  if(last && CYCLE.includes(last.workout)){
+    S.nextWorkout=CYCLE[(CYCLE.indexOf(last.workout)+1)%CYCLE.length];
+  }
+}
 function levelInfo(xp){
   // level n requires 500*n XP to clear (n=1..): thresholds 500,1500,3000,5000...
   let lvl=1, need=500, base=0;
