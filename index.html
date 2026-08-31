@@ -260,6 +260,20 @@ b,strong{font-weight:600}
   border-radius:9999px;padding:7px 14px;font-size:14px;color:var(--muted);font-weight:400}
 .target-banner{background:var(--card);border:none;border-radius:22px;padding:18px 20px;margin:14px 0}
 
+/* 75 Hard */
+.h75{background:var(--card);border-radius:var(--r);padding:22px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06)}
+.h75.done{border-color:rgba(41,151,255,.4)}
+.h75bar{height:6px;border-radius:3px;background:var(--card3);margin-top:16px;position:relative;overflow:visible}
+.h75bar i{display:block;height:100%;border-radius:3px;background:var(--link)}
+.h75bar em{position:absolute;top:-3px;width:2px;height:12px;background:var(--text);border-radius:1px}
+.h75task{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer}
+.h75chk{width:26px;height:26px;border-radius:50%;background:var(--card3);color:transparent;display:flex;align-items:center;
+  justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;transition:all .25s}
+.h75task.on .h75chk{background:var(--link);color:#fff}
+.h75task.on .h75lab{color:var(--muted);text-decoration:line-through}
+.h75lab{font-size:16px;font-weight:500;letter-spacing:-.01em}
+.h75sub{font-size:13px;color:var(--dim);margin-top:1px}
+.h75go{font-size:14px;color:var(--link);flex-shrink:0}
 /* editable set chips */
 .chipset{border:none;border-radius:9999px;background:var(--card3);color:var(--text);font-family:inherit;
   font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;padding:7px 13px;cursor:pointer}
@@ -492,6 +506,8 @@ function freshState(){
     recovery:[],        // active rest days: {date,ts,type,value}
     health:[],          // {date,steps,kcal,water}
     walks:[],           // {date,ts,mins}
+    cardio:[],          // {date,ts,type,mins}
+    hard75:null,        // {active,startDate,days:{},attempts:[],best,withPhoto}
     moveStreak:{cur:0,longest:0,lastDay:null},
     buffs:{},           // {doubleNext:true} etc
     relics:[],          // rare collectibles {id,date}
@@ -527,6 +543,11 @@ function load(){
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
   if(!S.health) S.health=[];
   if(!S.walks) S.walks=[];
+  if(!S.cardio) S.cardio=[];
+  if(!S.hard75){                                  // 75 Hard starts the day this lands
+    S.hard75={active:true,startDate:dayISO(Date.now()),days:{},attempts:[],best:0,withPhoto:false};
+    S.settings.goals.water=4000;
+  }
   if(!S.moveStreak) S.moveStreak={cur:0,longest:0,lastDay:null};
   if(!S.settings.walk) S.settings.walk={every:2.5,from:8,to:20,on:true};
   if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3000};
@@ -1533,10 +1554,184 @@ function addWater(ml){
   const d=dayISO(Date.now());
   const e=S.health.find(x=>x.date===d);
   if(e) e.water=(e.water||0)+ml; else S.health.push({date:d,steps:0,kcal:0,water:ml});
-  save(); haptic(12); renderToday();
+  save(); haptic(12); h75AfterTick(); renderToday();
   const g=(S.settings.goals&&S.settings.goals.water)||3000;
   const cur=S.health.find(x=>x.date===d).water;
   if(cur>=g && cur-ml<g) toast("💧 Water goal hit",true);
+}
+
+/* ---------------- 75 Hard ---------------- */
+const H75_TASKS=[
+  {k:"weights",icon:"🏋️",label:"Weights workout",sub:"45 min minimum"},
+  {k:"cardio", icon:"🏃",      label:"Cardio workout", sub:"45 min — walk, run, padel"},
+  {k:"water",  icon:"💧",      label:"4L water",       sub:"Every day"},
+  {k:"food",   icon:"🥩",      label:"Whole foods",    sub:"No cheat meals, no alcohol"},
+  {k:"pages",  icon:"📖",      label:"10 pages read",  sub:"Non-fiction"},
+];
+const H75_PHOTO={k:"photo",icon:"📸",label:"Progress photo",sub:"One a day"};
+function h75(){ return S.hard75; }
+function h75Active(){ return !!(S.hard75&&S.hard75.active); }
+function h75Keys(){ return H75_TASKS.map(t=>t.k).concat(h75().withPhoto?["photo"]:[]); }
+function h75TaskList(){ return h75().withPhoto?H75_TASKS.concat([H75_PHOTO]):H75_TASKS; }
+function h75DateFor(n){ return dayISO(new Date(h75().startDate+"T12:00").getTime()+(n-1)*86400000); }
+function h75DayNum(iso){
+  const a=new Date(h75().startDate+"T12:00").getTime(), b=new Date((iso||dayISO(Date.now()))+"T12:00").getTime();
+  return Math.floor((b-a)/86400000)+1;
+}
+function cardioMins(iso){ return (S.cardio||[]).filter(c=>c.date===iso).reduce((a,c)=>a+c.mins,0); }
+function h75Status(iso){
+  const rec=(h75().days||{})[iso]||{};
+  const ses=S.sessions.filter(x=>x.dateISO===iso);
+  const h=S.health.find(x=>x.date===iso)||{};
+  return {
+    weights: !!rec.weights || ses.some(x=>(x.dur||0)>=45*60),
+    cardio:  !!rec.cardio  || cardioMins(iso)>=45,
+    water:   !!rec.water   || (h.water||0)>=4000,
+    food:    !!rec.food,
+    pages:   !!rec.pages,
+    photo:   !!rec.photo   || S.photos.some(p=>p.date===iso),
+  };
+}
+function h75Done(iso){ const st=h75Status(iso); return h75Keys().every(k=>st[k]); }
+function h75Missed(iso){ const st=h75Status(iso); return h75Keys().filter(k=>!st[k]); }
+/* the whole point: one incomplete day and you go back to day 1 */
+function h75CheckFail(){
+  if(!h75Active()) return null;
+  const today=h75DayNum();
+  for(let n=1;n<today;n++){
+    const d=h75DateFor(n);
+    if(!h75Done(d)) return {day:n,date:d,missed:h75Missed(d)};
+  }
+  return null;
+}
+function h75Toggle(k){
+  const iso=dayISO(Date.now()), H=h75();
+  H.days[iso]=H.days[iso]||{};
+  const st=h75Status(iso);
+  if(st[k] && !H.days[iso][k]){ toast("That one's tracked automatically"); return; }
+  H.days[iso][k]=!H.days[iso][k];
+  if(H.days[iso][k]) awardOnce("h75-"+k,20,"75 Hard: "+(h75TaskList().find(t=>t.k===k)||{label:k}).label);
+  save(); h75AfterTick(); renderAll();
+}
+function h75AfterTick(){
+  const iso=dayISO(Date.now());
+  if(!h75Done(iso)) return;
+  if(awardOnce("h75-day",100,"75 Hard day complete")){
+    const n=h75DayNum();
+    confetti({count:90}); sndDone(); haptic([50,80,50,80,140]);
+    setTimeout(()=>toast(`Day ${n} of 75 complete — all gas, no brakes`,true),250);
+    const H=h75();
+    H.best=Math.max(H.best||0,n);
+    if(n>=75){ setTimeout(()=>h75Victory(),900); }
+    save();
+  }
+}
+function h75Victory(){
+  openSheet(`<div style="text-align:center;padding:8px 0">
+    <div style="font-size:60px">🏆</div>
+    <h2 style="font-size:30px;font-weight:600;margin:12px 0 6px">75 Hard complete</h2>
+    <p style="color:var(--muted);font-size:16px;line-height:1.5">75 days. No misses. Two workouts a day, 4L of water,
+    whole foods, 10 pages — every single day.</p>
+    <div class="statgrid" style="margin:22px 0;text-align:left">
+      <div class="stat"><div class="l">Workouts logged</div><div class="v mono">${S.sessions.filter(x=>x.dateISO>=h75().startDate).length}</div></div>
+      <div class="stat"><div class="l">Cardio sessions</div><div class="v mono">${(S.cardio||[]).filter(c=>c.date>=h75().startDate).length}</div></div>
+    </div>
+    <button class="btn primary" onclick="closeSheet()">Take it in</button></div>`);
+}
+function h75ShowFail(f){
+  const H=h75();
+  openSheet(`<div style="text-align:center;padding:6px 0">
+      <div class="eyebrow" style="color:var(--danger)">75 Hard reset</div>
+      <div class="big-num" style="margin:14px 0 4px;color:var(--danger)">Day ${f.day}</div>
+      <div style="color:var(--muted);font-weight:500">${fmtDate(f.date)}</div>
+      <div class="card" style="margin:20px 0;text-align:left">
+        <div class="eyebrow" style="margin-bottom:8px">Missed that day</div>
+        ${f.missed.map(k=>{const t=h75TaskList().find(x=>x.k===k)||{icon:"",label:k};
+          return `<div style="padding:5px 0;font-size:15px">${t.icon} ${t.label}</div>`;}).join("")}
+      </div>
+      <p style="color:var(--muted);font-size:15px;line-height:1.5">The rule is the rule. You reached <b style="color:var(--text)">day ${f.day}</b>${H.best>f.day?` (your best is ${H.best})`:""}.<br>
+      Your lifts, PRs and XP all stay — only the 75 resets.</p>
+      <button class="btn primary" style="margin-top:20px" onclick="h75Restart()">Start again at Day 1</button>
+      <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Not now</button>
+    </div>`);
+}
+function h75Restart(){
+  const H=h75(), f=h75CheckFail();
+  H.attempts.push({start:H.startDate,failedOn:f?f.date:dayISO(Date.now()),daysReached:f?f.day:h75DayNum()});
+  H.best=Math.max(H.best||0,f?f.day:0);
+  H.startDate=dayISO(Date.now());
+  H.days={};
+  save(); closeSheet(); renderAll();
+  toast("Day 1. Again.",true);
+}
+function logCardio(){
+  const mins=parseInt(el("cd-mins").value)||0, type=el("cd-type").value;
+  if(mins<=0){ toast("Enter your minutes"); return; }
+  const now=Date.now(), iso=dayISO(now);
+  S.cardio.push({date:iso,ts:now,type,mins});
+  addXP(Math.min(40,15+Math.floor(mins/15)*5),type+" — "+mins+" min");
+  if(mins>=45 && !S.recovery.some(r=>r.date===iso)) S.recovery.push({date:iso,ts:now,type:"other",value:mins});
+  save(); closeSheet(); h75AfterTick(); renderAll();
+  const total=cardioMins(iso);
+  toast(total>=45?`Cardio logged — ${total} min today ✓`:`Cardio logged — ${total}/45 min today`,true);
+}
+function openCardioLog(){
+  const iso=dayISO(Date.now()), done=cardioMins(iso);
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Log cardio</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${done?`${done} min logged today · `:""}45 minutes minimum for 75 Hard.</p>
+    <label class="fld"><span>Type</span><select id="cd-type">
+      ${["Walk","Run","Padel","Cycle","Swim","Row","Other"].map(t=>`<option>${t}</option>`).join("")}
+    </select></label>
+    <label class="fld"><span>Minutes</span><input type="number" id="cd-mins" inputmode="numeric" value="45"></label>
+    <button class="btn primary" onclick="logCardio()">Log cardio</button>
+    ${(S.cardio||[]).filter(c=>c.date===iso).length?`<div class="card" style="margin-top:16px">
+      <div class="eyebrow" style="margin-bottom:8px">Today</div>
+      ${S.cardio.filter(c=>c.date===iso).map(c=>`<div class="spread" style="padding:5px 0;font-size:15px"><span>${c.type}</span><span class="mono" style="color:var(--muted)">${c.mins} min</span></div>`).join("")}
+    </div>`:""}`);
+}
+function hard75HTML(){
+  if(!h75Active()) return "";
+  const iso=dayISO(Date.now()), n=h75DayNum(), st=h75Status(iso);
+  const tasks=h75TaskList();
+  const doneCount=tasks.filter(t=>st[t.k]).length;
+  const all=doneCount===tasks.length;
+  const h=S.health.find(x=>x.date===iso)||{};
+  const endOfDay=new Date(iso+"T23:59:59").getTime();
+  const leftMs=endOfDay-Date.now();
+  const detail={
+    weights:(()=>{const x=S.sessions.filter(y=>y.dateISO===iso).sort((a,b)=>(b.dur||0)-(a.dur||0))[0];return x?fmtDur(x.dur||0):"";})(),
+    cardio: cardioMins(iso)?cardioMins(iso)+" min":"",
+    water: ((h.water||0)/1000).toFixed(1)+"/4.0L",
+    food:"", pages:"", photo:"",
+  };
+  const action={weights:"startOrResumeWorkout()",cardio:"openCardioLog()",water:"addWater(250)",photo:"openPhotoAdd()"};
+  return `<div class="h75 ${all?"done":""}">
+    <div class="spread" style="align-items:flex-start">
+      <div>
+        <div class="eyebrow" style="color:${all?"var(--link)":"var(--muted)"}">75 Hard · no misses</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:2px">
+          <span style="font-family:'SF Pro Display',-apple-system,sans-serif;font-size:40px;font-weight:600;letter-spacing:-.005em;line-height:1">Day ${n}</span>
+          <span style="font-size:17px;color:var(--muted)">of 75</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:600;color:${all?"var(--link)":"var(--text)"}">${doneCount}/${tasks.length}</div>
+        <div style="font-size:13px;color:var(--muted)">${all?"Day secured":leftMs>0?fmtClock(leftMs)+" left":"—"}</div>
+      </div>
+    </div>
+    <div class="h75bar"><i style="width:${Math.min(100,(n-1)/75*100)}%"></i><em style="left:${Math.min(100,n/75*100)}%"></em></div>
+    <div style="margin-top:14px">
+      ${tasks.map(t=>`<div class="h75task ${st[t.k]?"on":""}" onclick="${st[t.k]||!action[t.k]?`h75Toggle('${t.k}')`:action[t.k]}">
+        <div class="h75chk">${st[t.k]?"✓":""}</div>
+        <div style="flex:1;min-width:0">
+          <div class="h75lab">${t.icon} ${t.label}</div>
+          <div class="h75sub">${detail[t.k]||t.sub}</div>
+        </div>
+        ${!st[t.k]&&action[t.k]?`<span class="h75go">Log</span>`:""}
+      </div>`).join("")}
+    </div>
+    ${all?`<div style="text-align:center;font-size:14px;color:var(--link);margin-top:12px">${75-n} days to go. All gas, no brakes.</div>`:""}
+  </div>`;
 }
 
 /* ---------------- movement: walks, step rewards, move streak ---------------- */
@@ -1686,7 +1881,7 @@ function upsertHealth(d,steps,kcal,water){
   const e=S.health.find(x=>x.date===d);
   if(e){ if(steps) e.steps=steps; if(kcal) e.kcal=kcal; if(water) e.water=water; }
   else S.health.push({date:d,steps:steps||0,kcal:kcal||0,water:water||0});
-  evalMoveDay();
+  evalMoveDay(); h75AfterTick();
   // 10k+ steps counts as active recovery automatically
   if(steps>=10000 && !S.recovery.some(r=>r.date===d)){
     S.recovery.push({date:d,ts:Date.now(),type:"steps",value:steps});
@@ -1740,6 +1935,9 @@ const ACHIEVEMENTS=[
   {id:"level-10",icon:"⚡",name:"Level 10",desc:"Reach level 10.",check:s=>levelInfo(s.xp).lvl>=10},
   {id:"level-25",icon:"⚡",name:"Level 25",desc:"Reach level 25.",check:s=>levelInfo(s.xp).lvl>=25},
   {id:"elite",icon:"🎖️",name:"Elite Status",desc:"Take any exercise to Elite level.",check:s=>Object.values(s.exState).some(x=>exLevelInfo(x.xp).lvl>=6)},
+  {id:"h75-7",icon:"🔥",name:"First Week Hard",desc:"7 straight days of 75 Hard.",check:s=>(s.hard75&&s.hard75.best>=7)},
+  {id:"h75-30",icon:"🔥",name:"Thirty Down",desc:"30 straight days of 75 Hard.",check:s=>(s.hard75&&s.hard75.best>=30)},
+  {id:"h75-75",icon:"👑",name:"75 Hard",desc:"Complete all 75 days. No misses.",check:s=>(s.hard75&&s.hard75.best>=75)},
   {id:"mover-7",icon:"🚶",name:"On Your Feet",desc:"7-day movement streak.",check:s=>(s.moveStreak&&s.moveStreak.longest||0)>=7},
   {id:"mover-30",icon:"🚶",name:"Always Moving",desc:"30-day movement streak.",check:s=>(s.moveStreak&&s.moveStreak.longest||0)>=30},
   {id:"walk-100",icon:"👟",name:"Hundred Walks",desc:"Log 100 walk breaks.",check:s=>(s.walks||[]).length>=100},
@@ -1930,9 +2128,10 @@ function renderToday(){
       </div>
       ${pillsHTML()}
     </div>
+    ${hard75HTML()}
     <div class="spread" style="margin-bottom:10px">
       <span style="font-size:19px;font-weight:600;letter-spacing:.012em">Weekly goal</span>
-      <span style="font-size:17px;color:${sesWeek.length>=5?"var(--link)":"var(--muted)"}"><b style="color:var(--text)">${sesWeek.length}</b>/5${sesWeek.length>=5?" ✓":""}</span>
+      <span style="font-size:17px;color:${sesWeek.length>=(h75Active()?7:5)?"var(--link)":"var(--muted)"}"><b style="color:var(--text)">${sesWeek.length}</b>/${h75Active()?7:5}</span>
     </div>
     ${dayStripHTML()}
     ${streakCard}
@@ -1949,7 +2148,10 @@ function renderToday(){
         </div>
         <button class="btn primary small" style="flex-shrink:0" onclick="startOrResumeWorkout()">${S.activeSession?"Resume":"Start"}</button>
       </div>
-      <button class="btn ghost small" style="width:100%;margin-top:14px" onclick="openRecovery()">🚶 ${recWeek.some(r=>r.date===todayISO)?"Active recovery logged ✓":"Log active recovery"}</button>
+      <div class="row" style="gap:8px;margin-top:14px">
+        <button class="btn ghost small" style="width:100%" onclick="openCardioLog()">🏃 ${cardioMins(todayISO)>=45?"Cardio done ✓":"Log cardio"}</button>
+        <button class="btn ghost small" style="width:100%" onclick="openRecovery()">🚶 ${recWeek.some(r=>r.date===todayISO)?"Recovery ✓":"Recovery"}</button>
+      </div>
     </div>
 
     ${redemptionHTML()}
@@ -2734,6 +2936,11 @@ function renderProfile(){
         <button class="btn ghost small" onclick="openWalkSettings()">Edit</button>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">75 Hard</div>
+          <div style="font-size:12px;color:var(--muted)">${h75Active()?`Day ${h75DayNum()} · started ${fmtDateShort(h75().startDate)}`:"Not running"}</div></div>
+        <button class="btn ghost small" onclick="openH75Settings()">Manage</button>
+      </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Daily goals</div>
           <div style="font-size:12px;color:var(--muted)">Steps · kcal · water</div></div>
         <button class="btn ghost small" onclick="openGoals()">Edit</button>
@@ -2803,6 +3010,31 @@ function saveWalkSettings(){
   S.settings.walk.to=parseInt(el("w-to").value)||20;
   if(S.settings.walk.to<=S.settings.walk.from) S.settings.walk.to=S.settings.walk.from+8;
   save(); closeSheet(); renderProfile(); toast("Walk breaks updated",true);
+}
+function openH75Settings(){
+  const H=h75();
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">75 Hard</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${H.active?`Day ${h75DayNum()} of 75 · started ${fmtDate(H.startDate)}`:"Currently off."}</p>
+    <div class="card">
+      <div class="spread" style="padding:4px 0">
+        <div><div style="font-weight:600;font-size:15px">Challenge running</div>
+          <div style="font-size:13px;color:var(--muted)">Puts the daily checklist on Today</div></div>
+        <label class="switch"><input type="checkbox" ${H.active?"checked":""} onchange="h75().active=this.checked;if(this.checked&&!h75().startDate)h75().startDate=dayISO(Date.now());save();closeSheet();renderAll()"><i></i></label>
+      </div>
+      <div class="spread" style="padding:12px 0 4px;border-top:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Daily progress photo</div>
+          <div style="font-size:13px;color:var(--muted)">The classic 5th rule — off unless you want it</div></div>
+        <label class="switch"><input type="checkbox" ${H.withPhoto?"checked":""} onchange="h75().withPhoto=this.checked;save();closeSheet();renderAll()"><i></i></label>
+      </div>
+    </div>
+    <label class="fld"><span>Start date</span><input type="date" id="h75-start" value="${H.startDate}"></label>
+    <button class="btn ghost" onclick="h75().startDate=el('h75-start').value||h75().startDate;save();closeSheet();renderAll();toast('Start date updated',true)">Save start date</button>
+    ${H.attempts&&H.attempts.length?`<div class="card" style="margin-top:16px">
+      <div class="eyebrow" style="margin-bottom:8px">Previous attempts</div>
+      ${H.attempts.slice().reverse().map(a=>`<div class="spread" style="padding:5px 0;font-size:14px">
+        <span>Reached day ${a.daysReached}</span><span style="color:var(--muted)">${fmtDateShort(a.failedOn)}</span></div>`).join("")}
+    </div>`:""}
+    <button class="btn danger" style="margin-top:16px" onclick="if(confirm('Reset 75 Hard to day 1?')){h75Restart();}">Reset to Day 1</button>`);
 }
 function openGoals(){
   const g=S.settings.goals;
@@ -3335,6 +3567,7 @@ function finishWorkout(){
   save();
   sndDone(); haptic([50,100,50,100,50,100,150]);
   el("workout-overlay").classList.remove("open");
+  h75AfterTick();
   window.__pendingCrate=true;
   renderPost(session,{scoreBefore,scoreAfter,streakBonus,cycleDone,newAch,grade:gr,mult,multWhy});
 }
@@ -3572,6 +3805,7 @@ function seedDemo(){
 /* ---------------- init ---------------- */
 load();
 handleExpiry();
+setTimeout(()=>{ const f=h75CheckFail(); if(f) h75ShowFail(f); },700);
 renderToday();
 if(S.activeSession){
   // resume in-progress workout after refresh
