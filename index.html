@@ -414,7 +414,7 @@ label.fld span{display:block;font-size:12px;color:var(--muted);font-weight:600;m
    localStorage and every number on screen derives from logged sets.
    ================================================================ */
 
-const EXERCISES = {
+const DEFAULT_EXERCISES = {
   "incline-bench":{name:"Low-Incline Barbell Bench Press",short:"Low-Incline Bench",inc:2.5,groups:["chest","shoulders","arms"],unit:"kg"},
   "dips":{name:"Dips",short:"Dips",inc:2.5,groups:["chest","arms"],unit:"+kg"},
   "lateral-raise":{name:"DB Lateral Raise",short:"Lateral Raise",inc:1,groups:["shoulders"],unit:"kg"},
@@ -436,10 +436,15 @@ const EXERCISES = {
   // retired from the current programme — kept so old sessions, PRs and charts still render
   "bss":{name:"Bulgarian Split Squat",short:"Bulgarian Split Squat",inc:2.5,groups:["quads","glutes"],unit:"kg",per:"leg",legacy:true},
 };
-const ACTIVE_EX = Object.keys(EXERCISES).filter(k=>!EXERCISES[k].legacy);
+let EXERCISES = Object.assign({},DEFAULT_EXERCISES);
+let ACTIVE_EX = [];
+function refreshExercises(){
+  EXERCISES=Object.assign({},DEFAULT_EXERCISES,(S&&S.customEx)||{});
+  ACTIVE_EX=Object.keys(EXERCISES).filter(k=>!EXERCISES[k].legacy);
+}
 // prescription: sets, rep range, rest seconds, RIR, upAt = total-rep threshold to add weight
 const P=(sets,repLo,repHi,rest,rir,upAt)=>({sets,repLo,repHi,rest,rir,upAt});
-const WORKOUTS = {
+const DEFAULT_WORKOUTS = {
   A:{title:"Back Thickness / Traps",ex:["barbell-row","lat-pulldown","shrug"],
      p:{"barbell-row":P(5,5,8,150,"1–2",35),"lat-pulldown":P(4,8,12,120,"1–2"),"shrug":P(4,8,15,105,"1–2")}},
   B:{title:"Chest / Push Strength",ex:["incline-bench","dips","lateral-raise"],
@@ -457,7 +462,12 @@ const WORKOUTS = {
      note:"Front squat: conservative loading. Progress only if groin and knees tolerate the session and feel good afterwards.",
      p:{"front-squat":P(3,5,8,180,"2–3"),"rdl":P(4,6,10,150,"1–2",34),"calf-raise":P(4,10,20,75,"0–2"),"cable-crunch":P(3,10,20,75,"0–2")}},
 };
+let WORKOUTS = JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
 const CYCLE = ["A","B","C","D","E","F","G"];
+function refreshProgramme(){
+  WORKOUTS = (S&&S.programme) ? JSON.parse(JSON.stringify(S.programme)) : JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
+  for(const w of CYCLE) if(!WORKOUTS[w]) WORKOUTS[w]=JSON.parse(JSON.stringify(DEFAULT_WORKOUTS[w]));
+}
 // legacy workout letters from earlier programmes so old sessions still render
 const LEGACY_WORKOUTS={};
 function wkDef(w){ return WORKOUTS[w]||LEGACY_WORKOUTS[w]||{title:"Workout "+w,ex:[],p:{}}; }
@@ -508,6 +518,8 @@ function freshState(){
     walks:[],           // {date,ts,mins}
     cardio:[],          // {date,ts,type,mins}
     hard75:null,        // {active,startDate,days:{},attempts:[],best,withPhoto}
+    programme:null,     // customised copy of WORKOUTS, null = stock plan
+    customEx:{},        // user-created exercises
     moveStreak:{cur:0,longest:0,lastDay:null},
     buffs:{},           // {doubleNext:true} etc
     relics:[],          // rare collectibles {id,date}
@@ -535,6 +547,7 @@ function load(){
   const f = freshState();
   for(const k in f) if(S[k]===undefined) S[k]=f[k];
   for(const k in f.exState) if(!S.exState[k]) S.exState[k]=f.exState[k];
+  for(const k in EXERCISES) if(!S.exState[k]) S.exState[k]={weight:null,xp:0,mastered:[]};
   if(!S.xpLog||(S.xpLog.length===0&&S.sessions.length)){ S.xpLog=S.sessions.map(x=>({ts:x.end||x.id,amount:x.xp,reason:"Workout "+x.workout})); }
   if(priorVersion===undefined){ S.programmeVersion=3; if(S.sessions.length) S.nextWorkout="B"; }
   if(S.programmeVersion<4){ S.programmeVersion=4; retagSessions(); }   // A/B swapped: pull -> push -> legs
@@ -544,6 +557,8 @@ function load(){
   if(!S.health) S.health=[];
   if(!S.walks) S.walks=[];
   if(!S.cardio) S.cardio=[];
+  if(!S.customEx) S.customEx={};
+  refreshExercises(); refreshProgramme();
   if(!S.hard75){                                  // 75 Hard starts the day this lands
     S.hard75={active:true,startDate:dayISO(Date.now()),days:{},attempts:[],best:0,withPhoto:false};
     S.settings.goals.water=4000;
@@ -1560,6 +1575,157 @@ function addWater(ml){
   if(cur>=g && cur-ml<g) toast("💧 Water goal hit",true);
 }
 
+/* ---------------- programme editor ---------------- */
+function saveProgramme(){
+  S.programme=JSON.parse(JSON.stringify(WORKOUTS));
+  save(); refreshProgramme();
+}
+function openProgramme(){
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Your programme</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Runs ${CYCLE.join(" → ")} → repeat. Tap a workout to change its exercises or their order.</p>
+    <div class="card">
+      ${CYCLE.map(w=>`<div class="list-item" onclick="openWorkoutEditor('${w}')">
+        <span style="display:flex;align-items:center;gap:14px;min-width:0">
+          <span style="width:34px;height:34px;border-radius:50%;background:var(--accent-dim);color:var(--link);display:flex;align-items:center;justify-content:center;font-weight:600">${w}</span>
+          <span style="min-width:0"><div style="font-weight:600;font-size:15px">${WORKOUTS[w].title}</div>
+            <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${WORKOUTS[w].ex.map(k=>(EXERCISES[k]||{short:k}).short).join(" · ")}</div></span>
+        </span><span style="color:var(--dim)">›</span></div>`).join("")}
+    </div>
+    <button class="btn ghost" style="margin-top:6px" onclick="openNewExercise()">＋ Create an exercise</button>
+    ${S.programme?`<button class="btn danger" style="margin-top:10px" onclick="if(confirm('Restore the original plan? Your history stays.')){S.programme=null;save();refreshProgramme();closeSheet();renderAll();toast('Programme restored');}">Reset to the original plan</button>`:""}`);
+}
+function openWorkoutEditor(w){
+  const wk=WORKOUTS[w];
+  openSheet(`<h2 style="font-size:22px;margin-bottom:2px">Workout ${w}</h2>
+    <input type="text" id="wk-title" value="${esc(wk.title)}" style="margin:10px 0 16px" onchange="WORKOUTS['${w}'].title=this.value.trim()||WORKOUTS['${w}'].title;saveProgramme();renderAll()">
+    <div class="card">
+      ${wk.ex.map((k,i)=>{const d=EXERCISES[k]||{short:k,name:k}, pr=presc(k,w);
+        return `<div style="padding:12px 0;${i?"border-top:1px solid var(--line)":""}">
+          <div class="spread" style="gap:10px">
+            <div style="min-width:0;flex:1" onclick="openExercisePresc('${w}','${k}')">
+              <div style="font-weight:600;font-size:16px">${d.name||d.short}</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:2px">${pr.sets} × ${pr.repLo}–${pr.repHi} · rest ${fmtDur(pr.rest)} · ${pr.rir} RIR${wk.superset&&wk.superset.includes(k)?" · superset":""}</div>
+            </div>
+            <div style="display:flex;gap:6px;flex-shrink:0">
+              <button class="chipset" onclick="moveEx('${w}',${i},-1)" ${i===0?"disabled style=opacity:.3":""}>↑</button>
+              <button class="chipset" onclick="moveEx('${w}',${i},1)" ${i===wk.ex.length-1?"disabled style=opacity:.3":""}>↓</button>
+              <button class="chipset" onclick="removeEx('${w}',${i})">✕</button>
+            </div>
+          </div>
+        </div>`;}).join("")}
+    </div>
+    <button class="btn ghost" style="margin-top:6px" onclick="openAddExercise('${w}')">＋ Add an exercise</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="openSupersetPicker('${w}')">Superset pairing</button>
+    <button class="btn primary" style="margin-top:16px" onclick="closeSheet();openProgramme()">Done</button>`);
+}
+function moveEx(w,i,dir){
+  const list=WORKOUTS[w].ex, j=i+dir;
+  if(j<0||j>=list.length) return;
+  [list[i],list[j]]=[list[j],list[i]];
+  saveProgramme(); haptic(10); openWorkoutEditor(w); renderAll();
+}
+function removeEx(w,i){
+  const wk=WORKOUTS[w], k=wk.ex[i];
+  if(wk.ex.length<=1){ toast("A workout needs at least one exercise"); return; }
+  wk.ex.splice(i,1); delete wk.p[k];
+  if(wk.superset&&wk.superset.includes(k)) delete wk.superset;
+  saveProgramme(); haptic(15); openWorkoutEditor(w); renderAll();
+}
+function openAddExercise(w){
+  const inWk=new Set(WORKOUTS[w].ex);
+  const pool=ACTIVE_EX.filter(k=>!inWk.has(k));
+  openSheet(`<h2 style="font-size:22px;margin-bottom:16px">Add to Workout ${w}</h2>
+    <div class="card">
+      ${pool.length?pool.map(k=>`<div class="list-item" onclick="addEx('${w}','${k}')">
+        <span><div style="font-weight:600;font-size:15px">${EXERCISES[k].name}</div>
+          <div style="font-size:13px;color:var(--muted)">${EXERCISES[k].groups.map(g=>GROUPS[g]).join(" · ")}</div></span>
+        <span style="color:var(--link)">Add</span></div>`).join(""):`<div style="color:var(--dim);font-size:14px">Everything's already in this workout.</div>`}
+    </div>
+    <button class="btn ghost" style="margin-top:6px" onclick="openNewExercise('${w}')">＋ Create a new exercise</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();openWorkoutEditor('${w}')">Back</button>`);
+}
+function addEx(w,k){
+  WORKOUTS[w].ex.push(k);
+  WORKOUTS[w].p[k]=P(3,8,12,120,"1–2");
+  saveProgramme(); haptic(15); openExercisePresc(w,k);
+}
+function openExercisePresc(w,k){
+  const pr=presc(k,w), d=EXERCISES[k]||{short:k};
+  openSheet(`<h2 style="font-size:22px;margin-bottom:2px">${d.name||d.short}</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Workout ${w}</p>
+    <div class="row">
+      <label class="fld"><span>Sets</span><input type="number" id="pr-sets" inputmode="numeric" value="${pr.sets}"></label>
+      <label class="fld"><span>Rest (sec)</span><input type="number" id="pr-rest" inputmode="numeric" step="15" value="${pr.rest}"></label>
+    </div>
+    <div class="row">
+      <label class="fld"><span>Min reps</span><input type="number" id="pr-lo" inputmode="numeric" value="${pr.repLo}"></label>
+      <label class="fld"><span>Max reps</span><input type="number" id="pr-hi" inputmode="numeric" value="${pr.repHi}"></label>
+    </div>
+    <div class="row">
+      <label class="fld"><span>RIR</span><input type="text" id="pr-rir" value="${pr.rir}"></label>
+      <label class="fld"><span>Add weight at (total reps)</span><input type="number" id="pr-up" inputmode="numeric" placeholder="${pr.sets*pr.repHi}" value="${pr.upAt||""}"></label>
+    </div>
+    <button class="btn primary" onclick="savePresc('${w}','${k}')">Save</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();openWorkoutEditor('${w}')">Back</button>`);
+}
+function savePresc(w,k){
+  const g=id=>parseInt(el(id).value)||0;
+  const sets=Math.max(1,g("pr-sets")), lo=Math.max(1,g("pr-lo")), hi=Math.max(lo,g("pr-hi"));
+  WORKOUTS[w].p[k]={sets,repLo:lo,repHi:hi,rest:Math.max(15,g("pr-rest")),rir:el("pr-rir").value.trim()||"1–2",upAt:g("pr-up")||undefined};
+  saveProgramme(); closeSheet(); openWorkoutEditor(w); renderAll(); toast("Saved",true);
+}
+function openSupersetPicker(w){
+  const wk=WORKOUTS[w], cur=wk.superset||[];
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Superset</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Pick two exercises to run back to back with no rest between them. They'll appear stacked on one screen.</p>
+    <div class="card">
+      ${wk.ex.map(k=>`<div class="spread" style="padding:10px 0">
+        <span style="font-size:15px;font-weight:500">${(EXERCISES[k]||{short:k}).short}</span>
+        <label class="switch"><input type="checkbox" data-ss="${k}" ${cur.includes(k)?"checked":""}><i></i></label>
+      </div>`).join("")}
+    </div>
+    <button class="btn primary" style="margin-top:14px" onclick="saveSuperset('${w}')">Save pairing</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="WORKOUTS['${w}'].superset=undefined;saveProgramme();closeSheet();openWorkoutEditor('${w}')">No superset</button>`);
+}
+function saveSuperset(w){
+  const picked=[...document.querySelectorAll("[data-ss]")].filter(x=>x.checked).map(x=>x.dataset.ss);
+  if(picked.length&&picked.length!==2){ toast("Pick exactly two"); return; }
+  const wk=WORKOUTS[w];
+  if(!picked.length){ wk.superset=undefined; }
+  else {
+    wk.superset=picked;
+    const a=wk.ex.indexOf(picked[0]);
+    wk.ex=wk.ex.filter(k=>k!==picked[1]);
+    wk.ex.splice(wk.ex.indexOf(picked[0])+1,0,picked[1]);   // keep the pair adjacent
+  }
+  saveProgramme(); closeSheet(); openWorkoutEditor(w); renderAll(); toast("Superset updated",true);
+}
+function openNewExercise(w){
+  openSheet(`<h2 style="font-size:22px;margin-bottom:16px">New exercise</h2>
+    <label class="fld"><span>Name</span><input type="text" id="ne-name" placeholder="Chest-Supported Row"></label>
+    <div class="row">
+      <label class="fld"><span>Load</span><select id="ne-unit">
+        <option value="kg">Weight in kg</option><option value="+kg">Bodyweight + added kg</option></select></label>
+      <label class="fld"><span>Measured in</span><select id="ne-timed">
+        <option value="">Reps</option><option value="1">Seconds</option></select></label>
+    </div>
+    <label class="fld"><span>Muscle group</span><select id="ne-group">
+      ${Object.entries(GROUPS).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select></label>
+    <button class="btn primary" onclick="saveNewExercise(${w?`'${w}'`:"null"})">Create</button>`);
+}
+function saveNewExercise(w){
+  const name=el("ne-name").value.trim();
+  if(!name){ toast("Give it a name"); return; }
+  const id="cx-"+name.toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,28);
+  if(EXERCISES[id]){ toast("You already have that one"); return; }
+  S.customEx[id]={name,short:name.length>18?name.slice(0,17)+"…":name,inc:2.5,
+    groups:[el("ne-group").value],unit:el("ne-unit").value,timed:!!el("ne-timed").value};
+  S.exState[id]={weight:null,xp:0,mastered:[]};
+  save(); refreshExercises();
+  if(w) addEx(w,id); else { closeSheet(); openProgramme(); }
+  toast("Exercise created",true);
+}
+
 /* ---------------- 75 Hard ---------------- */
 const H75_TASKS=[
   {k:"weights",icon:"🏋️",label:"Weights workout",sub:"45 min minimum"},
@@ -2128,6 +2294,7 @@ function renderToday(){
       </div>
       ${pillsHTML()}
     </div>
+    ${inProgressHTML()}
     ${hard75HTML()}
     <div class="spread" style="margin-bottom:10px">
       <span style="font-size:19px;font-weight:600;letter-spacing:.012em">Weekly goal</span>
@@ -2142,7 +2309,7 @@ function renderToday(){
         <div style="display:flex;align-items:center;gap:14px;min-width:0">
           <div class="wletter" style="font-size:40px">${nw}</div>
           <div style="min-width:0">
-            <div style="font-size:14px;color:var(--muted)">Next up · ${cyclePosition()}</div>
+            <div style="font-size:14px;color:var(--muted)" onclick="event.stopPropagation();openWorkoutEditor('${nw}')">Next up · ${cyclePosition()} <span style="color:var(--link)">· edit</span></div>
             <div style="font-size:19px;font-weight:600;letter-spacing:.012em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wk.title}</div>
           </div>
         </div>
@@ -2226,6 +2393,25 @@ function redemptionHTML(){
       <span class="tag acc">1.5× XP</span></div>
     <div style="font-size:14px;color:var(--muted);margin-top:4px">${done} of ${R.target} sessions · ${daysLeft} day${daysLeft>1?"s":""} left to rebuild what you lost</div>
     <div class="qbar"><i style="width:${pct}%"></i></div>
+  </div>`;
+}
+function inProgressHTML(){
+  const A=S.activeSession; if(!A) return "";
+  const wk=wkDef(A.workout);
+  const startedToday=dayISO(A.start)===dayISO(Date.now());
+  const vol=sum(A.sets.map(x=>x.w*x.reps));
+  return `<div class="card" style="border:1px solid rgba(255,159,10,.35)">
+    <div class="spread" style="gap:12px">
+      <div style="min-width:0">
+        <div class="eyebrow" style="color:var(--warn)">Workout in progress — not saved yet</div>
+        <div style="font-size:19px;font-weight:600;margin-top:2px">${A.workout} · ${wk.title}</div>
+        <div style="font-size:14px;color:var(--muted);margin-top:2px">${A.sets.length} set${A.sets.length===1?"":"s"}${vol?` · ${fmtKg(vol)}kg`:""} · started ${startedToday?new Date(A.start).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"}):fmtDateShort(dayISO(A.start))}</div>
+      </div>
+    </div>
+    <div class="row" style="gap:8px;margin-top:14px">
+      <button class="btn primary small" style="width:100%" onclick="startOrResumeWorkout()">Resume</button>
+      <button class="btn ghost small" style="width:100%" onclick="finishWorkout(true)">Finish &amp; save</button>
+    </div>
   </div>`;
 }
 function cyclePosition(){
@@ -2936,6 +3122,11 @@ function renderProfile(){
         <button class="btn ghost small" onclick="openWalkSettings()">Edit</button>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Programme</div>
+          <div style="font-size:12px;color:var(--muted)">${S.programme?"Customised":"Original plan"} · ${CYCLE.length} workouts</div></div>
+        <button class="btn ghost small" onclick="openProgramme()">Edit</button>
+      </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">75 Hard</div>
           <div style="font-size:12px;color:var(--muted)">${h75Active()?`Day ${h75DayNum()} · started ${fmtDateShort(h75().startDate)}`:"Not running"}</div></div>
         <button class="btn ghost small" onclick="openH75Settings()">Manage</button>
@@ -3251,7 +3442,20 @@ function renderWorkout(){
     ${setChips(doneSets,ex)}
     <div style="flex:1"></div>
     <button class="btn primary" style="margin-top:20px" onclick="completeSet()">Complete set <span class="xpchip" style="background:rgba(255,255,255,.18);color:#fff">⚡ +${XP.SET}</span></button>
+    ${A.sets.length?`<button class="btn ghost small" style="width:100%;margin-top:10px" onclick="confirmFinishEarly()">Finish &amp; save workout</button>`:""}
   </div>`;
+}
+function confirmFinishEarly(){
+  const A=S.activeSession; if(!A) return;
+  const wk=WORKOUTS[A.workout];
+  const left=wk.ex.map(k=>({k,done:A.sets.filter(x=>x.ex===k).length,need:presc(k,A.workout).sets}))
+                  .filter(o=>o.done<o.need);
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Finish workout?</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Saves everything you've logged. ${left.length?"These aren't finished:":"All exercises are complete."}</p>
+    ${left.length?`<div class="card">${left.map(o=>`<div class="spread" style="padding:6px 0;font-size:15px">
+      <span>${EXERCISES[o.k].short}</span><span class="mono" style="color:var(--muted)">${o.done}/${o.need} sets</span></div>`).join("")}</div>`:""}
+    <button class="btn primary" style="margin-top:16px" onclick="closeSheet();finishWorkout(true)">Save workout</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Keep training</button>`);
 }
 function bumpN(id,d){ const i=el(id); if(!i) return; i.value=Math.max(0,Math.round((parseFloat(i.value||0)+d)*10)/10); haptic(8); }
 function bumpW(d){ bumpN("in-w",d); }
@@ -3518,9 +3722,10 @@ function restBarHTML(){
 }
 
 /* ---------------- finish workout ---------------- */
-function finishWorkout(){
+function finishWorkout(early){
   clearInterval(restT); restT=null;
   const A=S.activeSession;
+  if(!A||!A.sets.length){ toast("Log at least one set first"); return; }
   const now=Date.now();
   A.xp+=XP.WORKOUT;
   const volume=sum(A.sets.map(s=>s.w*s.reps));
@@ -3537,12 +3742,13 @@ function finishWorkout(){
   // per-exercise XP
   for(const ex of WORKOUTS[A.workout].ex){
     const exSets=A.sets.filter(s=>s.ex===ex);
+    if(!exSets.length) continue;                       // skipped exercises earn nothing
     const exPRs=A.prs.filter(p=>p.ex===ex).length;
     S.exState[ex].xp += exSets.length*XP.SET + XP.EXERCISE + exPRs*XP.PR;
-    if(exSets.length) S.exState[ex].weight=Math.max(...exSets.map(s=>s.w));
+    S.exState[ex].weight=Math.max(...exSets.map(s=>s.w));
   }
   const session={
-    id:now, workout:A.workout, dateISO:dayISO(now), start:A.start, end:now,
+    id:now, workout:A.workout, dateISO:dayISO(A.start||now), start:A.start, end:now,
     dur:Math.round((now-A.start)/1000), sets:A.sets, volume, xp:A.xp, prs:A.prs,
   };
   // multipliers: double-XP crate buff and redemption week
@@ -3805,7 +4011,18 @@ function seedDemo(){
 /* ---------------- init ---------------- */
 load();
 handleExpiry();
-setTimeout(()=>{ const f=h75CheckFail(); if(f) h75ShowFail(f); },700);
+setTimeout(()=>{
+  const A=S.activeSession;
+  if(A && A.sets.length && dayISO(A.start)!==dayISO(Date.now())){
+    openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Unsaved workout</h2>
+      <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Workout ${A.workout} from ${fmtDate(dayISO(A.start))} was never finished — ${A.sets.length} sets are still sitting here.</p>
+      <button class="btn primary" onclick="closeSheet();finishWorkout(true)">Save it to ${fmtDateShort(dayISO(A.start))}</button>
+      <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();startOrResumeWorkout()">Resume it</button>
+      <button class="btn danger" style="margin-top:10px" onclick="if(confirm('Discard those sets?')){S.activeSession=null;save();closeSheet();renderAll();}">Discard</button>`);
+    return;
+  }
+  const f=h75CheckFail(); if(f) h75ShowFail(f);
+},700);
 renderToday();
 if(S.activeSession){
   // resume in-progress workout after refresh
