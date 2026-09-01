@@ -273,7 +273,10 @@ b,strong{font-weight:600}
 .h75task.on .h75lab{color:var(--muted);text-decoration:line-through}
 .h75lab{font-size:16px;font-weight:500;letter-spacing:-.01em}
 .h75sub{font-size:13px;color:var(--dim);margin-top:1px}
-.h75go{font-size:14px;color:var(--link);flex-shrink:0}
+.h75go{font-size:14px;color:var(--link);flex-shrink:0;background:var(--card3);border:none;border-radius:9999px;
+  padding:7px 14px;font-family:inherit;font-weight:500;cursor:pointer}
+.h75go:active{filter:brightness(1.4)}
+.h75chk{cursor:pointer}
 /* editable set chips */
 .chipset{border:none;border-radius:9999px;background:var(--card3);color:var(--text);font-family:inherit;
   font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;padding:7px 13px;cursor:pointer}
@@ -1774,7 +1777,7 @@ function h75Toggle(k){
   const iso=dayISO(Date.now()), H=h75();
   H.days[iso]=H.days[iso]||{};
   const st=h75Status(iso);
-  if(st[k] && !H.days[iso][k]){ toast("That one's tracked automatically"); return; }
+  if(st[k] && !H.days[iso][k]){ toast("Already counted from your logged data"); return; }
   H.days[iso][k]=!H.days[iso][k];
   if(H.days[iso][k]) awardOnce("h75-"+k,20,"75 Hard: "+(h75TaskList().find(t=>t.k===k)||{label:k}).label);
   save(); h75AfterTick(); renderAll();
@@ -1864,9 +1867,17 @@ function hard75HTML(){
   const h=S.health.find(x=>x.date===iso)||{};
   const endOfDay=new Date(iso+"T23:59:59").getTime();
   const leftMs=endOfDay-Date.now();
+  const mins=x=>Math.round((x||0)/60);
+  const daySes=S.sessions.filter(y=>y.dateISO===iso);
+  const bestDur=daySes.length?Math.max(...daySes.map(x=>x.dur||0)):0;
+  const cMins=cardioMins(iso);
   const detail={
-    weights:(()=>{const x=S.sessions.filter(y=>y.dateISO===iso).sort((a,b)=>(b.dur||0)-(a.dur||0))[0];return x?fmtDur(x.dur||0):"";})(),
-    cardio: cardioMins(iso)?cardioMins(iso)+" min":"",
+    weights: !daySes.length ? "45 min minimum"
+           : bestDur>=45*60 ? fmtDur(bestDur)+" logged"
+           : mins(bestDur)+" min logged \u00b7 tap to count it",
+    cardio:  !cMins ? "45 min \u2014 walk, run, padel"
+           : cMins>=45 ? cMins+" min logged"
+           : cMins+" min logged \u00b7 tap to count it",
     water: ((h.water||0)/1000).toFixed(1)+"/4.0L",
     food:"", pages:"", photo:"",
   };
@@ -1887,13 +1898,13 @@ function hard75HTML(){
     </div>
     <div class="h75bar"><i style="width:${Math.min(100,(n-1)/75*100)}%"></i><em style="left:${Math.min(100,n/75*100)}%"></em></div>
     <div style="margin-top:14px">
-      ${tasks.map(t=>`<div class="h75task ${st[t.k]?"on":""}" onclick="${st[t.k]||!action[t.k]?`h75Toggle('${t.k}')`:action[t.k]}">
-        <div class="h75chk">${st[t.k]?"✓":""}</div>
-        <div style="flex:1;min-width:0">
+      ${tasks.map(t=>`<div class="h75task ${st[t.k]?"on":""}">
+        <div class="h75chk" onclick="h75Toggle('${t.k}')">${st[t.k]?"✓":""}</div>
+        <div style="flex:1;min-width:0" onclick="h75Toggle('${t.k}')">
           <div class="h75lab">${t.icon} ${t.label}</div>
           <div class="h75sub">${detail[t.k]||t.sub}</div>
         </div>
-        ${!st[t.k]&&action[t.k]?`<span class="h75go">Log</span>`:""}
+        ${!st[t.k]&&action[t.k]?`<button class="h75go" onclick="event.stopPropagation();${action[t.k]}">${t.k==="weights"?"Train":"Log"}</button>`:""}
       </div>`).join("")}
     </div>
     ${all?`<div style="text-align:center;font-size:14px;color:var(--link);margin-top:12px">${75-n} days to go. All gas, no brakes.</div>`:""}
