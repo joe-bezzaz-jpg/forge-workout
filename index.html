@@ -1773,20 +1773,29 @@ function h75CheckFail(){
   }
   return null;
 }
-function h75Toggle(k){
-  const iso=dayISO(Date.now()), H=h75();
+function h75Award(iso,k,amount,label){
+  S.h75Awards=S.h75Awards||{};
+  const key=iso+":"+k;
+  if(S.h75Awards[key]) return false;
+  S.h75Awards[key]=1; addXP(amount,label); return true;
+}
+function h75Toggle(k,iso){
+  iso=iso||dayISO(Date.now());
+  const H=h75();
+  if(iso<H.startDate||iso>dayISO(Date.now())){ toast("That day isn't part of this run"); return; }
   H.days[iso]=H.days[iso]||{};
   const st=h75Status(iso);
   if(st[k] && !H.days[iso][k]){ toast("Already counted from your logged data"); return; }
   H.days[iso][k]=!H.days[iso][k];
-  if(H.days[iso][k]) awardOnce("h75-"+k,20,"75 Hard: "+(h75TaskList().find(t=>t.k===k)||{label:k}).label);
-  save(); h75AfterTick(); renderAll();
+  if(H.days[iso][k]) h75Award(iso,k,20,"75 Hard: "+(h75TaskList().find(t=>t.k===k)||{label:k}).label);
+  save(); h75AfterTick(iso); renderAll();
+  if(el("sheet").classList.contains("open")) openH75Day(iso);
 }
-function h75AfterTick(){
-  const iso=dayISO(Date.now());
+function h75AfterTick(iso){
+  iso=iso||dayISO(Date.now());
   if(!h75Done(iso)) return;
-  if(awardOnce("h75-day",100,"75 Hard day complete")){
-    const n=h75DayNum();
+  if(h75Award(iso,"day",100,"75 Hard day complete")){
+    const n=h75DayNum(iso);
     confetti({count:90}); sndDone(); haptic([50,80,50,80,140]);
     setTimeout(()=>toast(`Day ${n} of 75 complete — all gas, no brakes`,true),250);
     const H=h75();
@@ -1807,6 +1816,44 @@ function h75Victory(){
     </div>
     <button class="btn primary" onclick="closeSheet()">Take it in</button></div>`);
 }
+function openH75History(){
+  const H=h75(), today=h75DayNum();
+  let rows="";
+  for(let n=today;n>=1;n--){
+    const d=h75DateFor(n), st=h75Status(d), done=h75Done(d);
+    const count=h75Keys().filter(k=>st[k]).length;
+    const isToday=n===today;
+    rows+=`<div class="list-item" onclick="openH75Day('${d}')">
+      <span style="display:flex;align-items:center;gap:14px;min-width:0">
+        <span style="width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+          font-size:13px;font-weight:600;background:${done?"var(--brand)":"var(--card3)"};color:${done?"#fff":"var(--muted)"}">${done?"\u2713":count}</span>
+        <span style="min-width:0">
+          <div style="font-weight:600;font-size:15px">Day ${n}${isToday?" · today":""}</div>
+          <div style="font-size:13px;color:${done?"var(--muted)":"var(--warn)"}">${fmtDateShort(d)} · ${count}/${h75Keys().length}${done?"":" — incomplete"}</div>
+        </span>
+      </span><span style="color:var(--dim)">\u203A</span></div>`;
+  }
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">75 Hard days</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Tap any day to tick something you forgot. You're the record here — the app just holds it.</p>
+    <div class="card">${rows}</div>`);
+}
+function openH75Day(iso){
+  const n=h75DayNum(iso), st=h75Status(iso), tasks=h75TaskList();
+  const done=h75Done(iso);
+  const isToday=iso===dayISO(Date.now());
+  openSheet(`<h2 style="font-size:22px;margin-bottom:2px">Day ${n}${isToday?" · today":""}</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${fmtDate(iso)}${done?" · complete":""}</p>
+    <div class="card" style="padding:6px 16px">
+      ${tasks.map((t,i)=>`<div class="h75task ${st[t.k]?"on":""}" style="${i?"":"border-top:none"}">
+        <div class="h75chk" onclick="h75Toggle('${t.k}','${iso}')">${st[t.k]?"\u2713":""}</div>
+        <div style="flex:1;min-width:0" onclick="h75Toggle('${t.k}','${iso}')">
+          <div class="h75lab">${t.icon} ${t.label}</div>
+          <div class="h75sub">${st[t.k]?"Done":"Not ticked"}</div>
+        </div>
+      </div>`).join("")}
+    </div>
+    <button class="btn ghost" style="margin-top:14px" onclick="closeSheet();openH75History()">All days</button>`);
+}
 function h75ShowFail(f){
   const H=h75();
   openSheet(`<div style="text-align:center;padding:6px 0">
@@ -1820,7 +1867,8 @@ function h75ShowFail(f){
       </div>
       <p style="color:var(--muted);font-size:15px;line-height:1.5">The rule is the rule. You reached <b style="color:var(--text)">day ${f.day}</b>${H.best>f.day?` (your best is ${H.best})`:""}.<br>
       Your lifts, PRs and XP all stay — only the 75 resets.</p>
-      <button class="btn primary" style="margin-top:20px" onclick="h75Restart()">Start again at Day 1</button>
+      <button class="btn primary" style="margin-top:20px" onclick="closeSheet();openH75Day('${f.date}')">I did complete it — fix day ${f.day}</button>
+      <button class="btn ghost" style="margin-top:10px" onclick="h75Restart()">Start again at Day 1</button>
       <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Not now</button>
     </div>`);
 }
@@ -1887,8 +1935,8 @@ function hard75HTML(){
       <div>
         <div class="eyebrow" style="color:${all?"var(--link)":"var(--muted)"}">75 Hard · no misses</div>
         <div style="display:flex;align-items:baseline;gap:8px;margin-top:2px">
-          <span style="font-family:'SF Pro Display',-apple-system,sans-serif;font-size:40px;font-weight:600;letter-spacing:-.005em;line-height:1">Day ${n}</span>
-          <span style="font-size:17px;color:var(--muted)">of 75</span>
+          <span style="font-family:'SF Pro Display',-apple-system,sans-serif;font-size:40px;font-weight:600;letter-spacing:-.005em;line-height:1" onclick="openH75History()">Day ${n}</span>
+          <span style="font-size:17px;color:var(--muted)" onclick="openH75History()">of 75 \u203A</span>
         </div>
       </div>
       <div style="text-align:right">
