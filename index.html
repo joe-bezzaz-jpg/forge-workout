@@ -32,11 +32,13 @@
   --spectrum:linear-gradient(108deg,#0090f7,#ba62fc 33%,#f2416b 66%,#f55600);
   --shadow:none; --shadow2:none;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --navgap:0px;                          /* set by fixNavGap() when iOS leaves the viewport short of the screen */
+  --sabx:max(var(--sab),var(--navgap));
   --r:28px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 button,a,.tab,.quest,.dcard,.chip,.pill,.list-item,.trophy,input,select{touch-action:manipulation}
-html{-webkit-text-size-adjust:100%;height:100%}
+html{-webkit-text-size-adjust:100%;height:100%;background:var(--bg)}
 body{
   background:var(--bg); color:var(--text);
   font-family:"SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
@@ -47,7 +49,7 @@ body{
 #app{max-width:520px;margin:0 auto;height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;position:relative;z-index:1}
 html,body{overflow-x:hidden}
-.screen{display:none;padding:calc(10px + var(--sat)) 16px calc(92px + max(6px,calc(var(--sab) - 20px)));animation:fadeUp .28s ease both;position:relative;min-height:100%;overflow:hidden}
+.screen{display:none;padding:calc(10px + var(--sat)) 16px calc(92px + max(6px,calc(var(--sabx) - 20px)));animation:fadeUp .28s ease both;position:relative;min-height:100%;overflow:hidden}
 .screen.active{display:block}
 /* brand band curving in from the top (every screen) */
 /* faint volt glow at the top instead of a colour band */
@@ -92,13 +94,15 @@ b,strong{font-weight:600}
 .btn:disabled{opacity:.4;pointer-events:none}
 
 /* ---------- tab bar (floating white pill) ---------- */
-#tabbar{position:fixed;bottom:0;left:0;right:0;z-index:50;width:100%;
+#tabbar{position:fixed;bottom:calc(0px - var(--navgap));left:0;right:0;z-index:50;width:100%;
   background:rgba(29,29,31,.72);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);
   border-radius:26px 26px 0 0;display:flex;align-items:center;justify-content:space-around;
-  padding:5px 8px max(6px,calc(var(--sab) - 20px));
+  padding:5px 8px max(6px,calc(var(--sabx) - 20px));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 -8px 30px rgba(0,0,0,.5);
   border-top:1px solid rgba(255,255,255,.07)}
-#tab-ind{position:absolute;top:5px;bottom:max(6px,calc(var(--sab) - 20px));left:0;width:0;border-radius:9999px;pointer-events:none;
+/* the bar's own background continues past the screen edge, so it can never look lifted */
+#tabbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:160px;background:rgb(21,21,22);pointer-events:none}
+#tab-ind{position:absolute;top:5px;bottom:max(6px,calc(var(--sabx) - 20px));left:0;width:0;border-radius:9999px;pointer-events:none;
   background:rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 2px 10px rgba(0,0,0,.25);
   backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);-webkit-backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);
   transition:left .5s cubic-bezier(.3,1.4,.4,1),width .5s cubic-bezier(.3,1.4,.4,1),transform .5s cubic-bezier(.3,1.4,.4,1);
@@ -260,23 +264,27 @@ b,strong{font-weight:600}
   border-radius:9999px;padding:7px 14px;font-size:14px;color:var(--muted);font-weight:400}
 .target-banner{background:var(--card);border:none;border-radius:22px;padding:18px 20px;margin:14px 0}
 
-/* 75 Hard */
-.h75{background:var(--card);border-radius:var(--r);padding:22px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06)}
-.h75.done{border-color:rgba(41,151,255,.4)}
-.h75bar{height:6px;border-radius:3px;background:var(--card3);margin-top:16px;position:relative;overflow:visible}
-.h75bar i{display:block;height:100%;border-radius:3px;background:var(--link)}
-.h75bar em{position:absolute;top:-3px;width:2px;height:12px;background:var(--text);border-radius:1px}
-.h75task{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line);cursor:pointer}
-.h75chk{width:26px;height:26px;border-radius:50%;background:var(--card3);color:transparent;display:flex;align-items:center;
-  justify-content:center;font-size:13px;font-weight:600;flex-shrink:0;transition:all .25s}
-.h75task.on .h75chk{background:var(--link);color:#fff}
-.h75task.on .h75lab{color:var(--muted);text-decoration:line-through}
-.h75lab{font-size:16px;font-weight:500;letter-spacing:-.01em}
-.h75sub{font-size:13px;color:var(--dim);margin-top:1px}
-.h75go{font-size:14px;color:var(--link);flex-shrink:0;background:var(--card3);border:none;border-radius:9999px;
-  padding:7px 14px;font-family:inherit;font-weight:500;cursor:pointer}
-.h75go:active{filter:brightness(1.4)}
-.h75chk{cursor:pointer}
+/* the two tiers: weights + cardio */
+.tier{background:var(--card);border-radius:var(--r);padding:22px;margin-bottom:12px;border:1px solid rgba(255,255,255,.06)}
+.tier.done{border-color:rgba(41,151,255,.4)}
+.tbig{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:34px;font-weight:600;letter-spacing:-.005em;line-height:1.1;margin-top:4px}
+.tbig span{font-size:17px;font-weight:400;color:var(--muted)}
+.tbar{height:6px;border-radius:3px;background:var(--card3);margin-top:16px;overflow:hidden}
+.tbar i{display:block;height:100%;border-radius:3px;background:var(--link);transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.tweek{display:flex;gap:6px;margin-top:16px}
+.tday{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px}
+.tday i{width:100%;max-width:34px;aspect-ratio:1;border-radius:50%;background:var(--card3);display:flex;align-items:center;justify-content:center;
+  font-style:normal;font-size:12px;font-weight:600;color:var(--muted)}
+.tday.on i{background:var(--link);color:#fff}
+.tday.part i{background:rgba(41,151,255,.25);color:var(--text)}
+.tday.today i{box-shadow:0 0 0 2px var(--text) inset}
+.tday.future i{opacity:.45}
+.tday span{font-size:11px;color:var(--dim)}
+.tline{display:flex;justify-content:space-between;gap:12px;font-size:14px;color:var(--muted);padding:9px 0 0;margin-top:9px;border-top:1px solid var(--line)}
+.tline b{color:var(--text);font-weight:600}
+.tnote{font-size:14px;color:var(--muted);line-height:1.45;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--card3)}
+.tnote.warn{color:var(--text);background:rgba(255,159,10,.14)}
+.tnote a{cursor:pointer;font-weight:600}
 /* editable set chips */
 .chipset{border:none;border-radius:9999px;background:var(--card3);color:var(--text);font-family:inherit;
   font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;padding:7px 13px;cursor:pointer}
@@ -418,25 +426,43 @@ label.fld span{display:block;font-size:12px;color:var(--muted);font-weight:600;m
    ================================================================ */
 
 const DEFAULT_EXERCISES = {
+  // ---- gym programme ----
+  "bench":{name:"Barbell Bench Press",short:"Bench Press",inc:2.5,groups:["chest","shoulders","arms"],unit:"kg"},
+  "pullup":{name:"Weighted Pull-Up",short:"Pull-Up",inc:2.5,groups:["lats","upperback","arms"],unit:"+kg"},
+  "db-shoulder-press":{name:"Seated DB Shoulder Press (per DB)",short:"DB Shoulder Press",inc:2,groups:["shoulders","arms"],unit:"kg"},
+  "cs-row":{name:"Chest-Supported Row",short:"Chest-Supported Row",inc:2.5,groups:["upperback","lats"],unit:"kg"},
+  "cable-lateral":{name:"Cable Lateral Raise",short:"Cable Lateral",inc:2.5,groups:["shoulders"],unit:"kg",per:"side"},
+  "leg-press":{name:"Leg Press (feet high)",short:"Leg Press",inc:5,groups:["quads","glutes"],unit:"kg"},
+  "leg-curl-seated":{name:"Seated Leg Curl",short:"Seated Leg Curl",inc:2.5,groups:["hamstrings"],unit:"kg"},
+  "incline-db-press":{name:"Incline DB Press (per DB)",short:"Incline DB Press",inc:2,groups:["chest","shoulders"],unit:"kg"},
+  "trap-bar-dl":{name:"Trap-Bar Deadlift (high handles)",short:"Trap-Bar Deadlift",inc:5,groups:["glutes","hamstrings","upperback"],unit:"kg"},
+  "hip-thrust":{name:"Barbell / Machine Hip Thrust",short:"Hip Thrust",inc:5,groups:["glutes","hamstrings"],unit:"kg"},
+  "leg-curl-lying":{name:"Lying Leg Curl",short:"Lying Leg Curl",inc:2.5,groups:["hamstrings"],unit:"kg"},
+  "seated-calf":{name:"Seated Calf Raise",short:"Seated Calf",inc:2.5,groups:["calves"],unit:"kg"},
+  "hanging-knee-raise":{name:"Hanging Knee Raise",short:"Hanging Knee Raise",inc:2.5,groups:["core"],unit:"+kg"},
+  "rev-pec-deck":{name:"Reverse Pec Deck",short:"Reverse Pec Deck",inc:2.5,groups:["upperback","shoulders"],unit:"kg"},
+  "hammer-curl":{name:"DB Hammer Curl (per DB)",short:"Hammer Curl",inc:2,groups:["arms"],unit:"kg"},
+  "oh-tricep":{name:"Overhead Cable Triceps Extension",short:"OH Triceps",inc:2.5,groups:["arms"],unit:"kg"},
+  // carried over from the last plan — same keys, so history, PRs and working weights carry across
   "incline-bench":{name:"Low-Incline Barbell Bench Press",short:"Low-Incline Bench",inc:2.5,groups:["chest","shoulders","arms"],unit:"kg"},
-  "dips":{name:"Dips",short:"Dips",inc:2.5,groups:["chest","arms"],unit:"+kg"},
+  "dips":{name:"Weighted Dips",short:"Dips",inc:2.5,groups:["chest","arms"],unit:"+kg"},
   "lateral-raise":{name:"DB Lateral Raise",short:"Lateral Raise",inc:1,groups:["shoulders"],unit:"kg"},
   "barbell-row":{name:"Barbell Row",short:"Barbell Row",inc:2.5,groups:["upperback","lats"],unit:"kg"},
   "lat-pulldown":{name:"Cable Lat Pulldown",short:"Lat Pulldown",inc:2.5,groups:["lats","upperback"],unit:"kg"},
   "shrug":{name:"Barbell Shrug",short:"Shrug",inc:2.5,groups:["traps","upperback"],unit:"kg"},
-  "light-squat":{name:"Bodyweight / Light Squat",short:"Light Squat",inc:2.5,groups:["quads","glutes"],unit:"+kg"},
-  "adductor-iso":{name:"Adductor Squeeze (isometric)",short:"Adductor Iso",inc:1,groups:["glutes"],unit:"+kg",timed:true},
-  "glute-bridge":{name:"Glute Bridge",short:"Glute Bridge",inc:2.5,groups:["glutes","hamstrings"],unit:"+kg"},
   "calf-raise":{name:"Standing Calf Raise",short:"Calf Raise",inc:2.5,groups:["calves"],unit:"kg"},
   "ohp":{name:"Standing Barbell Overhead Press",short:"OHP",inc:2.5,groups:["shoulders","traps"],unit:"kg"},
-  "curl":{name:"DB / Barbell Curl",short:"Curl",inc:1,groups:["arms"],unit:"kg"},
+  "curl":{name:"EZ-Bar / DB Curl",short:"Curl",inc:1,groups:["arms"],unit:"kg"},
   "tricep-pushdown":{name:"Cable Triceps Pushdown",short:"Triceps Pushdown",inc:2.5,groups:["arms"],unit:"kg"},
   "db-row-1arm":{name:"Heavy 1-Arm DB Row",short:"1-Arm DB Row",inc:2.5,groups:["lats","upperback"],unit:"kg",per:"side"},
   "cable-row-high":{name:"Face Pull",short:"Face Pull",inc:2.5,groups:["upperback","shoulders"],unit:"kg"},
-  "front-squat":{name:"Front Squat",short:"Front Squat",inc:2.5,groups:["quads","core"],unit:"kg"},
   "rdl":{name:"Romanian Deadlift",short:"RDL",inc:2.5,groups:["hamstrings","glutes"],unit:"kg"},
   "cable-crunch":{name:"Cable Crunch",short:"Cable Crunch",inc:2.5,groups:["core"],unit:"kg"},
-  // retired from the current programme — kept so old sessions, PRs and charts still render
+  // retired — kept so old sessions, PRs and charts still render
+  "light-squat":{name:"Bodyweight / Light Squat",short:"Light Squat",inc:2.5,groups:["quads","glutes"],unit:"+kg",legacy:true},
+  "adductor-iso":{name:"Adductor Squeeze (isometric)",short:"Adductor Iso",inc:1,groups:["glutes"],unit:"+kg",timed:true,legacy:true},
+  "glute-bridge":{name:"Glute Bridge",short:"Glute Bridge",inc:2.5,groups:["glutes","hamstrings"],unit:"+kg",legacy:true},
+  "front-squat":{name:"Front Squat",short:"Front Squat",inc:2.5,groups:["quads","core"],unit:"kg",legacy:true},
   "bss":{name:"Bulgarian Split Squat",short:"Bulgarian Split Squat",inc:2.5,groups:["quads","glutes"],unit:"kg",per:"leg",legacy:true},
 };
 let EXERCISES = Object.assign({},DEFAULT_EXERCISES);
@@ -445,15 +471,37 @@ function refreshExercises(){
   EXERCISES=Object.assign({},DEFAULT_EXERCISES,(S&&S.customEx)||{});
   ACTIVE_EX=Object.keys(EXERCISES).filter(k=>!EXERCISES[k].legacy);
 }
-// prescription: sets, rep range, rest seconds, RIR, upAt = total-rep threshold to add weight
+// prescription: sets, rep range, rest seconds, effort, upAt = total-rep threshold (custom 3+ set schemes only)
 const P=(sets,repLo,repHi,rest,rir,upAt)=>({sets,repLo,repHi,rest,rir,upAt});
+// top set + back-off: set 1 heavy in repLo–repHi, set 2 at ~90% for bLo–bHi. Both taken all the way.
+const TOP=(repLo,repHi,bLo,bHi,rest,rir)=>({sets:2,repLo,repHi,bLo,bHi,rest,rir:rir||"Failure",top:true});
+// two straight sets at one weight, both to failure
+const TWO=(repLo,repHi,rest,rir)=>({sets:2,repLo,repHi,rest,rir:rir||"Failure"});
+const CLEAN="Last clean rep";      // barbell lifts: stop where form would break, never grind
+const KNEE="1 rep in reserve";     // knee still sore: loaded leg work stops one short
 const DEFAULT_WORKOUTS = {
+  A:{title:"Upper · Strength",ex:["bench","pullup","db-shoulder-press","cs-row","cable-lateral"],
+     p:{"bench":TOP(4,6,6,10,180,CLEAN),"pullup":TOP(4,6,6,10,180),"db-shoulder-press":TWO(6,10,120),"cs-row":TWO(8,12,105),"cable-lateral":TWO(10,15,60)}},
+  B:{title:"Lower · Knee-Friendly",ex:["leg-press","rdl","leg-curl-seated","calf-raise","cable-crunch"],
+     note:"Knee rule: pain no higher than 3/10 during a set, and no worse the next morning. If it is, shorten the leg-press depth or drop the load. Feet high and wide on the platform, lower only as deep as stays pain-free.",
+     p:{"leg-press":TOP(6,10,10,15,180,KNEE),"rdl":TWO(6,10,150,CLEAN),"leg-curl-seated":TWO(8,12,90),"calf-raise":TWO(8,12,75),"cable-crunch":TWO(10,15,60)}},
+  C:{title:"Push",ex:["ohp","incline-db-press","dips","cable-lateral","tricep-pushdown"],
+     p:{"ohp":TOP(4,6,6,10,180,CLEAN),"incline-db-press":TWO(6,10,120),"dips":TWO(6,10,120),"cable-lateral":TWO(10,15,60),"tricep-pushdown":TWO(8,12,75)}},
+  D:{title:"Pull",ex:["barbell-row","lat-pulldown","cable-row-high","shrug","curl"],
+     p:{"barbell-row":TOP(4,6,6,10,180,CLEAN),"lat-pulldown":TWO(8,12,105),"cable-row-high":TWO(12,15,60),"shrug":TWO(8,12,90),"curl":TWO(8,12,75)}},
+  E:{title:"Lower · Hinge",ex:["trap-bar-dl","hip-thrust","leg-curl-lying","seated-calf","hanging-knee-raise"],
+     note:"High handles on the trap bar keep your knees out of it — push the floor away and let the hips do the work. Stop the deadlift at the last clean rep, never grind it.",
+     p:{"trap-bar-dl":TOP(4,6,6,10,210,CLEAN),"hip-thrust":TWO(6,10,120),"leg-curl-lying":TWO(8,12,90),"seated-calf":TWO(10,15,60),"hanging-knee-raise":TWO(10,15,60)}},
+  F:{title:"Upper · Size",ex:["incline-bench","db-row-1arm","rev-pec-deck","lateral-raise","hammer-curl","oh-tricep"],superset:["hammer-curl","oh-tricep"],
+     p:{"incline-bench":TOP(4,6,6,10,180,CLEAN),"db-row-1arm":TWO(8,12,90),"rev-pec-deck":TWO(12,15,60),"lateral-raise":TWO(12,20,60),"hammer-curl":TWO(10,15,75),"oh-tricep":TWO(10,15,75)}},
+};
+// the home/rehab plan that ran before the gym — old sessions are read against this
+const LEGACY_V4_WORKOUTS = {
   A:{title:"Back Thickness / Traps",ex:["barbell-row","lat-pulldown","shrug"],
      p:{"barbell-row":P(5,5,8,150,"1–2",35),"lat-pulldown":P(4,8,12,120,"1–2"),"shrug":P(4,8,15,105,"1–2")}},
   B:{title:"Chest / Push Strength",ex:["incline-bench","dips","lateral-raise"],
      p:{"incline-bench":P(5,4,6,180,"1–2",27),"dips":P(4,6,12,150,"1–2",44),"lateral-raise":P(4,12,20,75,"0–2")}},
   C:{title:"Lower Rehab / Reconditioning",ex:["light-squat","adductor-iso","glute-bridge","calf-raise"],
-     note:"Finish with 5–10 min of gentle hip, ankle, adductor and hip-flexor mobility. No aggressive stretching or painful loading.",
      p:{"light-squat":P(3,8,12,90,"3+"),"adductor-iso":P(3,20,40,60,"—"),"glute-bridge":P(3,10,15,75,"2–3"),"calf-raise":P(4,12,20,75,"0–2")}},
   D:{title:"Shoulders / Arms",ex:["ohp","lateral-raise","curl","tricep-pushdown"],superset:["curl","tricep-pushdown"],
      p:{"ohp":P(4,5,8,150,"1–2",28),"lateral-raise":P(4,12,20,75,"0–2"),"curl":P(4,8,15,75,"0–2"),"tricep-pushdown":P(4,8,15,75,"0–2")}},
@@ -462,38 +510,73 @@ const DEFAULT_WORKOUTS = {
   F:{title:"Chest / Push Volume",ex:["incline-bench","dips","lateral-raise"],
      p:{"incline-bench":P(4,7,10,150,"1–2"),"dips":P(3,8,15,120,"1–2"),"lateral-raise":P(4,12,20,75,"0–2")}},
   G:{title:"Lower Strength",ex:["front-squat","rdl","calf-raise","cable-crunch"],
-     note:"Front squat: conservative loading. Progress only if groin and knees tolerate the session and feel good afterwards.",
      p:{"front-squat":P(3,5,8,180,"2–3"),"rdl":P(4,6,10,150,"1–2",34),"calf-raise":P(4,10,20,75,"0–2"),"cable-crunch":P(3,10,20,75,"0–2")}},
 };
 let WORKOUTS = JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
-const CYCLE = ["A","B","C","D","E","F","G"];
+const CYCLE = ["A","B","C","D","E","F"];
 function refreshProgramme(){
   WORKOUTS = (S&&S.programme) ? JSON.parse(JSON.stringify(S.programme)) : JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
   for(const w of CYCLE) if(!WORKOUTS[w]) WORKOUTS[w]=JSON.parse(JSON.stringify(DEFAULT_WORKOUTS[w]));
 }
-// legacy workout letters from earlier programmes so old sessions still render
 const LEGACY_WORKOUTS={};
 function wkDef(w){ return WORKOUTS[w]||LEGACY_WORKOUTS[w]||{title:"Workout "+w,ex:[],p:{}}; }
-function presc(ex,wk){
+// a stored session, read against the plan it was actually trained under
+function sesDef(s){
+  if(s&&s.legacy) return (S.legacyProgramme||LEGACY_V4_WORKOUTS)[s.workout]||LEGACY_V4_WORKOUTS[s.workout]||{title:"Workout "+s.workout,ex:[],p:{}};
+  return wkDef(s.workout);
+}
+function rawPresc(ex,wk){
   if(wk&&WORKOUTS[wk]&&WORKOUTS[wk].p[ex]) return WORKOUTS[wk].p[ex];
   for(const w of CYCLE) if(WORKOUTS[w].p[ex]) return WORKOUTS[w].p[ex];
-  return P(3,8,12,120,"1–2");
+  return TWO(8,12,90);
+}
+// deload week: one easier set of everything, stop 2–3 short
+function presc(ex,wk){
+  const p=rawPresc(ex,wk);
+  return deloadActive()?Object.assign({},p,{sets:1,rir:"Stop 2–3 short",deload:true}):p;
 }
 function primaryWorkoutOf(ex){ for(const w of CYCLE) if(WORKOUTS[w].p[ex]) return w; return null; }
-function schemeSig(ex,wk){ const p=presc(ex,wk); return p.sets+"x"+p.repLo+"-"+p.repHi; }
-function upThreshold(ex,wk){ const p=presc(ex,wk); return p.upAt||p.sets*p.repHi; }
+function schemeSig(ex,wk){ const p=rawPresc(ex,wk); return p.sets+"x"+p.repLo+"-"+p.repHi+(p.top?"t":""); }
+function upThreshold(ex,wk){ const p=rawPresc(ex,wk); return p.upAt||p.sets*p.repHi; }
+function topSetOf(sets){ const w=Math.max(...sets.map(s=>s.w)); return sets.find(s=>s.w===w); }
+function roundInc(v,inc){ inc=inc||2.5; return Math.max(0,Math.round(v/inc)*inc); }
+function backoffWeight(ex,topW){ return roundInc(topW*0.9,(EXERCISES[ex]||{}).inc); }
+/* progression trigger: the top set reaches the top of its range.
+   custom schemes with 3+ sets keep the old total-reps rule. */
+function earnsIncrease(ex,wk,sets){
+  const p=rawPresc(ex,wk);
+  if(!sets||!sets.length) return false;
+  if(p.sets>2) return sets.length>=p.sets && sum(sets.map(s=>s.reps))>=upThreshold(ex,wk);
+  return topSetOf(sets).reps>=p.repHi;
+}
+function beatPrev(cur,prev){
+  if(!prev) return false;
+  if(cur.topW!==prev.topW) return cur.topW>prev.topW;
+  return topSetOf(cur.sets).reps>topSetOf(prev.sets).reps || cur.bestE1>prev.bestE1+.01;
+}
+function effortTxt(pr){ const r=String(pr.rir||""); if(!r||r==="—") return ""; return /^[\d–\-+]+$/.test(r)?r+" RIR":r; }
+function prescTxt(pr,def){
+  def=def||{};
+  const u=def.timed?" sec":"";
+  if(pr.deload) return `Deload · 1 × ${pr.repLo}–${pr.repHi}${u} · stop 2–3 short`;
+  const bits=pr.top
+    ? [`Top set ${pr.repLo}–${pr.repHi}`,`back-off ${pr.bLo}–${pr.bHi} @ 90%`]
+    : [`${pr.sets} × ${pr.repLo}–${pr.repHi}${u}${def.per?" each "+def.per:""}`];
+  const e=effortTxt(pr); if(e) bits.push(e);
+  return bits.join(" · ");
+}
 const GROUPS = {
   chest:"Chest", upperback:"Upper Back", lats:"Lats", shoulders:"Shoulders", traps:"Traps",
   arms:"Arms", core:"Core", quads:"Quads", hamstrings:"Hamstrings", glutes:"Glutes", calves:"Calves",
 };
 const SCORE_GROUPS = {
-  "Chest":["incline-bench","dips"],
-  "Upper Back":["barbell-row","lat-pulldown","db-row-1arm","shrug","cable-row-high"],
-  "Shoulders":["ohp","lateral-raise"],
-  "Arms":["curl","tricep-pushdown"],
-  "Lower Body":["front-squat","light-squat","calf-raise"],
-  "Posterior Chain":["rdl","glute-bridge"],
-  "Core":["cable-crunch"],
+  "Chest":["bench","incline-bench","incline-db-press","dips"],
+  "Upper Back":["barbell-row","pullup","lat-pulldown","cs-row","db-row-1arm","shrug","cable-row-high","rev-pec-deck"],
+  "Shoulders":["ohp","db-shoulder-press","lateral-raise","cable-lateral"],
+  "Arms":["curl","hammer-curl","tricep-pushdown","oh-tricep"],
+  "Lower Body":["leg-press","calf-raise","seated-calf","front-squat","light-squat"],
+  "Posterior Chain":["trap-bar-dl","rdl","hip-thrust","leg-curl-seated","leg-curl-lying","glute-bridge"],
+  "Core":["cable-crunch","hanging-knee-raise"],
 };
 const EX_LEVELS = ["Recruit","Novice","Trained","Strong","Powerful","Elite"];
 const EX_LEVEL_XP = [0,150,400,800,1400,2200]; // cumulative XP to reach level i+1
@@ -509,7 +592,7 @@ function freshState(){
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
     settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
-    programmeVersion:3,
+    programmeVersion:5,
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
     sessions:[],        // {id,workout,dateISO,start,end,dur,sets:[{ex,w,reps}],volume,xp,prs:[{ex,type,label}]}
@@ -519,8 +602,11 @@ function freshState(){
     recovery:[],        // active rest days: {date,ts,type,value}
     health:[],          // {date,steps,kcal,water}
     walks:[],           // {date,ts,mins}
-    cardio:[],          // {date,ts,type,mins}
-    hard75:null,        // {active,startDate,days:{},attempts:[],best,withPhoto}
+    cardio:[],          // {date,ts,type,mins,incline,speed,dist(km),hr,hard}
+    hard75:null,        // retired — old data is left as it was
+    deload:null,        // {start,until} while a deload week runs
+    gymStart:null,      // when the gym programme began
+    blockStart:null,    // start of the current training block (reset by each deload)
     programme:null,     // customised copy of WORKOUTS, null = stock plan
     customEx:{},        // user-created exercises
     moveStreak:{cur:0,longest:0,lastDay:null},
@@ -541,6 +627,17 @@ function freshState(){
   };
 }
 function save(){ try{ localStorage.setItem(DB_KEY, JSON.stringify(S)); }catch(e){ console.warn("save failed",e);} }
+/* the switch to the gym: park the old plan so history reads true, start fresh at A */
+function migrateToGym(){
+  S.legacyProgramme = S.programme ? JSON.parse(JSON.stringify(S.programme)) : JSON.parse(JSON.stringify(LEGACY_V4_WORKOUTS));
+  for(const x of S.sessions) if(!x.legacy) x.legacy="v4";
+  S.programme=null;
+  S.nextWorkout="A";
+  S.activeSession=null;
+  for(const k in S.exState) if(S.exState[k]) S.exState[k].mastered=[];
+  S.gymStart=Date.now(); S.blockStart=Date.now();
+  S.settings.cardioPlan=defaultCardioPlan(dayISO(Date.now()));
+}
 function load(){
   try{ const raw = localStorage.getItem(DB_KEY); S = raw ? JSON.parse(raw) : freshState(); }
   catch(e){ S = freshState(); }
@@ -554,6 +651,7 @@ function load(){
   if(!S.xpLog||(S.xpLog.length===0&&S.sessions.length)){ S.xpLog=S.sessions.map(x=>({ts:x.end||x.id,amount:x.xp,reason:"Workout "+x.workout})); }
   if(priorVersion===undefined){ S.programmeVersion=3; if(S.sessions.length) S.nextWorkout="B"; }
   if(S.programmeVersion<4){ S.programmeVersion=4; retagSessions(); }   // A/B swapped: pull -> push -> legs
+  if(S.programmeVersion<5){ S.programmeVersion=5; migrateToGym(); }    // home plan -> 6-day gym plan
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
@@ -562,10 +660,9 @@ function load(){
   if(!S.cardio) S.cardio=[];
   if(!S.customEx) S.customEx={};
   refreshExercises(); refreshProgramme();
-  if(!S.hard75){                                  // 75 Hard starts the day this lands
-    S.hard75={active:true,startDate:dayISO(Date.now()),days:{},attempts:[],best:0,withPhoto:false};
-    S.settings.goals.water=4000;
-  }
+  if(!S.gymStart) S.gymStart=Date.now();
+  if(!S.blockStart) S.blockStart=S.gymStart;
+  if(!S.settings.cardioPlan) S.settings.cardioPlan=defaultCardioPlan(dayISO(Date.now()));
   if(!S.moveStreak) S.moveStreak={cur:0,longest:0,lastDay:null};
   if(!S.settings.walk) S.settings.walk={every:2.5,from:8,to:20,on:true};
   if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3000};
@@ -579,7 +676,7 @@ const $ = s => document.querySelector(s);
 const el = (id) => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const abbr = n => n>=10000?(n/1000).toFixed(0)+'k':n>=1000?(n/1000).toFixed(1)+'k':String(n);
-const fmtKg = v => (Math.round(v*10)/10).toLocaleString("en-GB");
+const fmtKg = v => (Math.round(v*100)/100).toLocaleString("en-GB");
 const dayISO = ts => { const d=new Date(ts); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
 const fmtDate = iso => new Date(iso+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
 const fmtDateShort = iso => new Date(iso+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
@@ -787,7 +884,7 @@ function checkSessionPRs(ex,sets,dateISO,hadHistOverride){
   const b5 = sum(top5);
   if(b5>0 && (!p.best5 || b5>p.best5.v)){
     const prev=p.best5; p.best5={v:b5,date:dateISO};
-    if(prev&&hadHistory) out.push({ex,type:"best5",label:`Best 5-set performance`,delta:`+${fmtKg(b5-prev.v)}kg`});
+    if(prev&&hadHistory) out.push({ex,type:"best5",label:`Best working sets`,delta:`+${fmtKg(b5-prev.v)}kg`});
   }
   return out;
 }
@@ -798,6 +895,7 @@ function exposuresOf(ex,wk){
   const out=[];
   const want = wk?schemeSig(ex,wk):null;
   for(const s of S.sessions){
+    if(wk && (s.legacy||s.deload)) continue;              // old plan and deload weeks never set targets
     if(want && schemeSig(ex,s.workout)!==want) continue;
     const sets = s.sets.filter(x=>x.ex===ex);
     if(!sets.length) continue;
@@ -809,23 +907,63 @@ function exposuresOf(ex,wk){
 }
 function lastExposure(ex,wk){ let e=exposuresOf(ex,wk); if(!e.length&&wk) e=exposuresOf(ex); return e.length?e[e.length-1]:null; }
 function targetFor(ex,wk){
-  const def=EXERCISES[ex], st=S.exState[ex], pr=presc(ex,wk);
-  const sameScheme=exposuresOf(ex,wk); // only compare against sessions of this workout (same rep scheme)
-  const last=sameScheme.length?sameScheme[sameScheme.length-1]:null;
+  const def=EXERCISES[ex]||{inc:2.5,unit:"kg"}, st=S.exState[ex]||{}, pr=rawPresc(ex,wk);
+  const same=exposuresOf(ex,wk); // only this plan, same rep scheme
+  const last=same.length?same[same.length-1]:null;
   const anyLast=lastExposure(ex);
   if(!last){
-    // seen in another workout: carry the weight across as a starting point
-    return {mode:"first", weight:anyLast?anyLast.topW:st.weight, text:anyLast?`First ${pr.sets}×${pr.repLo}–${pr.repHi} session — start around ${fmtKg(anyLast.topW)}${def.unit}`:"First session — establish your working weight.", detail:`Target ${pr.sets} × ${pr.repLo}–${pr.repHi} · ${pr.rir} RIR`};
+    return {mode:"first", weight:anyLast?anyLast.topW:st.weight, text:anyLast?`First session on this plan — start around ${fmtKg(anyLast.topW)}${def.unit}`:"First session — find a weight you can hit "+pr.repLo+"–"+pr.repHi+" with.", detail:prescTxt(pr,def)};
   }
-  const thr=upThreshold(ex,wk);
-  const topReps = last.totalReps>=thr && last.sets.length>=pr.sets;
-  if(topReps){
+  const top=topSetOf(last.sets);
+  if(earnsIncrease(ex,wk,last.sets)){
     const next=last.topW+def.inc;
-    return {mode:"increase", weight:next, prevW:last.topW,
-      text:`${fmtKg(last.topW)}${def.unit} mastered — move up`, detail:`${last.totalReps} clean reps cleared ${thr}. New target: ${fmtKg(next)}${def.unit} × ${pr.sets}×${pr.repLo}–${pr.repHi}`};
+    return {mode:"increase", weight:next, prevW:last.topW, prevReps:top.reps,
+      text:`${fmtKg(last.topW)}${def.unit} × ${top.reps} — move up`, detail:`Top set hit ${pr.repHi}. New target: ${fmtKg(next)}${def.unit}, aim ${pr.repLo}+`};
   }
-  return {mode:"beat", weight:last.topW, prevReps:last.totalReps,
-    text:`Beat ${last.totalReps} total reps`, detail:`Last time: ${fmtKg(last.topW)}${def.unit} — ${last.sets.map(x=>x.reps).join(" / ")}`};
+  // stalled: three sessions at one weight and the top set hasn't moved
+  if(same.length>=3){
+    const l3=same.slice(-3);
+    if(l3.every(e=>e.topW===last.topW)){
+      const r=l3.map(e=>topSetOf(e.sets).reps);
+      if(Math.max(r[1],r[2])<=r[0]){
+        const w=roundInc(last.topW*0.9,def.inc);
+        return {mode:"reset", weight:w, prevW:last.topW, prevReps:top.reps,
+          text:`Stalled at ${fmtKg(last.topW)}${def.unit} — drop to ${fmtKg(w)}${def.unit}`, detail:`Three sessions without beating ${r[0]} reps. A 10% reset usually passes the old best within 2–3 weeks.`};
+      }
+    }
+  }
+  return {mode:"beat", weight:last.topW, prevReps:top.reps,
+    text:`Beat ${top.reps} reps at ${fmtKg(last.topW)}${def.unit}`, detail:`Last time: ${last.sets.map(x=>fmtKg(x.w)+"×"+x.reps).join(" / ")}`};
+}
+
+/* ---------------- deload ---------------- */
+function deloadActive(){ return !!(S&&S.deload&&Date.now()<S.deload.until); }
+function stalledLifts(){
+  const seen=new Set(), out=[];
+  for(const w of CYCLE) for(const ex of WORKOUTS[w].ex){
+    if(seen.has(ex)) continue; seen.add(ex);
+    if(targetFor(ex,w).mode==="reset") out.push(ex);
+  }
+  return out;
+}
+function deloadDue(){
+  if(deloadActive()) return null;
+  const weeks=Math.floor((Date.now()-(S.blockStart||S.gymStart||Date.now()))/(7*86400000));
+  const st=stalledLifts();
+  if(st.length>=3) return {why:`${st.length} lifts have stalled`};
+  if(weeks>=6) return {why:`${weeks} weeks of hard sets since the last one`};
+  return null;
+}
+function startDeload(){
+  const now=Date.now(), until=new Date(dayISO(now+7*86400000)+"T00:00").getTime();
+  S.deload={start:dayISO(now),until};
+  S.blockStart=until;               // the next block starts when this week ends
+  save(); renderAll();
+  toast("Deload week on — 1 easy set each, cardio as normal",true);
+}
+function endDeload(){
+  S.deload=null; S.blockStart=Date.now();
+  save(); renderAll(); toast("Deload over — back to 2 hard sets",true);
 }
 
 /* ---------------- streak engine ---------------- */
@@ -896,26 +1034,27 @@ function openRecovery(){
     <button class="btn primary" onclick="saveRecovery()">Log active recovery</button>`);
 }
 function lastWorkoutLetter(){ return S.sessions.length?S.sessions[S.sessions.length-1].workout:null; }
-function saveRecovery(){
-  const date=el("rec-date").value||dayISO(Date.now());
-  const v=parseFloat(el("rec-val").value);
+function applyRecovery(date,type,value){
   const now=Date.now();
-  const entry={date,ts:now,type:el("rec-type").value,value:isNaN(v)?null:v};
-  S.recovery=S.recovery.filter(r=>r.date!==date).concat([entry]).sort((a,b)=>a.date<b.date?-1:1);
+  S.recovery=S.recovery.filter(r=>r.date!==date).concat([{date,ts:now,type,value}]).sort((a,b)=>a.date<b.date?-1:1);
   const st=S.streak;
-  let toastMsg="🚶 Active recovery logged";
+  let msg=null;
   if(st.cur&&st.windowEnds&&now<st.windowEnds){
     const used=recoveryDaysSinceWorkout(); // includes this one
     if(used<=2){
       st.windowEnds=Math.max(st.windowEnds, now+windowMs());
-      toastMsg=`🚶 Momentum held — ${used===1?"one recovery day left":"training required next"}`;
-    } else {
-      toastMsg="🚶 Logged — but no extension. Train next.";
-    }
+      msg=`🚶 Momentum held — ${used===1?"one recovery day left":"training required next"}`;
+    } else msg="🚶 Logged — but no extension. Train next.";
   }
   const already=S.xpLog.some(x=>x.reason==="Active recovery"&&dayISO(x.ts)===date);
   if(!already) addXP(XP.RECOVERY,"Active recovery");
-  save(); closeSheet(); renderAll(); toast(toastMsg,true);
+  return msg;
+}
+function saveRecovery(){
+  const date=el("rec-date").value||dayISO(Date.now());
+  const v=parseFloat(el("rec-val").value);
+  const msg=applyRecovery(date,el("rec-type").value,isNaN(v)?null:v);
+  save(); closeSheet(); renderAll(); toast(msg||"🚶 Active recovery logged",true);
 }
 function bumpStreakOnComplete(now){
   const st=S.streak;
@@ -1001,7 +1140,7 @@ function openXPSheet(){
       ${today.length?today.map(x=>`<div class="spread" style="padding:6px 0;font-size:14px"><span>${x.reason}</span><span class="xpchip">⚡ +${x.amount}</span></div>`).join(""):`<div style="color:var(--dim);font-size:13px">Nothing yet — every set is +${XP.SET}, every workout +${XP.WORKOUT}.</div>`}
     </div>
     <div class="card"><div class="eyebrow" style="margin-bottom:8px">How to earn</div>
-      ${[["Complete a set",XP.SET],["Complete an exercise",XP.EXERCISE],["Complete a workout",XP.WORKOUT],["Set a personal record",XP.PR],["Master a weight",XP.MASTER],["Finish an A→E cycle",XP.CYCLE],["Active recovery day",XP.RECOVERY],["Perfect quest day",XP.PERFECT]].map(r=>`<div class="spread" style="padding:5px 0;font-size:13px;color:var(--muted)"><span>${r[0]}</span><span class="xpchip">⚡ +${r[1]}</span></div>`).join("")}
+      ${[["Complete a set",XP.SET],["Complete an exercise",XP.EXERCISE],["Complete a workout",XP.WORKOUT],["Set a personal record",XP.PR],["Master a weight",XP.MASTER],["Finish a full A→F cycle",XP.CYCLE],["Active recovery day",XP.RECOVERY],["Perfect quest day",XP.PERFECT]].map(r=>`<div class="spread" style="padding:5px 0;font-size:13px;color:var(--muted)"><span>${r[0]}</span><span class="xpchip">⚡ +${r[1]}</span></div>`).join("")}
     </div>`);
 }
 
@@ -1015,16 +1154,16 @@ function dailyQuests(){
   const q=[];
   // 1. show up
   q.push({id:"show",title:ses?`Workout ${ses.workout} complete`:rec?"Active recovery logged":`Complete Workout ${nw}`,
-    sub:ses?wkDef(ses.workout).title:rec?"Rest day — momentum held":`${WORKOUTS[nw].ex.map(e=>EXERCISES[e].short).join(" + ")} · or log active recovery`,
+    sub:ses?sesDef(ses).title:rec?"Rest day — momentum held":`${WORKOUTS[nw].ex.map(e=>EXERCISES[e].short).join(" + ")} · or log active recovery`,
     xp:25,done:!!(ses||rec),action:ses?null:rec?null:"startOrResumeWorkout()"});
   if(!rec||ses){
     // 2. beat previous on first exercise of the workout
     const ex=WORKOUTS[nw].ex[0], def=EXERCISES[ex];
     const exp=exposuresOf(ex,nw);
     let beat=false;
-    if(ses){ const cur=exp[exp.length-1], prev=exp[exp.length-2]; if(cur&&prev&&cur.date===d) beat=cur.totalReps>prev.totalReps||cur.topW>prev.topW||cur.bestE1>prev.bestE1+.01; }
+    if(ses){ const cur=exp[exp.length-1], prev=exp[exp.length-2]; if(cur&&prev&&cur.date===d) beat=beatPrev(cur,prev); }
     const last=lastExposure(ex,nw);
-    q.push({id:"beat",title:`Beat last ${def.short} session`,sub:last&&!ses?`Last: ${fmtKg(last.topW)}${def.unit} — ${last.totalReps} total reps`:ses?(beat?"Past you: defeated":"Not this time — next session"):"First exposure — set the bar",xp:25,done:beat,action:ses?`openExercise('${ex}')`:"startOrResumeWorkout()"});
+    q.push({id:"beat",title:`Beat your ${def.short} top set`,sub:last&&!ses?`Last: ${fmtKg(last.topW)}${def.unit} × ${topSetOf(last.sets).reps}`:ses?(beat?"Past you: defeated":"Not this time — next session"):"First exposure — set the bar",xp:25,done:beat,action:ses?`openExercise('${ex}')`:"startOrResumeWorkout()"});
     // 3. every set in range
     let inRange=false;
     if(ses){ inRange=ses.sets.every(st=>st.reps>=presc(st.ex,ses.workout).repLo); }
@@ -1036,7 +1175,10 @@ function dailyQuests(){
     const nx=WORKOUTS[S.nextWorkout].ex[0];
     q.push({id:"plan",title:`Preview tomorrow's target`,sub:`${EXERCISES[nx].short} — know what to beat`,xp:10,done:!!S.quests.done.plan,action:`markQuest('plan');openExercise('${nx}')`});
   }
-  // movement quests — the daily win condition
+  // cardio — the second tier
+  const cm=cardioMins(d), ct=cardioTarget(d);
+  q.push({id:"cardio",title:`${ct} min cardio`,sub:cm>=ct?`${cm} min — done`:`${cm} of ${ct} min · incline walk, row or run`,xp:25,done:cm>=ct,action:"openCardioLog()"});
+  // movement quests
   const mv=moveScoreToday(), wt=walkTarget(), wd=walksToday().length;
   q.push({id:"walks",title:`${wt} walk breaks`,sub:wd>=wt?"All done — that's the easy fat loss":`${wd} of ${wt} logged · 10 min each`,xp:20,done:wd>=wt,action:"logWalk(10)"});
   q.push({id:"steps",title:`Hit ${(mv.g.steps/1000)}k steps`,sub:(mv.h.steps||0)>=mv.g.steps?"Step goal cleared":`${(mv.h.steps||0).toLocaleString("en-GB")} so far`,xp:20,done:(mv.h.steps||0)>=mv.g.steps,action:"openHealthLog()"});
@@ -1349,8 +1491,8 @@ function gradeSession(A,session){
     const exp=exposuresOf(ex,A.workout);
     const prev=exp.length>=2?exp[exp.length-2]:null;
     const cur=exp[exp.length-1];
-    if(!prev){ got+=2; }
-    else if(cur.totalReps>prev.totalReps||cur.topW>prev.topW||cur.bestE1>prev.bestE1+.01){ got+=2; notes.push(EXERCISES[ex].short+" beaten"); }
+    if(!prev||A.deload){ got+=2; }
+    else if(beatPrev(cur,prev)){ got+=2; notes.push(EXERCISES[ex].short+" beaten"); }
     if(sets.length>=pr.sets && sets.every(x=>x.reps>=pr.repLo)){ got+=1; }
   }
   got+=Math.min(3,session.prs.length);  max+=3;
@@ -1572,7 +1714,7 @@ function addWater(ml){
   const d=dayISO(Date.now());
   const e=S.health.find(x=>x.date===d);
   if(e) e.water=(e.water||0)+ml; else S.health.push({date:d,steps:0,kcal:0,water:ml});
-  save(); haptic(12); h75AfterTick(); renderToday();
+  save(); haptic(12); renderToday();
   const g=(S.settings.goals&&S.settings.goals.water)||3000;
   const cur=S.health.find(x=>x.date===d).water;
   if(cur>=g && cur-ml<g) toast("💧 Water goal hit",true);
@@ -1607,7 +1749,7 @@ function openWorkoutEditor(w){
           <div class="spread" style="gap:10px">
             <div style="min-width:0;flex:1" onclick="openExercisePresc('${w}','${k}')">
               <div style="font-weight:600;font-size:16px">${d.name||d.short}</div>
-              <div style="font-size:13px;color:var(--muted);margin-top:2px">${pr.sets} × ${pr.repLo}–${pr.repHi} · rest ${fmtDur(pr.rest)} · ${pr.rir} RIR${wk.superset&&wk.superset.includes(k)?" · superset":""}</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:2px">${prescTxt(pr,d)} · rest ${fmtDur(pr.rest)}${wk.superset&&wk.superset.includes(k)?" · superset":""}</div>
             </div>
             <div style="display:flex;gap:6px;flex-shrink:0">
               <button class="chipset" onclick="moveEx('${w}',${i},-1)" ${i===0?"disabled style=opacity:.3":""}>↑</button>
@@ -1649,32 +1791,42 @@ function openAddExercise(w){
 }
 function addEx(w,k){
   WORKOUTS[w].ex.push(k);
-  WORKOUTS[w].p[k]=P(3,8,12,120,"1–2");
+  WORKOUTS[w].p[k]=TWO(8,12,90);
   saveProgramme(); haptic(15); openExercisePresc(w,k);
 }
 function openExercisePresc(w,k){
-  const pr=presc(k,w), d=EXERCISES[k]||{short:k};
+  const pr=rawPresc(k,w), d=EXERCISES[k]||{short:k};
   openSheet(`<h2 style="font-size:22px;margin-bottom:2px">${d.name||d.short}</h2>
-    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Workout ${w}</p>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Workout ${w} · weight goes up when the top set hits max reps</p>
+    <div class="spread" style="padding:4px 0 14px">
+      <div><div style="font-weight:600;font-size:15px">Top set + back-off</div>
+        <div style="font-size:13px;color:var(--muted)">Heavy set, then one at ~90%</div></div>
+      <label class="switch"><input type="checkbox" id="pr-top" ${pr.top?"checked":""} onchange="el('pr-bo').hidden=!this.checked;el('pr-setsf').hidden=this.checked"><i></i></label>
+    </div>
     <div class="row">
-      <label class="fld"><span>Sets</span><input type="number" id="pr-sets" inputmode="numeric" value="${pr.sets}"></label>
+      <label class="fld" id="pr-setsf" ${pr.top?"hidden":""}><span>Sets</span><input type="number" id="pr-sets" inputmode="numeric" value="${pr.sets}"></label>
       <label class="fld"><span>Rest (sec)</span><input type="number" id="pr-rest" inputmode="numeric" step="15" value="${pr.rest}"></label>
     </div>
     <div class="row">
-      <label class="fld"><span>Min reps</span><input type="number" id="pr-lo" inputmode="numeric" value="${pr.repLo}"></label>
-      <label class="fld"><span>Max reps</span><input type="number" id="pr-hi" inputmode="numeric" value="${pr.repHi}"></label>
+      <label class="fld"><span>${pr.top?"Top set min":"Min reps"}</span><input type="number" id="pr-lo" inputmode="numeric" value="${pr.repLo}"></label>
+      <label class="fld"><span>${pr.top?"Top set max":"Max reps"}</span><input type="number" id="pr-hi" inputmode="numeric" value="${pr.repHi}"></label>
     </div>
-    <div class="row">
-      <label class="fld"><span>RIR</span><input type="text" id="pr-rir" value="${pr.rir}"></label>
-      <label class="fld"><span>Add weight at (total reps)</span><input type="number" id="pr-up" inputmode="numeric" placeholder="${pr.sets*pr.repHi}" value="${pr.upAt||""}"></label>
+    <div class="row" id="pr-bo" ${pr.top?"":"hidden"}>
+      <label class="fld"><span>Back-off min</span><input type="number" id="pr-blo" inputmode="numeric" value="${pr.bLo||pr.repHi}"></label>
+      <label class="fld"><span>Back-off max</span><input type="number" id="pr-bhi" inputmode="numeric" value="${pr.bHi||pr.repHi+4}"></label>
     </div>
+    <label class="fld"><span>Effort</span><input type="text" id="pr-rir" value="${esc(pr.rir)}" placeholder="Failure"></label>
     <button class="btn primary" onclick="savePresc('${w}','${k}')">Save</button>
     <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();openWorkoutEditor('${w}')">Back</button>`);
 }
 function savePresc(w,k){
   const g=id=>parseInt(el(id).value)||0;
   const sets=Math.max(1,g("pr-sets")), lo=Math.max(1,g("pr-lo")), hi=Math.max(lo,g("pr-hi"));
-  WORKOUTS[w].p[k]={sets,repLo:lo,repHi:hi,rest:Math.max(15,g("pr-rest")),rir:el("pr-rir").value.trim()||"1–2",upAt:g("pr-up")||undefined};
+  const rest=Math.max(15,g("pr-rest")), rir=el("pr-rir").value.trim()||"Failure";
+  if(el("pr-top").checked){
+    const blo=Math.max(1,g("pr-blo")), bhi=Math.max(blo,g("pr-bhi"));
+    WORKOUTS[w].p[k]=TOP(lo,hi,blo,bhi,rest,rir);
+  } else WORKOUTS[w].p[k]={sets,repLo:lo,repHi:hi,rest,rir};
   saveProgramme(); closeSheet(); openWorkoutEditor(w); renderAll(); toast("Saved",true);
 }
 function openSupersetPicker(w){
@@ -1729,233 +1881,242 @@ function saveNewExercise(w){
   toast("Exercise created",true);
 }
 
-/* ---------------- 75 Hard ---------------- */
-const H75_TASKS=[
-  {k:"weights",icon:"🏋️",label:"Weights workout",sub:"45 min minimum"},
-  {k:"cardio", icon:"🏃",      label:"Cardio workout", sub:"45 min — walk, run, padel"},
-  {k:"water",  icon:"💧",      label:"4L water",       sub:"Every day"},
-  {k:"food",   icon:"🥩",      label:"Whole foods",    sub:"No cheat meals, no alcohol"},
-  {k:"pages",  icon:"📖",      label:"10 pages read",  sub:"Non-fiction"},
+/* ---------------- cardio: the second tier ---------------- */
+const CARDIO_TYPES=[
+  {k:"Incline walk", icon:"⛰️", incline:true, speed:true},
+  {k:"Row",          icon:"🚣", dist:true},
+  {k:"Run",          icon:"🏃", incline:true, speed:true},
+  {k:"Bike",         icon:"🚴"},
+  {k:"Cross-trainer",icon:"〰️"},
+  {k:"Other",        icon:"➕"},
 ];
-const H75_PHOTO={k:"photo",icon:"📸",label:"Progress photo",sub:"One a day"};
-function h75(){ return S.hard75; }
-function h75Active(){ return !!(S.hard75&&S.hard75.active); }
-function h75Keys(){ return H75_TASKS.map(t=>t.k).concat(h75().withPhoto?["photo"]:[]); }
-function h75TaskList(){ return h75().withPhoto?H75_TASKS.concat([H75_PHOTO]):H75_TASKS; }
-function h75DateFor(n){ return dayISO(new Date(h75().startDate+"T12:00").getTime()+(n-1)*86400000); }
-function h75DayNum(iso){
-  const a=new Date(h75().startDate+"T12:00").getTime(), b=new Date((iso||dayISO(Date.now()))+"T12:00").getTime();
-  return Math.floor((b-a)/86400000)+1;
+function cardioTypeDef(k){ return CARDIO_TYPES.find(t=>t.k===k)||{k,icon:"🏃"}; }
+// 30 min a day now, 45 after four weeks, 60 after eight
+function defaultCardioPlan(startISO){
+  const t=new Date(startISO+"T12:00").getTime();
+  return [{from:startISO,mins:30},{from:dayISO(t+28*86400000),mins:45},{from:dayISO(t+56*86400000),mins:60}];
 }
-function cardioMins(iso){ return (S.cardio||[]).filter(c=>c.date===iso).reduce((a,c)=>a+c.mins,0); }
-function h75Status(iso){
-  const rec=(h75().days||{})[iso]||{};
-  const ses=S.sessions.filter(x=>x.dateISO===iso);
-  const h=S.health.find(x=>x.date===iso)||{};
-  return {
-    weights: !!rec.weights || ses.some(x=>(x.dur||0)>=45*60),
-    cardio:  !!rec.cardio  || cardioMins(iso)>=45,
-    water:   !!rec.water   || (h.water||0)>=4000,
-    food:    !!rec.food,
-    pages:   !!rec.pages,
-    photo:   !!rec.photo   || S.photos.some(p=>p.date===iso),
-  };
-}
-function h75Done(iso){ const st=h75Status(iso); return h75Keys().every(k=>st[k]); }
-function h75Missed(iso){ const st=h75Status(iso); return h75Keys().filter(k=>!st[k]); }
-/* the whole point: one incomplete day and you go back to day 1 */
-function h75CheckFail(){
-  if(!h75Active()) return null;
-  const today=h75DayNum();
-  for(let n=1;n<today;n++){
-    const d=h75DateFor(n);
-    if(!h75Done(d)) return {day:n,date:d,missed:h75Missed(d)};
-  }
-  return null;
-}
-function h75Award(iso,k,amount,label){
-  S.h75Awards=S.h75Awards||{};
-  const key=iso+":"+k;
-  if(S.h75Awards[key]) return false;
-  S.h75Awards[key]=1; addXP(amount,label); return true;
-}
-function h75Toggle(k,iso){
+function cardioPlan(){ return S.settings.cardioPlan; }
+function cardioTarget(iso){
   iso=iso||dayISO(Date.now());
-  const H=h75();
-  if(iso<H.startDate||iso>dayISO(Date.now())){ toast("That day isn't part of this run"); return; }
-  H.days[iso]=H.days[iso]||{};
-  const st=h75Status(iso);
-  if(st[k] && !H.days[iso][k]){ toast("Already counted from your logged data"); return; }
-  H.days[iso][k]=!H.days[iso][k];
-  if(H.days[iso][k]) h75Award(iso,k,20,"75 Hard: "+(h75TaskList().find(t=>t.k===k)||{label:k}).label);
-  save(); h75AfterTick(iso); renderAll();
-  if(el("sheet").classList.contains("open")) openH75Day(iso);
+  const p=cardioPlan(); let m=p[0].mins;
+  for(const st of p) if(iso>=st.from) m=st.mins;
+  return m;
 }
-function h75AfterTick(iso){
+function nextCardioStep(iso){ iso=iso||dayISO(Date.now()); return cardioPlan().find(st=>st.from>iso)||null; }
+function cardioOn(iso){ return (S.cardio||[]).filter(c=>c.date===iso); }
+function cardioMins(iso){ return cardioOn(iso).reduce((a,c)=>a+c.mins,0); }
+function cardioHit(iso){ return cardioMins(iso)>=cardioTarget(iso); }
+const noonOf=iso=>new Date(iso+"T12:00").getTime();
+// consecutive days at target; today joins the run once it's hit
+function cardioStreak(){
+  let t=noonOf(dayISO(Date.now())), n=0;
+  if(!cardioHit(dayISO(t))) t-=86400000;
+  while(cardioHit(dayISO(t))){ n++; t-=86400000; }
+  return n;
+}
+function bestCardioStreak(){
+  const days=[...new Set((S.cardio||[]).map(c=>c.date))].sort();
+  let best=0,run=0,prev=null;
+  for(const d of days){
+    if(!cardioHit(d)){ run=0; prev=null; continue; }
+    run = prev && Math.round((noonOf(d)-noonOf(prev))/86400000)===1 ? run+1 : 1;
+    prev=d; best=Math.max(best,run);
+  }
+  return best;
+}
+function cardioKm(c){ return c.dist!=null?c.dist:(c.speed?c.speed*c.mins/60:0); }
+function climbM(c){ return c.incline?Math.round(cardioKm(c)*1000*c.incline/100):0; }
+function rowPace(c){ return c.type==="Row"&&c.dist?c.mins*60/(c.dist*2):null; } // sec per 500m
+function totalClimb(){ return sum((S.cardio||[]).map(climbM)); }
+function cardioWeek(){
+  const wk=weekKey(Date.now());
+  return (S.cardio||[]).filter(c=>weekKey(noonOf(c.date))===wk);
+}
+function cardioWeekTarget(){
+  const t0=noonOf(weekKey(Date.now()));
+  return sum(Array.from({length:7},(_,i)=>cardioTarget(dayISO(t0+i*86400000))));
+}
+function engineThisWeek(){ return cardioWeek().some(c=>c.hard); }
+
+let cdType=null;
+function openCardioLog(type,iso){
+  const last=S.settings.cardioLast||{};
+  cdType=type||last.type||"Incline walk";
   iso=iso||dayISO(Date.now());
-  if(!h75Done(iso)) return;
-  if(h75Award(iso,"day",100,"75 Hard day complete")){
-    const n=h75DayNum(iso);
-    confetti({count:90}); sndDone(); haptic([50,80,50,80,140]);
-    setTimeout(()=>toast(`Day ${n} of 75 complete — all gas, no brakes`,true),250);
-    const H=h75();
-    H.best=Math.max(H.best||0,n);
-    if(n>=75){ setTimeout(()=>h75Victory(),900); }
-    save();
-  }
-}
-function h75Victory(){
-  openSheet(`<div style="text-align:center;padding:8px 0">
-    <div style="font-size:60px">🏆</div>
-    <h2 style="font-size:30px;font-weight:600;margin:12px 0 6px">75 Hard complete</h2>
-    <p style="color:var(--muted);font-size:16px;line-height:1.5">75 days. No misses. Two workouts a day, 4L of water,
-    whole foods, 10 pages — every single day.</p>
-    <div class="statgrid" style="margin:22px 0;text-align:left">
-      <div class="stat"><div class="l">Workouts logged</div><div class="v mono">${S.sessions.filter(x=>x.dateISO>=h75().startDate).length}</div></div>
-      <div class="stat"><div class="l">Cardio sessions</div><div class="v mono">${(S.cardio||[]).filter(c=>c.date>=h75().startDate).length}</div></div>
+  const done=cardioMins(iso), target=cardioTarget(iso);
+  const T=cardioTypeDef(cdType), prev=(last.byType||{})[cdType]||{};
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Log cardio</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:14px">${done?`${done} of ${target} min logged ${iso===dayISO(Date.now())?"today":"that day"}`:`Today's minimum: ${target} min`}. Knee sore? The bike or cross-trainer is kindest to it.</p>
+    <div class="chips" style="margin-bottom:14px">${CARDIO_TYPES.map(t=>`<button class="chip ${t.k===cdType?"active":""}" onclick="openCardioLog('${t.k}',el('cd-date').value)">${t.icon} ${t.k}</button>`).join("")}</div>
+    <div class="row">
+      <label class="fld"><span>Minutes</span><input type="number" id="cd-mins" inputmode="numeric" value="${done<target?target-done:(prev.mins||30)}"></label>
+      <label class="fld"><span>Date</span><input type="date" id="cd-date" value="${iso}" max="${dayISO(Date.now())}"></label>
     </div>
-    <button class="btn primary" onclick="closeSheet()">Take it in</button></div>`);
-}
-function openH75History(){
-  const H=h75(), today=h75DayNum();
-  let rows="";
-  for(let n=today;n>=1;n--){
-    const d=h75DateFor(n), st=h75Status(d), done=h75Done(d);
-    const count=h75Keys().filter(k=>st[k]).length;
-    const isToday=n===today;
-    rows+=`<div class="list-item" onclick="openH75Day('${d}')">
-      <span style="display:flex;align-items:center;gap:14px;min-width:0">
-        <span style="width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-          font-size:13px;font-weight:600;background:${done?"var(--brand)":"var(--card3)"};color:${done?"#fff":"var(--muted)"}">${done?"\u2713":count}</span>
-        <span style="min-width:0">
-          <div style="font-weight:600;font-size:15px">Day ${n}${isToday?" · today":""}</div>
-          <div style="font-size:13px;color:${done?"var(--muted)":"var(--warn)"}">${fmtDateShort(d)} · ${count}/${h75Keys().length}${done?"":" — incomplete"}</div>
-        </span>
-      </span><span style="color:var(--dim)">\u203A</span></div>`;
-  }
-  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">75 Hard days</h2>
-    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Tap any day to tick something you forgot. You're the record here — the app just holds it.</p>
-    <div class="card">${rows}</div>`);
-}
-function openH75Day(iso){
-  const n=h75DayNum(iso), st=h75Status(iso), tasks=h75TaskList();
-  const done=h75Done(iso);
-  const isToday=iso===dayISO(Date.now());
-  openSheet(`<h2 style="font-size:22px;margin-bottom:2px">Day ${n}${isToday?" · today":""}</h2>
-    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${fmtDate(iso)}${done?" · complete":""}</p>
-    <div class="card" style="padding:6px 16px">
-      ${tasks.map((t,i)=>`<div class="h75task ${st[t.k]?"on":""}" style="${i?"":"border-top:none"}">
-        <div class="h75chk" onclick="h75Toggle('${t.k}','${iso}')">${st[t.k]?"\u2713":""}</div>
-        <div style="flex:1;min-width:0" onclick="h75Toggle('${t.k}','${iso}')">
-          <div class="h75lab">${t.icon} ${t.label}</div>
-          <div class="h75sub">${st[t.k]?"Done":"Not ticked"}</div>
-        </div>
-      </div>`).join("")}
+    ${T.incline||T.speed?`<div class="row">
+      ${T.incline?`<label class="fld"><span>Incline %</span><input type="number" id="cd-inc" inputmode="decimal" step="0.5" value="${prev.incline!=null?prev.incline:(cdType==="Incline walk"?10:1)}"></label>`:""}
+      ${T.speed?`<label class="fld"><span>Speed km/h</span><input type="number" id="cd-spd" inputmode="decimal" step="0.1" value="${prev.speed!=null?prev.speed:(cdType==="Incline walk"?5.5:10)}"></label>`:""}
+    </div>`:""}
+    ${T.dist?`<label class="fld"><span>Distance (metres)</span><input type="number" id="cd-dist" inputmode="numeric" placeholder="6000" value=""></label>`:""}
+    <div class="row">
+      <label class="fld"><span>Avg heart rate (optional)</span><input type="number" id="cd-hr" inputmode="numeric" placeholder="130" value=""></label>
     </div>
-    <button class="btn ghost" style="margin-top:14px" onclick="closeSheet();openH75History()">All days</button>`);
+    <div class="spread" style="padding:6px 0 14px">
+      <div><div style="font-weight:600;font-size:15px">Engine session</div>
+        <div style="font-size:13px;color:var(--muted)">Intervals or a hard steady effort — once a week</div></div>
+      <label class="switch"><input type="checkbox" id="cd-hard"><i></i></label>
+    </div>
+    <button class="btn primary" onclick="logCardio()">Log ${T.k.toLowerCase()}</button>
+    ${cardioOn(iso).length?`<div class="card" style="margin-top:16px">
+      <div class="eyebrow" style="margin-bottom:8px">${iso===dayISO(Date.now())?"Today":fmtDateShort(iso)}</div>
+      ${cardioOn(iso).map(c=>cardioRowHTML(c)).join("")}
+    </div>`:""}
+    <button class="btn ghost" style="margin-top:10px" onclick="openCardioHistory()">All cardio sessions</button>`);
 }
-function h75ShowFail(f){
-  const H=h75();
-  openSheet(`<div style="text-align:center;padding:6px 0">
-      <div class="eyebrow" style="color:var(--danger)">75 Hard reset</div>
-      <div class="big-num" style="margin:14px 0 4px;color:var(--danger)">Day ${f.day}</div>
-      <div style="color:var(--muted);font-weight:500">${fmtDate(f.date)}</div>
-      <div class="card" style="margin:20px 0;text-align:left">
-        <div class="eyebrow" style="margin-bottom:8px">Missed that day</div>
-        ${f.missed.map(k=>{const t=h75TaskList().find(x=>x.k===k)||{icon:"",label:k};
-          return `<div style="padding:5px 0;font-size:15px">${t.icon} ${t.label}</div>`;}).join("")}
-      </div>
-      <p style="color:var(--muted);font-size:15px;line-height:1.5">The rule is the rule. You reached <b style="color:var(--text)">day ${f.day}</b>${H.best>f.day?` (your best is ${H.best})`:""}.<br>
-      Your lifts, PRs and XP all stay — only the 75 resets.</p>
-      <button class="btn primary" style="margin-top:20px" onclick="closeSheet();openH75Day('${f.date}')">I did complete it — fix day ${f.day}</button>
-      <button class="btn ghost" style="margin-top:10px" onclick="h75Restart()">Start again at Day 1</button>
-      <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">Not now</button>
-    </div>`);
-}
-function h75Restart(){
-  const H=h75(), f=h75CheckFail();
-  H.attempts.push({start:H.startDate,failedOn:f?f.date:dayISO(Date.now()),daysReached:f?f.day:h75DayNum()});
-  H.best=Math.max(H.best||0,f?f.day:0);
-  H.startDate=dayISO(Date.now());
-  H.days={};
-  save(); closeSheet(); renderAll();
-  toast("Day 1. Again.",true);
+function cardioRowHTML(c,withDate){
+  const bits=[c.mins+" min"];
+  if(c.incline) bits.push(c.incline+"%");
+  if(c.speed) bits.push(c.speed+" km/h");
+  if(c.dist) bits.push(c.type==="Row"?Math.round(c.dist*1000)+"m":fmtKg(c.dist)+" km");
+  const cl=climbM(c); if(cl) bits.push("↑"+cl+"m");
+  const rp=rowPace(c); if(rp) bits.push(fmtDur(rp)+"/500m");
+  if(c.hr) bits.push(c.hr+" bpm");
+  return `<div class="spread" style="padding:7px 0;font-size:15px;gap:10px">
+    <span style="min-width:0">${cardioTypeDef(c.type).icon} ${esc(c.type)}${c.hard?` <span class="tag acc" style="font-size:11px">engine</span>`:""}
+      <div style="font-size:13px;color:var(--muted)">${withDate?fmtDateShort(c.date)+" · ":""}${bits.join(" · ")}</div></span>
+    <button class="chipset" onclick="deleteCardio(${c.ts})">✕</button>
+  </div>`;
 }
 function logCardio(){
-  const mins=parseInt(el("cd-mins").value)||0, type=el("cd-type").value;
+  const mins=parseInt(el("cd-mins").value)||0;
   if(mins<=0){ toast("Enter your minutes"); return; }
-  const now=Date.now(), iso=dayISO(now);
-  S.cardio.push({date:iso,ts:now,type,mins});
-  addXP(Math.min(40,15+Math.floor(mins/15)*5),type+" — "+mins+" min");
-  if(mins>=45 && !S.recovery.some(r=>r.date===iso)) S.recovery.push({date:iso,ts:now,type:"other",value:mins});
-  save(); closeSheet(); h75AfterTick(); renderAll();
-  const total=cardioMins(iso);
-  toast(total>=45?`Cardio logged — ${total} min today ✓`:`Cardio logged — ${total}/45 min today`,true);
+  const today=dayISO(Date.now());
+  let iso=el("cd-date").value||today; if(iso>today) iso=today;
+  const num=id=>{ const x=el(id); if(!x) return null; const v=parseFloat(x.value); return isNaN(v)||v<=0?null:v; };
+  const c={date:iso,ts:Date.now(),type:cdType,mins};
+  const inc=num("cd-inc"), spd=num("cd-spd"), dm=num("cd-dist"), hr=num("cd-hr");
+  if(inc!=null) c.incline=inc;
+  if(spd!=null) c.speed=spd;
+  if(dm!=null) c.dist=dm/1000;
+  if(hr!=null) c.hr=Math.round(hr);
+  if(el("cd-hard").checked) c.hard=true;
+  const before={hit:cardioHit(iso), long:Math.max(0,...S.cardio.map(x=>x.mins)), climb:Math.max(0,...S.cardio.map(climbM)),
+    pace:Math.min(Infinity,...S.cardio.map(rowPace).filter(Boolean)), had:S.cardio.length>0};
+  S.cardio.push(c);
+  S.settings.cardioLast={type:cdType,byType:Object.assign({},(S.settings.cardioLast||{}).byType,{[cdType]:{mins,incline:c.incline,speed:c.speed}})};
+  addXP(Math.min(40,15+Math.floor(mins/15)*5),cdType+" — "+mins+" min");
+  const total=cardioMins(iso), target=cardioTarget(iso);
+  // hitting the minimum on a day with no lifting holds the streak window, like a recovery day
+  let recMsg=null;
+  if(iso===today && total>=target && !S.sessions.some(x=>x.dateISO===iso) && !S.recovery.some(r=>r.date===iso))
+    recMsg=applyRecovery(iso,"other",total);
+  let pr=null;
+  if(before.had){
+    if(before.climb>0&&climbM(c)>before.climb) pr=`Most metres climbed — ${climbM(c)}m`;
+    else if(rowPace(c)&&before.pace<Infinity&&rowPace(c)<before.pace) pr=`Fastest row — ${fmtDur(rowPace(c))}/500m`;
+    else if(mins>before.long) pr=`Longest session — ${mins} min`;
+  }
+  evalAchievements();
+  save(); closeSheet(); renderAll();
+  if(!before.hit && total>=target){
+    confetti({count:60}); sndDone(); haptic([40,70,40]);
+    toast(`Cardio done — ${total} min${cardioStreak()>1?` · ${cardioStreak()} days running`:""}`,true);
+  } else toast(total>=target?`${cdType} logged — ${total} min today ✓`:`${cdType} logged — ${total}/${target} min`,true);
+  if(pr) setTimeout(()=>{ toast("🏆 Cardio PR · "+pr,true); sndPR(); },1400);
+  else if(recMsg) setTimeout(()=>toast(recMsg,true),1400);
 }
-function openCardioLog(){
-  const iso=dayISO(Date.now()), done=cardioMins(iso);
-  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Log cardio</h2>
-    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${done?`${done} min logged today · `:""}45 minutes minimum for 75 Hard.</p>
-    <label class="fld"><span>Type</span><select id="cd-type">
-      ${["Walk","Run","Padel","Cycle","Swim","Row","Other"].map(t=>`<option>${t}</option>`).join("")}
-    </select></label>
-    <label class="fld"><span>Minutes</span><input type="number" id="cd-mins" inputmode="numeric" value="45"></label>
-    <button class="btn primary" onclick="logCardio()">Log cardio</button>
-    ${(S.cardio||[]).filter(c=>c.date===iso).length?`<div class="card" style="margin-top:16px">
-      <div class="eyebrow" style="margin-bottom:8px">Today</div>
-      ${S.cardio.filter(c=>c.date===iso).map(c=>`<div class="spread" style="padding:5px 0;font-size:15px"><span>${c.type}</span><span class="mono" style="color:var(--muted)">${c.mins} min</span></div>`).join("")}
-    </div>`:""}`);
+function deleteCardio(ts){
+  const c=S.cardio.find(x=>x.ts===ts); if(!c) return;
+  if(!confirm(`Delete ${c.type} · ${c.mins} min (${fmtDateShort(c.date)})?`)) return;
+  S.cardio=S.cardio.filter(x=>x.ts!==ts);
+  save(); closeSheet(); renderAll(); toast("Cardio entry removed");
 }
-function hard75HTML(){
-  if(!h75Active()) return "";
-  const iso=dayISO(Date.now()), n=h75DayNum(), st=h75Status(iso);
-  const tasks=h75TaskList();
-  const doneCount=tasks.filter(t=>st[t.k]).length;
-  const all=doneCount===tasks.length;
-  const h=S.health.find(x=>x.date===iso)||{};
-  const endOfDay=new Date(iso+"T23:59:59").getTime();
-  const leftMs=endOfDay-Date.now();
-  const mins=x=>Math.round((x||0)/60);
-  const daySes=S.sessions.filter(y=>y.dateISO===iso);
-  const bestDur=daySes.length?Math.max(...daySes.map(x=>x.dur||0)):0;
-  const cMins=cardioMins(iso);
-  const detail={
-    weights: !daySes.length ? "45 min minimum"
-           : bestDur>=45*60 ? fmtDur(bestDur)+" logged"
-           : mins(bestDur)+" min logged \u00b7 tap to count it",
-    cardio:  !cMins ? "45 min \u2014 walk, run, padel"
-           : cMins>=45 ? cMins+" min logged"
-           : cMins+" min logged \u00b7 tap to count it",
-    water: ((h.water||0)/1000).toFixed(1)+"/4.0L",
-    food:"", pages:"", photo:"",
-  };
-  const action={weights:"startOrResumeWorkout()",cardio:"openCardioLog()",water:"addWater(250)",photo:"openPhotoAdd()"};
-  return `<div class="h75 ${all?"done":""}">
+function openCardioHistory(){
+  const list=[...S.cardio].sort((a,b)=>b.date<a.date?-1:b.date>a.date?1:b.ts-a.ts).slice(0,60);
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Cardio sessions</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${S.cardio.length} logged · ${Math.round(sum(S.cardio.map(c=>c.mins))/60)} hours total${totalClimb()?` · ${totalClimb().toLocaleString("en-GB")}m climbed`:""}</p>
+    <div class="card">${list.length?list.map(c=>cardioRowHTML(c,true)).join(""):`<div style="color:var(--dim);font-size:14px">Nothing logged yet.</div>`}</div>
+    <button class="btn primary" style="margin-top:6px" onclick="openCardioLog()">Log cardio</button>`);
+}
+function openCardioSettings(){
+  const p=cardioPlan();
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Cardio plan</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Daily minimum, stepping up over time. Every day counts — lifting days and rest days.</p>
+    ${p.map((st,i)=>`<div class="row">
+      <label class="fld"><span>${i?"From":"Starting"}</span><input type="date" id="cp-d${i}" value="${st.from}"></label>
+      <label class="fld"><span>Minutes a day</span><input type="number" id="cp-m${i}" inputmode="numeric" value="${st.mins}"></label>
+    </div>`).join("")}
+    <button class="btn primary" onclick="saveCardioSettings()">Save</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="S.settings.cardioPlan=defaultCardioPlan(dayISO(Date.now()));save();closeSheet();renderAll();toast('Cardio plan restarted from today',true)">Restart 30 → 45 → 60 from today</button>`);
+}
+function saveCardioSettings(){
+  const p=cardioPlan().map((st,i)=>({from:el("cp-d"+i).value||st.from,mins:Math.max(5,parseInt(el("cp-m"+i).value)||st.mins)}));
+  p.sort((a,b)=>a.from<b.from?-1:1);
+  S.settings.cardioPlan=p; save(); closeSheet(); renderAll(); toast("Cardio plan saved",true);
+}
+function weekDotsHTML(fn){
+  const t0=noonOf(weekKey(Date.now())), today=dayISO(Date.now());
+  return `<div class="tweek">${Array.from({length:7},(_,i)=>{
+    const iso=dayISO(t0+i*86400000), st=fn(iso);
+    return `<div class="tday ${st.cls||""} ${iso===today?"today":""} ${iso>today?"future":""}" ${st.click?`onclick="${st.click}"`:""}>
+      <i>${st.icon||""}</i><span>${"MTWTFSS"[i]}</span></div>`;}).join("")}</div>`;
+}
+function cardioTierHTML(){
+  const iso=dayISO(Date.now()), done=cardioMins(iso), target=cardioTarget(iso);
+  const hit=done>=target, pct=Math.min(100,done/target*100);
+  const streak=cardioStreak(), wk=cardioWeek(), wkMins=sum(wk.map(c=>c.mins)), wkTarget=cardioWeekTarget();
+  const nx=nextCardioStep(iso);
+  const climbWk=sum(wk.map(climbM));
+  return `<div class="tier ${hit?"done":""}">
     <div class="spread" style="align-items:flex-start">
       <div>
-        <div class="eyebrow" style="color:${all?"var(--link)":"var(--muted)"}">75 Hard · no misses</div>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-top:2px">
-          <span style="font-family:'SF Pro Display',-apple-system,sans-serif;font-size:40px;font-weight:600;letter-spacing:-.005em;line-height:1" onclick="openH75History()">Day ${n}</span>
-          <span style="font-size:17px;color:var(--muted)" onclick="openH75History()">of 75 \u203A</span>
-        </div>
+        <div class="eyebrow" style="color:${hit?"var(--link)":"var(--muted)"}">Cardio · every day</div>
+        <div class="tbig">${done}<span> / ${target} min</span></div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:15px;font-weight:600;color:${all?"var(--link)":"var(--text)"}">${doneCount}/${tasks.length}</div>
-        <div style="font-size:13px;color:var(--muted)">${all?"Day secured":leftMs>0?fmtClock(leftMs)+" left":"—"}</div>
+        <div style="font-size:15px;font-weight:600">${streak?`🔥 ${streak} day${streak>1?"s":""}`:"—"}</div>
+        <div style="font-size:13px;color:var(--muted)">${hit?"Done today":`${target-done} min to go`}</div>
       </div>
     </div>
-    <div class="h75bar"><i style="width:${Math.min(100,(n-1)/75*100)}%"></i><em style="left:${Math.min(100,n/75*100)}%"></em></div>
-    <div style="margin-top:14px">
-      ${tasks.map(t=>`<div class="h75task ${st[t.k]?"on":""}">
-        <div class="h75chk" onclick="h75Toggle('${t.k}')">${st[t.k]?"✓":""}</div>
-        <div style="flex:1;min-width:0" onclick="h75Toggle('${t.k}')">
-          <div class="h75lab">${t.icon} ${t.label}</div>
-          <div class="h75sub">${detail[t.k]||t.sub}</div>
-        </div>
-        ${!st[t.k]&&action[t.k]?`<button class="h75go" onclick="event.stopPropagation();${action[t.k]}">${t.k==="weights"?"Train":"Log"}</button>`:""}
-      </div>`).join("")}
+    <div class="tbar"><i style="width:${pct}%"></i></div>
+    ${weekDotsHTML(d=>{const m=cardioMins(d),t=cardioTarget(d);return {cls:m>=t?"on":m>0?"part":"",icon:m>=t?"✓":m>0?m:""};})}
+    <div class="tline"><span>This week</span><span class="mono"><b>${wkMins}</b> / ${wkTarget} min${climbWk?` · ↑${climbWk.toLocaleString("en-GB")}m`:""}</span></div>
+    <div class="tline"><span>Engine session</span><span style="color:${engineThisWeek()?"var(--link)":"var(--muted)"}">${engineThisWeek()?"Done this week ✓":"Due — row intervals or a run"}</span></div>
+    ${nx?`<div class="tline"><span>Next step</span><span>${nx.mins} min/day from ${fmtDateShort(nx.from)}</span></div>`:""}
+    <div class="row" style="gap:8px;margin-top:14px">
+      <button class="btn primary small" style="width:100%" onclick="openCardioLog('Incline walk')">⛰️ Incline walk</button>
+      <button class="btn ghost small" style="width:100%" onclick="openCardioLog('Row')">Row / run / bike</button>
     </div>
-    ${all?`<div style="text-align:center;font-size:14px;color:var(--link);margin-top:12px">${75-n} days to go. All gas, no brakes.</div>`:""}
+  </div>`;
+}
+function weightsTierHTML(){
+  const nw=S.nextWorkout, wk=WORKOUTS[nw], today=dayISO(Date.now());
+  const wkKey=weekKey(Date.now());
+  const sesWeek=S.sessions.filter(x=>weekKey(noonOf(x.dateISO))===wkKey);
+  const trainedToday=S.sessions.some(x=>x.dateISO===today);
+  const sesByDay={}; for(const x of S.sessions) sesByDay[x.dateISO]=x;
+  const due=deloadDue(), dl=deloadActive();
+  const first=wk.ex[0], t=targetFor(first,nw), fdef=EXERCISES[first];
+  return `<div class="tier ${trainedToday?"done":""}">
+    <div class="spread" style="align-items:flex-start;gap:12px">
+      <div style="min-width:0">
+        <div class="eyebrow" style="color:${trainedToday?"var(--link)":"var(--muted)"}">Weights · ${dl?"deload week":"2 sets to failure"}</div>
+        <div class="tbig" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nw}<span> · ${esc(wk.title)}</span></div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <div style="font-size:15px;font-weight:600">${sesWeek.length}<span style="color:var(--muted);font-weight:400"> / 5–6</span></div>
+        <div style="font-size:13px;color:var(--muted)">${trainedToday?"Trained today":"this week"}</div>
+      </div>
+    </div>
+    <div style="font-size:14px;color:var(--muted);margin-top:10px;line-height:1.45">${wk.ex.map(e=>EXERCISES[e].short).join(" · ")}</div>
+    <div style="font-size:14px;margin-top:6px"><span style="color:var(--muted)">${fdef.short}:</span> <span style="color:${t.mode==="increase"?"var(--link)":t.mode==="reset"?"var(--warn)":"var(--text)"}">${t.mode==="first"?(t.weight?`start around ${fmtKg(t.weight)}${fdef.unit}`:"find your working weight"):t.text}</span></div>
+    ${weekDotsHTML(d=>{const x=sesByDay[d];return {cls:x?"on":"",icon:x?x.workout:"",click:x?`openSession('${x.id}')`:""};})}
+    ${dl?`<div class="tnote">Deload week until ${fmtDateShort(dayISO(S.deload.until-1))}: one easy set of everything, stop 2–3 reps short. Cardio carries on. <a onclick="endDeload()" style="color:var(--link)">End early</a></div>`
+      :due?`<div class="tnote warn">Deload due — ${due.why}. One easy week now makes the next block go up. <a onclick="startDeload()" style="color:var(--link)">Start deload week</a></div>`:""}
+    <div class="row" style="gap:8px;margin-top:14px">
+      <button class="btn primary small" style="width:100%" onclick="startOrResumeWorkout()">${S.activeSession?"Resume":"Start"} workout ${nw}</button>
+      <button class="btn ghost small" style="flex:0 0 auto;padding:0 18px" onclick="openWorkoutEditor('${nw}')">Edit</button>
+    </div>
   </div>`;
 }
 
@@ -2106,7 +2267,7 @@ function upsertHealth(d,steps,kcal,water){
   const e=S.health.find(x=>x.date===d);
   if(e){ if(steps) e.steps=steps; if(kcal) e.kcal=kcal; if(water) e.water=water; }
   else S.health.push({date:d,steps:steps||0,kcal:kcal||0,water:water||0});
-  evalMoveDay(); h75AfterTick();
+  evalMoveDay();
   // 10k+ steps counts as active recovery automatically
   if(steps>=10000 && !S.recovery.some(r=>r.date===d)){
     S.recovery.push({date:d,ts:Date.now(),type:"steps",value:steps});
@@ -2160,9 +2321,9 @@ const ACHIEVEMENTS=[
   {id:"level-10",icon:"⚡",name:"Level 10",desc:"Reach level 10.",check:s=>levelInfo(s.xp).lvl>=10},
   {id:"level-25",icon:"⚡",name:"Level 25",desc:"Reach level 25.",check:s=>levelInfo(s.xp).lvl>=25},
   {id:"elite",icon:"🎖️",name:"Elite Status",desc:"Take any exercise to Elite level.",check:s=>Object.values(s.exState).some(x=>exLevelInfo(x.xp).lvl>=6)},
-  {id:"h75-7",icon:"🔥",name:"First Week Hard",desc:"7 straight days of 75 Hard.",check:s=>(s.hard75&&s.hard75.best>=7)},
-  {id:"h75-30",icon:"🔥",name:"Thirty Down",desc:"30 straight days of 75 Hard.",check:s=>(s.hard75&&s.hard75.best>=30)},
-  {id:"h75-75",icon:"👑",name:"75 Hard",desc:"Complete all 75 days. No misses.",check:s=>(s.hard75&&s.hard75.best>=75)},
+  {id:"cardio-7",icon:"🫀",name:"Engine On",desc:"Hit your cardio minimum 7 days running.",check:s=>bestCardioStreak()>=7},
+  {id:"cardio-30",icon:"🫀",name:"Thirty Days of Cardio",desc:"Hit your cardio minimum 30 days running.",check:s=>bestCardioStreak()>=30},
+  {id:"climb-10k",icon:"⛰️",name:"Ten Thousand Metres",desc:"Climb 10,000 vertical metres on the incline.",check:s=>totalClimb()>=10000},
   {id:"mover-7",icon:"🚶",name:"On Your Feet",desc:"7-day movement streak.",check:s=>(s.moveStreak&&s.moveStreak.longest||0)>=7},
   {id:"mover-30",icon:"🚶",name:"Always Moving",desc:"30-day movement streak.",check:s=>(s.moveStreak&&s.moveStreak.longest||0)>=30},
   {id:"walk-100",icon:"👟",name:"Hundred Walks",desc:"Log 100 walk breaks.",check:s=>(s.walks||[]).length>=100},
@@ -2202,6 +2363,24 @@ function sweepH1(){
   setTimeout(()=>h.classList.remove("hsweep"),1600);
 }
 document.querySelectorAll("#tabbar .tab").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
+/* iOS home-screen apps sometimes end the viewport above the home indicator and report a 0
+   safe-area inset — a bottom:0 bar then floats. Measure the shortfall and pull the bar down. */
+function fixNavGap(){
+  const root=document.documentElement;
+  const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+  let gap=0;
+  if(standalone && innerHeight>innerWidth){
+    const probe=document.createElement("div");
+    probe.style.cssText="position:fixed;bottom:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);visibility:hidden";
+    document.body.appendChild(probe);
+    const sab=parseFloat(getComputedStyle(probe).paddingBottom)||0;
+    probe.remove();
+    const short=Math.round(screen.height-innerHeight);
+    if(sab===0 && short>=10 && short<=60) gap=short;
+  }
+  root.style.setProperty("--navgap",gap+"px");
+  moveTabInd(false);
+}
 function moveTabInd(animate){
   const ind=el("tab-ind"), bar=el("tabbar"), act=bar.querySelector(".tab.active:not(.train)"); if(!ind||!act) return;
   const br=bar.getBoundingClientRect(), ar=act.getBoundingClientRect();
@@ -2269,33 +2448,9 @@ el("sheet-veil").addEventListener("click",closeSheet);
 })();
 
 /* ---------------- TODAY ---------------- */
-function dayStripHTML(){
-  const today=dayISO(Date.now());
-  const t0=new Date(today+"T12:00").getTime();
-  const mon=t0-((new Date().getDay()+6)%7)*86400000;   // Monday of this week
-  const trained=new Set(S.sessions.map(x=>x.dateISO)), rest=new Set(S.recovery.map(r=>r.date));
-  const broken=new Set(S.streak.history.map(h=>h.ended).filter(Boolean));
-  const sesByDay={}; for(const x of S.sessions) sesByDay[x.dateISO]=x;
-  let out="";
-  for(let i=0;i<7;i++){
-    const ts=mon+i*86400000, d=new Date(ts), iso=dayISO(ts);
-    const isT=trained.has(iso), isR=rest.has(iso), isToday=iso===today, fut=ts>t0;
-    const missed=broken.has(iso);
-    const cls=["dcard",isT?"trained":"",isR&&!isT?"rest":"",missed?"missed":"",isToday?"today":"",fut?"future":""].filter(Boolean).join(" ");
-    const icon=isT?"✓":isR?"🚶":missed?"✕":"";
-    const click=isT?`openSession('${sesByDay[iso].id}')`:isToday?"startOrResumeWorkout()":"";
-    out+=`<div class="${cls}" ${click?`onclick="${click}"`:""}>
-      <div class="dw">${["M","T","W","T","F","S","S"][i]}</div>
-      <div class="dn">${d.getDate()}</div>
-      <div class="dc">${icon}</div>
-    </div>`;
-  }
-  return `<div class="daystrip">${out}</div>`;
-}
 function renderToday(){
   const li=levelInfo(S.xp);
   const st=S.streak, ss=streakState();
-  const nw=S.nextWorkout, wk=WORKOUTS[nw];
   const monthISO = dayISO(Date.now()).slice(0,7);
   const prsMonth = S.prLog.filter(p=>p.date.startsWith(monthISO)).length;
   const near = nearestAchievements(2);
@@ -2341,8 +2496,6 @@ function renderToday(){
   const volDelta=volLast>0?Math.round((volWeek-volLast)/volLast*100):null;
   const todayISO=dayISO(Date.now());
   const health=S.health.find(h=>h.date===todayISO)||{};
-  const dow=(new Date().getDay()+6)%7; // 0=Mon
-  const weekRow=Array.from({length:7},(_,i)=>{const d=dayISO(wkStart+i*86400000);const trained=S.sessions.some(x=>x.dateISO===d);const rec=S.recovery.some(r=>r.date===d);return {d,i,trained,rec,future:i>dow,today:i===dow};});
 
   el("screen-today").innerHTML=`
     <div class="phead">
@@ -2354,31 +2507,9 @@ function renderToday(){
       ${pillsHTML()}
     </div>
     ${inProgressHTML()}
-    ${hard75HTML()}
-    <div class="spread" style="margin-bottom:10px">
-      <span style="font-size:19px;font-weight:600;letter-spacing:.012em">Weekly goal</span>
-      <span style="font-size:17px;color:${sesWeek.length>=(h75Active()?7:5)?"var(--link)":"var(--muted)"}"><b style="color:var(--text)">${sesWeek.length}</b>/${h75Active()?7:5}</span>
-    </div>
-    ${dayStripHTML()}
+    ${weightsTierHTML()}
+    ${cardioTierHTML()}
     ${streakCard}
-
-    <!-- next up: one line, no exercise list -->
-    <div class="nextup" style="padding:18px 20px">
-      <div class="spread" style="gap:14px">
-        <div style="display:flex;align-items:center;gap:14px;min-width:0">
-          <div class="wletter" style="font-size:40px">${nw}</div>
-          <div style="min-width:0">
-            <div style="font-size:14px;color:var(--muted)" onclick="event.stopPropagation();openWorkoutEditor('${nw}')">Next up · ${cyclePosition()} <span style="color:var(--link)">· edit</span></div>
-            <div style="font-size:19px;font-weight:600;letter-spacing:.012em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${wk.title}</div>
-          </div>
-        </div>
-        <button class="btn primary small" style="flex-shrink:0" onclick="startOrResumeWorkout()">${S.activeSession?"Resume":"Start"}</button>
-      </div>
-      <div class="row" style="gap:8px;margin-top:14px">
-        <button class="btn ghost small" style="width:100%" onclick="openCardioLog()">🏃 ${cardioMins(todayISO)>=45?"Cardio done ✓":"Log cardio"}</button>
-        <button class="btn ghost small" style="width:100%" onclick="openRecovery()">🚶 ${recWeek.some(r=>r.date===todayISO)?"Recovery ✓":"Recovery"}</button>
-      </div>
-    </div>
 
     ${redemptionHTML()}
     ${photoPromptHTML()}
@@ -2399,7 +2530,7 @@ function renderToday(){
         <div style="flex:1;min-width:0;max-width:170px">${scPts.length>=2?lineChart(scPts,{w:170,h:60,fill:true,mini:true}):`<div style="font-size:12px;color:var(--dim);text-align:right">Trend appears after a few sessions</div>`}</div>
       </div>
       ${scDelta!==null&&scDelta!==0?`<div style="font-size:13px;color:var(--muted);margin-top:2px">${scDelta>0?"Up":"Down"} ${Math.abs(scDelta)} in the last 30 days</div>`:""}
-      <div class="spread" style="margin:14px 0 12px;font-size:14px;color:var(--muted)"><span>${sesWeek.length} of 5 sessions this week${recWeek.length?` · ${recWeek.length} active rest`:""}</span><span class="mono">${S.workoutsDone} total</span></div>
+      <div class="spread" style="margin:14px 0 12px;font-size:14px;color:var(--muted)"><span>${sesWeek.length} sessions · ${sum(cardioWeek().map(c=>c.mins))} cardio min this week</span><span class="mono">${S.workoutsDone} total</span></div>
       <div class="statgrid">
         <div class="stat" style="background:#000"><div class="l">Volume · week</div><div class="v mono" style="font-size:24px;white-space:nowrap">${Math.round(volWeek).toLocaleString("en-GB")}<span style="font-size:14px;color:var(--muted)"> kg</span></div>
           ${volDelta!==null?`<div style="font-size:13px;color:${volDelta>=0?"var(--link)":"var(--danger)"}">${volDelta>=0?"+":""}${volDelta}% vs last week</div>`:`<div style="font-size:13px;color:var(--dim)">First week logged</div>`}</div>
@@ -2494,6 +2625,9 @@ function nearestAchievements(n){
     else if(a.id==="pr-10") prog=[S.prLog.length,10];
     else if(a.id==="pr-machine") prog=[S.prLog.length,25];
     else if(a.id==="pr-50") prog=[S.prLog.length,50];
+    else if(a.id==="cardio-7") prog=[cardioStreak(),7];
+    else if(a.id==="cardio-30") prog=[cardioStreak(),30];
+    else if(a.id==="climb-10k") prog=[totalClimb(),10000];
     if(prog && prog[0]>0) out.push({...a,ratio:prog[0]/prog[1],progress:prog[0]+" / "+prog[1]});
   }
   return out.sort((a,b)=>b.ratio-a.ratio).slice(0,n);
@@ -2596,7 +2730,7 @@ function lineChart(pts,{w=340,h=160,unit="",accent="var(--accent)",fill=true,min
   </svg>`;
 }
 /* ---------------- PROGRESS ---------------- */
-let progRange="3M", progEx="incline-bench", progMetric="e1rm", progView="strength";
+let progRange="3M", progEx="bench", progMetric="e1rm", progView="strength";
 const RANGES={"7D":7,"30D":30,"3M":91,"6M":182,"1Y":365,"ALL":99999};
 function rangeCut(){ return Date.now()-RANGES[progRange]*86400000; }
 
@@ -2627,9 +2761,9 @@ function renderProgress(){
     </div>
 
     <div class="seg">
-      ${["strength","training","body","muscle","history","reports"].map(v=>`<button class="${progView===v?"active":""}" onclick="progView='${v}';renderProgress()">${v[0].toUpperCase()+v.slice(1)}</button>`).join("")}
+      ${["strength","cardio","training","body","muscle","history","reports"].map(v=>`<button class="${progView===v?"active":""}" onclick="progView='${v}';renderProgress()">${v[0].toUpperCase()+v.slice(1)}</button>`).join("")}
     </div>
-    <div id="prog-body">${progView==="strength"?strengthViewHTML():progView==="training"?trainingViewHTML():progView==="body"?bodyViewHTML():progView==="muscle"?muscleViewHTML():progView==="history"?historyViewHTML():reportsViewHTML()}</div>`;
+    <div id="prog-body">${progView==="strength"?strengthViewHTML():progView==="cardio"?cardioViewHTML():progView==="training"?trainingViewHTML():progView==="body"?bodyViewHTML():progView==="muscle"?muscleViewHTML():progView==="history"?historyViewHTML():reportsViewHTML()}</div>`;
 }
 
 function strengthViewHTML(){
@@ -2657,6 +2791,44 @@ function strengthViewHTML(){
       ${lineChart(pts)}
     </div>
     <button class="btn ghost" onclick="openExercise('${progEx}')">Open ${EXERCISES[progEx].short} →</button>`;
+}
+
+/* ---------------- cardio view ---------------- */
+function cardioViewHTML(){
+  const now=Date.now(), weeks=[];
+  for(let i=11;i>=0;i--){
+    const k=weekKey(now-i*7*86400000);
+    weeks.push({key:k,label:fmtDateShort(k).split(" ").slice(0,2).join(" "),value:0});
+  }
+  const byKey=Object.fromEntries(weeks.map(w=>[w.key,w]));
+  for(const c of S.cardio){ const w=byKey[weekKey(noonOf(c.date))]; if(w) w.value+=c.mins; }
+  const cut=rangeCut();
+  const inc=S.cardio.filter(c=>climbM(c)>0&&noonOf(c.date)>=cut).sort((a,b)=>a.ts-b.ts);
+  const climbPts=inc.map(c=>({x:noonOf(c.date),y:climbM(c)}));
+  const rows=S.cardio.filter(c=>rowPace(c)&&noonOf(c.date)>=cut).sort((a,b)=>a.ts-b.ts);
+  const longest=S.cardio.reduce((a,c)=>!a||c.mins>a.mins?c:a,null);
+  const mostClimb=S.cardio.reduce((a,c)=>climbM(c)>(a?climbM(a):0)?c:a,null);
+  const bestRow=S.cardio.filter(rowPace).reduce((a,c)=>!a||rowPace(c)<rowPace(a)?c:a,null);
+  const wkMins=sum(cardioWeek().map(c=>c.mins));
+  return `
+    <div class="statgrid" style="margin-bottom:14px">
+      <div class="stat"><div class="l">This week</div><div class="v mono">${wkMins}<span style="font-size:14px;color:var(--muted)"> / ${cardioWeekTarget()} min</span></div></div>
+      <div class="stat"><div class="l">Streak</div><div class="v mono">${cardioStreak()}<span style="font-size:14px;color:var(--muted)"> day${cardioStreak()===1?"":"s"}</span></div><div style="font-size:13px;color:var(--dim)">best ${bestCardioStreak()}</div></div>
+      <div class="stat"><div class="l">Daily minimum</div><div class="v mono">${cardioTarget()}<span style="font-size:14px;color:var(--muted)"> min</span></div>${nextCardioStep()?`<div style="font-size:13px;color:var(--dim)">${nextCardioStep().mins} from ${fmtDateShort(nextCardioStep().from)}</div>`:""}</div>
+      <div class="stat"><div class="l">Climbed</div><div class="v mono">${totalClimb().toLocaleString("en-GB")}<span style="font-size:14px;color:var(--muted)"> m</span></div><div style="font-size:13px;color:var(--dim)">all time</div></div>
+    </div>
+    <div class="chart-box"><div class="spread" style="padding:0 6px 8px"><span class="eyebrow">Cardio minutes per week</span></div>${barChart(weeks,{fmt:v=>Math.round(v)+"m"})}</div>
+    <div class="seg" style="margin-bottom:10px">${Object.keys(RANGES).map(r=>`<button class="${progRange===r?"active":""}" onclick="progRange='${r}';renderProgress()">${r}</button>`).join("")}</div>
+    <div class="chart-box"><div class="spread" style="padding:0 6px 8px"><span class="eyebrow">Metres climbed per session</span></div>
+      ${climbPts.length>=2?lineChart(climbPts,{unit:"m"}):`<div style="padding:24px 10px;text-align:center;color:var(--dim);font-size:13px">${climbPts.length?"One session so far — the trend appears after your next incline walk.":"Log incline and speed on your walks to see this climb."}</div>`}
+      <div style="font-size:12px;color:var(--dim);padding:6px 6px 0">Same heart rate, more metres climbed = fitter.</div></div>
+    ${rows.length>=2?`<div class="chart-box"><div class="spread" style="padding:0 6px 8px"><span class="eyebrow">Row pace (sec / 500m — lower is faster)</span></div>${lineChart(rows.map(c=>({x:noonOf(c.date),y:Math.round(rowPace(c))})))}</div>`:""}
+    <div class="card">
+      <div class="eyebrow" style="margin-bottom:8px">Cardio bests</div>
+      ${[["Longest session",longest&&longest.mins+" min · "+longest.type,longest],["Most climbed",mostClimb&&climbM(mostClimb)+"m",mostClimb],["Fastest row",bestRow&&fmtDur(rowPace(bestRow))+"/500m",bestRow],["Longest streak",bestCardioStreak()+" days",null]]
+        .map(r=>`<div class="spread" style="padding:6px 0;font-size:15px"><span style="color:var(--muted)">${r[0]}</span><span class="mono">${r[1]||"—"}${r[2]?` <span style="color:var(--dim);font-size:12px">${fmtDateShort(r[2].date)}</span>`:""}</span></div>`).join("")}
+    </div>
+    <button class="btn ghost" onclick="openCardioHistory()">All cardio sessions →</button>`;
 }
 
 /* ---------------- training (work carried out) ---------------- */
@@ -2698,7 +2870,7 @@ function trainingViewHTML(){
   const thisW=weeks[11], lastW=weeks[10];
   const dVol=lastW.vol>0?Math.round((thisW.vol-lastW.vol)/lastW.vol*100):null;
   // per-workout split (all time)
-  const split=CYCLE.map(w=>({label:w,value:sum(S.sessions.filter(s=>s.workout===w).map(s=>s.volume))}));
+  const split=CYCLE.map(w=>({label:w,value:sum(S.sessions.filter(s=>s.workout===w&&!s.legacy).map(s=>s.volume))}));
   const totVol=sum(S.sessions.map(s=>s.volume));
   const totSets=sum(S.sessions.map(s=>s.sets.length));
   const totReps=sum(S.sessions.map(s=>sum(s.sets.map(x=>x.reps))));
@@ -2917,7 +3089,7 @@ function historyViewHTML(){
       <span style="display:flex;gap:14px;align-items:center">
         <span style="width:42px;height:42px;border-radius:50%;background:var(--accent-dim);color:var(--brand);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:18px">${s.workout}</span>
         <span><div style="font-weight:600;font-size:14px">${fmtDate(s.dateISO)}</div>
-        <div style="font-size:12px;color:var(--muted)">${wkDef(s.workout).title} · ${fmtKg(s.volume)}kg${s.prs.length?` · 🏆 ${s.prs.length}`:""}</div></span>
+        <div style="font-size:12px;color:var(--muted)">${sesDef(s).title}${s.deload?" · deload":""} · ${fmtKg(s.volume)}kg${s.prs.length?` · 🏆 ${s.prs.length}`:""}</div></span>
       <span style="display:flex;align-items:center;gap:10px">${s.grade?`<span class="mono" style="font-size:17px;font-weight:600;color:${GRADE_COL[s.grade]}">${s.grade}</span>`:""}
       <span style="color:var(--dim)">›</span></span>
     </div>`).join("")}</div>`;
@@ -2928,7 +3100,7 @@ function openSession(id){
   for(const set of s.sets){ (byEx[set.ex]=byEx[set.ex]||[]).push(set); }
   openSheet(`
     <div class="spread"><h2 style="font-size:22px;font-weight:600">Workout ${s.workout}</h2><span class="tag acc">+${s.xp} XP</span></div>
-    <div style="color:var(--muted);font-size:13px;margin:4px 0 14px">${fmtDate(s.dateISO)} · ${wkDef(s.workout).title}${s.dur?` · ${fmtDur(s.dur)}`:""} · ${fmtKg(s.volume)}kg volume</div>
+    <div style="color:var(--muted);font-size:13px;margin:4px 0 14px">${fmtDate(s.dateISO)} · ${sesDef(s).title}${s.dur?` · ${fmtDur(s.dur)}`:""} · ${fmtKg(s.volume)}kg volume</div>
     <div style="font-size:13px;color:var(--dim);margin-bottom:10px">Tap any set to correct it.</div>
     ${Object.entries(byEx).map(([ex,sets])=>`
       <div class="card">
@@ -3052,11 +3224,11 @@ function openExercise(ex){
   if(p&&p.heaviest) prRows.push(["Heaviest weight",`${fmtKg(p.heaviest.w)}${def.unit} × ${p.heaviest.reps}`,p.heaviest.date]);
   if(p&&p.e1rm) prRows.push(["Best est. 1RM",`${fmtKg(p.e1rm.v)}kg (${fmtKg(p.e1rm.w)}×${p.e1rm.reps})`,p.e1rm.date]);
   if(p&&p.sesVol) prRows.push(["Highest session volume",`${fmtKg(p.sesVol.v)}kg`,p.sesVol.date]);
-  if(p&&p.best5) prRows.push(["Best 5-set performance",`${fmtKg(p.best5.v)}kg`,p.best5.date]);
+  if(p&&p.best5) prRows.push(["Best working sets",`${fmtKg(p.best5.v)}kg`,p.best5.date]);
   openSheet(`
     <div class="spread">
       <h2 style="font-size:22px;font-weight:600;letter-spacing:-.01em">${def.name}</h2>
-      <span class="tag acc">${CYCLE.filter(w=>WORKOUTS[w].p[ex]).map(w=>w+": "+WORKOUTS[w].p[ex].sets+"×"+WORKOUTS[w].p[ex].repLo+"–"+WORKOUTS[w].p[ex].repHi).join(" · ")||"legacy"}</span>
+      <span class="tag acc">${CYCLE.filter(w=>WORKOUTS[w].p[ex]).map(w=>{const q=WORKOUTS[w].p[ex];return w+": "+(q.top?"top "+q.repLo+"–"+q.repHi+" + back-off":q.sets+"×"+q.repLo+"–"+q.repHi);}).join(" · ")||"retired"}</span>
     </div>
     <div style="margin:14px 0">
       <div class="spread"><span class="eyebrow">Level ${lv.lvl} — ${lv.name}</span>
@@ -3186,9 +3358,9 @@ function renderProfile(){
         <button class="btn ghost small" onclick="openProgramme()">Edit</button>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
-        <div><div style="font-weight:600;font-size:15px">75 Hard</div>
-          <div style="font-size:12px;color:var(--muted)">${h75Active()?`Day ${h75DayNum()} · started ${fmtDateShort(h75().startDate)}`:"Not running"}</div></div>
-        <button class="btn ghost small" onclick="openH75Settings()">Manage</button>
+        <div><div style="font-weight:600;font-size:15px">Cardio plan</div>
+          <div style="font-size:12px;color:var(--muted)">${cardioTarget()} min a day now${nextCardioStep()?` · ${nextCardioStep().mins} from ${fmtDateShort(nextCardioStep().from)}`:""}</div></div>
+        <button class="btn ghost small" onclick="openCardioSettings()">Edit</button>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Daily goals</div>
@@ -3261,31 +3433,6 @@ function saveWalkSettings(){
   if(S.settings.walk.to<=S.settings.walk.from) S.settings.walk.to=S.settings.walk.from+8;
   save(); closeSheet(); renderProfile(); toast("Walk breaks updated",true);
 }
-function openH75Settings(){
-  const H=h75();
-  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">75 Hard</h2>
-    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${H.active?`Day ${h75DayNum()} of 75 · started ${fmtDate(H.startDate)}`:"Currently off."}</p>
-    <div class="card">
-      <div class="spread" style="padding:4px 0">
-        <div><div style="font-weight:600;font-size:15px">Challenge running</div>
-          <div style="font-size:13px;color:var(--muted)">Puts the daily checklist on Today</div></div>
-        <label class="switch"><input type="checkbox" ${H.active?"checked":""} onchange="h75().active=this.checked;if(this.checked&&!h75().startDate)h75().startDate=dayISO(Date.now());save();closeSheet();renderAll()"><i></i></label>
-      </div>
-      <div class="spread" style="padding:12px 0 4px;border-top:1px solid var(--line)">
-        <div><div style="font-weight:600;font-size:15px">Daily progress photo</div>
-          <div style="font-size:13px;color:var(--muted)">The classic 5th rule — off unless you want it</div></div>
-        <label class="switch"><input type="checkbox" ${H.withPhoto?"checked":""} onchange="h75().withPhoto=this.checked;save();closeSheet();renderAll()"><i></i></label>
-      </div>
-    </div>
-    <label class="fld"><span>Start date</span><input type="date" id="h75-start" value="${H.startDate}"></label>
-    <button class="btn ghost" onclick="h75().startDate=el('h75-start').value||h75().startDate;save();closeSheet();renderAll();toast('Start date updated',true)">Save start date</button>
-    ${H.attempts&&H.attempts.length?`<div class="card" style="margin-top:16px">
-      <div class="eyebrow" style="margin-bottom:8px">Previous attempts</div>
-      ${H.attempts.slice().reverse().map(a=>`<div class="spread" style="padding:5px 0;font-size:14px">
-        <span>Reached day ${a.daysReached}</span><span style="color:var(--muted)">${fmtDateShort(a.failedOn)}</span></div>`).join("")}
-    </div>`:""}
-    <button class="btn danger" style="margin-top:16px" onclick="if(confirm('Reset 75 Hard to day 1?')){h75Restart();}">Reset to Day 1</button>`);
-}
 function openGoals(){
   const g=S.settings.goals;
   openSheet(`<h2 style="font-size:24px;margin-bottom:16px">Daily goals</h2>
@@ -3337,10 +3484,12 @@ function startOrResumeWorkout(){
       workout:wk, start:Date.now(), exIndex:0, setIndex:0,
       sets:[], prs:[], xp:0,
       weights:Object.fromEntries(WORKOUTS[wk].ex.map(ex=>{
-        const t=targetFor(ex,wk);
-        return [ex, t.weight!=null?t.weight:(EXERCISES[ex].unit==="+kg"?0:40)];
+        const t=targetFor(ex,wk), def=EXERCISES[ex];
+        let w=t.weight!=null?t.weight:(def.unit==="+kg"?0:40);
+        if(deloadActive()&&w) w=roundInc(w*0.9,def.inc);
+        return [ex,w];
       })),
-      lastReps:{},
+      lastReps:{}, deload:deloadActive(),
     };
     snapshotSession(S.activeSession);
     save();
@@ -3369,40 +3518,49 @@ function exHeadHTML(A,wk,ex,def,pr){
   return `<div style="margin:22px 0 4px">
       <div style="font-size:13px;color:var(--muted)">Exercise ${A.exIndex+1} of ${wk.ex.length}</div>
       <h2 style="font-size:32px;line-height:1.13;letter-spacing:.004em;margin-top:2px">${def.name}</h2>
-      <div style="font-size:15px;color:var(--muted);margin-top:6px">${pr.sets} × ${pr.repLo}–${pr.repHi}${def.timed?" sec":""}${def.per?" each "+def.per:""} &nbsp;·&nbsp; ${pr.rir!=="—"?pr.rir+" RIR &nbsp;·&nbsp; ":""}rest ${fmtDur(pr.rest)}</div>
+      <div style="font-size:15px;color:var(--muted);margin-top:6px">${prescTxt(pr,def)} &nbsp;·&nbsp; rest ${fmtDur(pr.rest)}</div>
     </div>`;
 }
 function scoreHTML(A,ex,def,pr,doneSets,w){
-  const t=targetFor(ex,A.workout), last=lastExposure(ex,A.workout);
-  const repsSoFar=sum(doneSets.map(s=>s.reps));
+  const t=targetFor(ex,A.workout);
   const uw=def.timed?"sec":"reps";
+  if(pr.deload) return `<div class="score">
+      <div class="k" style="font-size:14px;color:var(--link)">Deload week</div>
+      <div class="msg" style="margin-top:6px">One easy set, stop 2–3 ${uw} short. It doesn't count toward progression — it's what lets the next block go up.</div>
+    </div>`;
+  if(pr.top && doneSets.length===1) return `<div class="score">
+      <div class="k" style="font-size:14px;color:var(--muted)">Back-off set</div>
+      <div class="msg" style="margin-top:6px">Top set done: ${fmtKg(doneSets[0].w)}${def.unit} × ${doneSets[0].reps}. Now ~90% — ${fmtKg(backoffWeight(ex,doneSets[0].w))}${def.unit} for ${pr.bLo}–${pr.bHi}, ${effortTxt(pr).toLowerCase()}.</div>
+    </div>`;
+  const cur=doneSets.length?topSetOf(doneSets):null;
   if(t.mode==="beat"){
-    const target=t.prevReps, pct=Math.min(100,repsSoFar/(target+1)*100);
-    const win=repsSoFar>target, left=Math.max(0,target+1-repsSoFar);
-    const setsLeft=pr.sets-doneSets.length, thr=upThreshold(ex,A.workout);
+    const target=t.prevReps, today=cur?cur.reps:0;
+    const win=!!cur&&(cur.w>t.weight||(cur.w===t.weight&&cur.reps>target));
+    const pct=Math.min(100,today/(target+1)*100);
     return `<div class="score">
       <div class="vs">
-        <div class="side"><div class="k">Last time</div><div class="n">${target}</div><div class="u">${uw} @ ${fmtKg(last.topW)}${def.unit}</div></div>
+        <div class="side"><div class="k">Last top set</div><div class="n">${target}</div><div class="u">${uw} @ ${fmtKg(t.weight)}${def.unit}</div></div>
         <div class="vsmark">vs</div>
-        <div class="side right"><div class="k">Today</div><div class="n" style="color:${win?"var(--link)":"var(--text)"}">${repsSoFar}</div><div class="u">${uw} @ ${fmtKg(w)}${def.unit}</div></div>
+        <div class="side right"><div class="k">Today</div><div class="n" style="color:${win?"var(--link)":"var(--text)"}">${cur?today:"—"}</div><div class="u">${uw} @ ${fmtKg(cur?cur.w:w)}${def.unit}</div></div>
       </div>
       <div class="bar ${win?"win":""}"><i style="width:${pct}%"></i><em></em></div>
-      ${win?`<div class="msg win">Past you: beaten. +${repsSoFar-target} — keep stacking.</div>`
-          :`<div class="msg">${left} more ${left===1?uw.replace(/s$/,""):uw} to win${setsLeft?` · ${setsLeft} set${setsLeft>1?"s":""} left`:""}</div>`}
-      <div class="sub">Add weight at <b style="color:var(--text)">${thr}</b> total ${uw} · last time ${target}</div>
+      ${!cur?`<div class="msg">${pr.top?"Top set":"First set"}: ${target+1}+ ${uw} beats last time</div>`
+        :win?`<div class="msg win">Past you: beaten. ${today>=pr.repHi?"Top of the range — weight goes up next time.":"+"+(today-target)+" on the top set."}</div>`
+        :`<div class="msg">Not this time — take the next set to failure and bank it</div>`}
+      <div class="sub">Weight goes up when your top set hits <b style="color:var(--text)">${pr.repHi}</b> ${uw}</div>
     </div>`;
   }
-  if(t.mode==="increase") return `<div class="score">
+  if(t.mode==="increase"||t.mode==="reset") return `<div class="score">
       <div class="vs">
-        <div class="side"><div class="k">Cleared</div><div class="n">${fmtKg(t.prevW)}</div><div class="u">${def.unit} · ${upThreshold(ex,A.workout)}+ ${uw}</div></div>
+        <div class="side"><div class="k">${t.mode==="reset"?"Stalled at":"Cleared"}</div><div class="n">${fmtKg(t.prevW)}</div><div class="u">${def.unit} × ${t.prevReps}</div></div>
         <div class="vsmark">→</div>
-        <div class="side right"><div class="k">New weight</div><div class="n" style="color:var(--link)">${fmtKg(t.weight)}</div><div class="u">${def.unit} · aim ${pr.repLo}+ per set</div></div>
+        <div class="side right"><div class="k">${t.mode==="reset"?"Reset to":"New weight"}</div><div class="n" style="color:${t.mode==="reset"?"var(--warn)":"var(--link)"}">${fmtKg(t.weight)}</div><div class="u">${def.unit} · aim ${pr.repLo}+</div></div>
       </div>
-      <div class="msg" style="margin-top:14px">Level up. Own the new weight — ${pr.repLo}–${pr.repHi}${def.timed?" sec":""} per set.</div>
+      <div class="msg" style="margin-top:14px">${t.mode==="reset"?"Three sessions without progress. Drop 10%, build back — you'll pass the old best within a few weeks.":`Level up. Own the new weight — ${pr.repLo}–${pr.repHi}${def.timed?" sec":""} on the top set.`}</div>
     </div>`;
   return `<div class="score">
       <div class="k" style="font-size:14px;color:var(--muted)">Set the bar</div>
-      <div class="msg" style="margin-top:6px">First ${pr.sets}×${pr.repLo}–${pr.repHi} session. ${t.weight?`Start around ${fmtKg(t.weight)}${def.unit}. `:""}Today's numbers become the score to beat.</div>
+      <div class="msg" style="margin-top:6px">First session on this plan. ${t.weight?`Start around ${fmtKg(t.weight)}${def.unit}. `:""}Pick a weight you can hit ${pr.repLo}–${pr.repHi} with, then go to ${effortTxt(pr).toLowerCase()||"failure"}. Today's numbers become the score to beat.</div>
     </div>`;
 }
 function tileHTML(ex,def,w,reps,idx){
@@ -3421,8 +3579,9 @@ function tileHTML(ex,def,w,reps,idx){
     </div>`;
 }
 function suggestReps(A,ex,pr,doneSets){
-  if(A.lastReps[ex]!=null) return A.lastReps[ex];
   const last=lastExposure(ex,A.workout);
+  if(pr.top&&doneSets.length===1) return last&&last.sets[1]?last.sets[1].reps:pr.bLo;
+  if(A.lastReps[ex]!=null) return A.lastReps[ex];
   return last?last.sets[Math.min(doneSets.length,last.sets.length-1)].reps:pr.repHi;
 }
 function setChips(doneSets,ex){
@@ -3473,7 +3632,7 @@ function renderWorkout(){
           <div style="min-width:0">
             <div class="ssnum">${i+1}</div>
             <span style="font-size:18px;font-weight:600;letter-spacing:.011em">${o.def.name}</span>
-            <div style="font-size:13px;color:var(--muted);margin-top:2px">${o.pr.sets} × ${o.pr.repLo}–${o.pr.repHi} · ${o.pr.rir} RIR${(()=>{const t=targetFor(o.k,A.workout);return t.mode==="beat"?` · beat ${t.prevReps} total`:t.mode==="increase"?` · ⬆ ${fmtKg(t.weight)}${o.def.unit}`:"";})()}</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:2px">${prescTxt(o.pr,o.def)}${(()=>{if(o.pr.deload)return "";const t=targetFor(o.k,A.workout);return t.mode==="beat"?` · beat ${t.prevReps}`:t.mode==="increase"?` · ⬆ ${fmtKg(t.weight)}${o.def.unit}`:t.mode==="reset"?` · reset ${fmtKg(t.weight)}${o.def.unit}`:"";})()}</div>
           </div>
           <span class="mono" style="font-size:13px;color:${o.done.length>=o.pr.sets?"var(--link)":"var(--dim)"};flex-shrink:0">${o.done.length}/${o.pr.sets}</span>
         </div>
@@ -3489,11 +3648,12 @@ function renderWorkout(){
   const def=EXERCISES[ex], pr=presc(ex,A.workout);
   const doneSets=A.sets.filter(s=>s.ex===ex);
   const setN=Math.min(doneSets.length+1,pr.sets);
+  const setLbl=pr.top&&!pr.deload?(doneSets.length?"Back-off set":"Top set"):`Set ${setN} of ${pr.sets}`;
   el("workout-overlay").innerHTML=head+exHeadHTML(A,wk,ex,def,pr)+`</div>
     ${scoreHTML(A,ex,def,pr,doneSets,A.weights[ex])}
     ${wk.note&&A.exIndex===0?`<div class="card" style="padding:14px 16px;margin-bottom:10px"><div style="font-size:14px;color:var(--muted)">${wk.note}</div></div>`:""}
     <div class="spread" style="margin:4px 2px 10px">
-      <span style="font-size:15px;color:var(--muted)">Set ${setN} of ${pr.sets}</span>
+      <span style="font-size:15px;color:var(--muted)">${setLbl}</span>
       <span class="setdots" style="margin:0">${Array.from({length:pr.sets},(_,i)=>`<i class="${i<doneSets.length?"done":i===doneSets.length?"cur":""}" style="width:18px"></i>`).join("")}</span>
     </div>
     ${restBarHTML()}
@@ -3564,6 +3724,7 @@ function completeSet(){
   if(reps<=0){ toast(EXERCISES[ex].timed?"Enter your hold in seconds":"Enter your reps first"); return; }
   logSet(ex,w,reps);
   const done=A.sets.filter(s=>s.ex===ex);
+  if(pr.top&&!pr.deload&&done.length===1) A.weights[ex]=backoffWeight(ex,w);
   if(done.length>=pr.sets){ markExDone(ex,done); save(); advanceAfter(A.exIndex); }
   else { save(); startRest(false,pr.rest); }
 }
@@ -3590,14 +3751,13 @@ function scoreExercise(ex,sets){
     S.prLog.push({date:dayISO(Date.now()),ex,type:pp.type,label:pp.label});
     prToast(pp);
   }
-  const topW=Math.max(...sets.map(s=>s.w));
-  const total=sum(sets.map(x=>x.reps));
-  const mastered=sets.length>=pr.sets && total>=upThreshold(ex,A.workout);
+  const top=topSetOf(sets), topW=top.w;
+  const mastered=!pr.deload && earnsIncrease(ex,A.workout,sets);
   const key=A.workout+":"+topW;
   if(mastered && !S.exState[ex].mastered.includes(key)){
     S.exState[ex].mastered.push(key);
     A.xp+=XP.MASTER;
-    toast(`🏋️ ${total} total ${def.timed?"sec":"reps"} \u2014 next session go ${fmtKg(topW+def.inc)}${def.unit}`,true);
+    toast(`🏋️ ${top.reps} ${def.timed?"sec":"reps"} on the top set \u2014 next session go ${fmtKg(topW+def.inc)}${def.unit}`,true);
     sndPR(); haptic([40,80,40,80,120]);
   }
 }
@@ -3635,7 +3795,7 @@ function replaySession(){
     for(const pp of sesPRs){ A.prs.push(pp); A.xp+=XP.PR; S.prLog.push({date:d,ex,type:pp.type,label:pp.label}); }
     const topW=Math.max(...sets.map(x=>x.w));
     const key=A.workout+":"+topW;
-    if(sum(sets.map(x=>x.reps))>=upThreshold(ex,A.workout) && !S.exState[ex].mastered.includes(key)){
+    if(!pr.deload && earnsIncrease(ex,A.workout,sets) && !S.exState[ex].mastered.includes(key)){
       S.exState[ex].mastered.push(key); A.xp+=XP.MASTER;
     }
   }
@@ -3647,6 +3807,7 @@ function undoLastSet(){
   const A=S.activeSession; if(!A||!A.sets.length) return;
   const last=A.sets[A.sets.length-1];
   A.sets.pop();
+  A.weights[last.ex]=last.w;
   replaySession();
   clearInterval(restT); restT=null; A.rest=null; save();
   renderWorkout(); haptic(20);
@@ -3810,6 +3971,7 @@ function finishWorkout(early){
     id:now, workout:A.workout, dateISO:dayISO(A.start||now), start:A.start, end:now,
     dur:Math.round((now-A.start)/1000), sets:A.sets, volume, xp:A.xp, prs:A.prs,
   };
+  if(A.deload) session.deload=true;
   // multipliers: double-XP crate buff and redemption week
   let mult=1, multWhy=[];
   if(S.buffs.doubleNext){ mult*=2; multWhy.push("Double XP crate"); S.buffs.doubleNext=false; }
@@ -3832,20 +3994,19 @@ function finishWorkout(early){
   save();
   sndDone(); haptic([50,100,50,100,50,100,150]);
   el("workout-overlay").classList.remove("open");
-  h75AfterTick();
   window.__pendingCrate=true;
   renderPost(session,{scoreBefore,scoreAfter,streakBonus,cycleDone,newAch,grade:gr,mult,multWhy});
 }
 function renderPost(s,x){
   const nw=S.nextWorkout;
   const improvements=[];
-  for(const ex of wkDef(s.workout).ex){
-    const exp=exposuresOf(ex);
+  for(const ex of (s.deload?[]:wkDef(s.workout).ex)){
+    const exp=exposuresOf(ex,s.workout);
     if(exp.length>=2){
       const prev=exp[exp.length-2], cur=exp[exp.length-1];
-      const dr=cur.totalReps-prev.totalReps, dv=cur.volume-prev.volume;
-      if(cur.topW>prev.topW) improvements.push({ex,txt:`+${fmtKg(cur.topW-prev.topW)}kg working weight`});
-      else if(dr>0) improvements.push({ex,txt:`+${dr} total rep${dr>1?"s":""}`});
+      const dr=topSetOf(cur.sets).reps-topSetOf(prev.sets).reps, dv=cur.volume-prev.volume;
+      if(cur.topW>prev.topW) improvements.push({ex,txt:`+${fmtKg(cur.topW-prev.topW)}kg on the top set`});
+      else if(cur.topW===prev.topW&&dr>0) improvements.push({ex,txt:`+${dr} rep${dr>1?"s":""} on the top set`});
       if(dv!==0 && prev.volume>0) improvements.push({ex,txt:`Volume ${fmtKg(prev.volume)} → ${fmtKg(cur.volume)}kg (${dv>0?"+":""}${Math.round(dv/prev.volume*1000)/10}%)`,sub:true});
     }
   }
@@ -3868,7 +4029,7 @@ function renderPost(s,x){
       <div class="big-num" id="post-streak" style="margin-top:4px">${S.streak.cur}</div>
       <div style="color:var(--muted);font-size:13px;margin-top:4px">Momentum secured. Window resets: ${S.settings.windowHours}h.</div>
       ${x.streakBonus?`<div class="tag acc" style="margin-top:8px">+${x.streakBonus} XP streak bonus</div>`:""}
-      ${x.cycleDone?`<div class="tag acc" style="margin-top:8px">Full A→D cycle · +${XP.CYCLE} XP</div>`:""}
+      ${x.cycleDone?`<div class="tag acc" style="margin-top:8px">Full A→F cycle · +${XP.CYCLE} XP</div>`:""}
     </div>
     ${s.prs.length?`<div class="card reveal" style="animation-delay:.35s">
       <div class="eyebrow" style="color:var(--gold);margin-bottom:10px">🏆 ${s.prs.length} new PR${s.prs.length>1?"s":""}</div>
@@ -3895,6 +4056,8 @@ function renderPost(s,x){
           <span style="font-weight:600;font-size:14px">${def.short}</span>
           ${t.mode==="increase"
             ?`<span style="font-size:13px;font-weight:600;color:var(--accent)">📈 Increase to ${fmtKg(t.weight)}${def.unit}</span>`
+            :t.mode==="reset"?`<span style="font-size:13px;color:var(--warn)">Reset to ${fmtKg(t.weight)}${def.unit}</span>`
+            :t.mode==="first"?`<span style="font-size:13px;color:var(--muted)">Set the bar next time</span>`
             :`<span style="font-size:13px;color:var(--muted)">Hold ${fmtKg(t.weight)}${def.unit} — beat ${t.prevReps} reps</span>`}
         </div>`;
       }).join("")}
@@ -4069,6 +4232,10 @@ function seedDemo(){
 
 /* ---------------- init ---------------- */
 load();
+fixNavGap();
+addEventListener("resize",fixNavGap);
+addEventListener("orientationchange",()=>setTimeout(fixNavGap,300));
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(fixNavGap,100); });
 handleExpiry();
 setTimeout(()=>{
   const A=S.activeSession;
@@ -4078,9 +4245,7 @@ setTimeout(()=>{
       <button class="btn primary" onclick="closeSheet();finishWorkout(true)">Save it to ${fmtDateShort(dayISO(A.start))}</button>
       <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();startOrResumeWorkout()">Resume it</button>
       <button class="btn danger" style="margin-top:10px" onclick="if(confirm('Discard those sets?')){S.activeSession=null;save();closeSheet();renderAll();}">Discard</button>`);
-    return;
   }
-  const f=h75CheckFail(); if(f) h75ShowFail(f);
 },700);
 renderToday();
 if(S.activeSession){
