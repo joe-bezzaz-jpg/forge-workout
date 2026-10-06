@@ -443,10 +443,17 @@ const DEFAULT_EXERCISES = {
   "rev-pec-deck":{name:"Reverse Pec Deck",short:"Reverse Pec Deck",inc:2.5,groups:["upperback","shoulders"],unit:"kg"},
   "hammer-curl":{name:"DB Hammer Curl (per DB)",short:"Hammer Curl",inc:2,groups:["arms"],unit:"kg"},
   "oh-tricep":{name:"Overhead Cable Triceps Extension",short:"OH Triceps",inc:2.5,groups:["arms"],unit:"kg"},
+  "machine-chest-press":{name:"Machine Chest Press",short:"Machine Chest Press",inc:2.5,groups:["chest","shoulders","arms"],unit:"kg"},
+  "pec-fly":{name:"Pec Fly Machine",short:"Pec Fly",inc:2.5,groups:["chest"],unit:"kg"},
+  "tricep-ext-1arm":{name:"Single-Arm Cable Triceps Extension",short:"1-Arm Triceps Ext",inc:2.5,groups:["arms"],unit:"kg",per:"side"},
+  "db-shrug":{name:"DB Shrug (per DB)",short:"DB Shrug",inc:2,groups:["traps","upperback"],unit:"kg"},
+  "cable-high-pull":{name:"Wide Cable High Pull",short:"Cable High Pull",inc:2.5,groups:["traps","shoulders","upperback"],unit:"kg"},
+  "seated-row":{name:"Seated Cable Row",short:"Seated Cable Row",inc:2.5,groups:["upperback","lats"],unit:"kg"},
+  "farmer-carry":{name:"Farmer's Carry (per hand)",short:"Farmer's Carry",inc:2.5,groups:["traps","core"],unit:"kg",timed:true},
   // carried over from the last plan — same keys, so history, PRs and working weights carry across
   "incline-bench":{name:"Low-Incline Barbell Bench Press",short:"Low-Incline Bench",inc:2.5,groups:["chest","shoulders","arms"],unit:"kg"},
   "dips":{name:"Weighted Dips",short:"Dips",inc:2.5,groups:["chest","arms"],unit:"+kg"},
-  "lateral-raise":{name:"DB Lateral Raise",short:"Lateral Raise",inc:1,groups:["shoulders"],unit:"kg"},
+  "lateral-raise":{name:"DB Lateral Raise",short:"Lateral Raise",inc:2,groups:["shoulders"],unit:"kg"},
   "barbell-row":{name:"Barbell Row",short:"Barbell Row",inc:2.5,groups:["upperback","lats"],unit:"kg"},
   "lat-pulldown":{name:"Cable Lat Pulldown",short:"Lat Pulldown",inc:2.5,groups:["lats","upperback"],unit:"kg"},
   "shrug":{name:"Barbell Shrug",short:"Shrug",inc:2.5,groups:["traps","upperback"],unit:"kg"},
@@ -480,17 +487,42 @@ const TWO=(repLo,repHi,rest,rir)=>({sets:2,repLo,repHi,rest,rir:rir||"Failure"})
 const CLEAN="Last clean rep";      // barbell lifts: stop where form would break, never grind
 const KNEE="1 rep in reserve";     // knee still sore: loaded leg work stops one short
 const DEFAULT_WORKOUTS = {
+  A:{title:"Chest + Triceps",ex:["incline-bench","incline-db-press","pec-fly","dips","oh-tricep","lateral-raise"],
+     p:{"incline-bench":TOP(4,6,6,10,180,CLEAN),"incline-db-press":TWO(6,10,120),"pec-fly":TWO(10,15,75),
+        "dips":TWO(6,10,120),"oh-tricep":TWO(6,10,90),"lateral-raise":TWO(12,20,60)}},
+  B:{title:"Back + Biceps",ex:["pullup","cs-row","db-row-1arm","shrug","cable-row-high","curl"],
+     note:"Shrugs: pause a full second at the top of every rep. Traps grow from heavy weight held, not from bouncing.",
+     p:{"pullup":TOP(4,6,6,10,180),"cs-row":TWO(8,12,105),"db-row-1arm":TWO(8,12,90),
+        "shrug":TWO(8,12,90),"cable-row-high":TWO(12,20,60),"curl":TWO(8,12,75)}},
+  C:{title:"Legs + Core",ex:["leg-press","rdl","leg-curl-seated","calf-raise","cable-crunch"],
+     note:"Knee rule: pain no higher than 3/10 during a set, and no worse the next morning. If it is, shorten the leg-press depth or drop the load. Feet high and wide on the platform, lower only as deep as stays pain-free.",
+     p:{"leg-press":TOP(6,10,10,15,180,KNEE),"rdl":TWO(6,10,150,CLEAN),"leg-curl-seated":TWO(8,12,90),
+        "calf-raise":TWO(8,12,75),"cable-crunch":TWO(10,15,60)}},
+  D:{title:"Shoulders + Traps",ex:["ohp","db-shrug","cable-lateral","cable-high-pull","rev-pec-deck","hanging-knee-raise"],
+     note:"High pull goes wide and only to elbow height — never a narrow pull to the chin. You press four times a week, so keep that shoulder position clean.",
+     p:{"ohp":TOP(4,6,6,10,180,CLEAN),"db-shrug":TWO(10,15,75),"cable-lateral":TWO(12,20,60),
+        "cable-high-pull":TWO(10,15,75),"rev-pec-deck":TWO(12,20,60),"hanging-knee-raise":TWO(10,15,60)}},
+  E:{title:"Chest + Back",ex:["machine-chest-press","lat-pulldown","pec-fly","seated-row","cable-lateral","hammer-curl"],
+     superset:["pec-fly","seated-row"],
+     note:"Machine press today rather than a barbell — your front delts are a day old from the overhead press.",
+     p:{"machine-chest-press":TOP(4,6,6,10,150),"lat-pulldown":TWO(8,12,105),"pec-fly":TWO(10,15,75),
+        "seated-row":TWO(8,12,90),"cable-lateral":TWO(12,20,60),"hammer-curl":TWO(10,15,75)}},
+  F:{title:"Legs + Carries",ex:["trap-bar-dl","hip-thrust","leg-curl-lying","seated-calf","farmer-carry"],
+     note:"High handles on the trap bar keep your knees out of it — push the floor away and let the hips do the work. Stop at the last clean rep. Carries: pick them up, walk tall, log the seconds.",
+     p:{"trap-bar-dl":TOP(4,6,6,10,210,CLEAN),"hip-thrust":TWO(6,10,120),"leg-curl-lying":TWO(8,12,90),
+        "seated-calf":TWO(10,15,60),"farmer-carry":TWO(40,60,90,"Set it down when form goes")}},
+};
+// the first gym plan (upper/lower/push/pull), kept so its sessions read true
+const LEGACY_V5_WORKOUTS = {
   A:{title:"Upper · Strength",ex:["bench","pullup","db-shoulder-press","cs-row","cable-lateral"],
      p:{"bench":TOP(4,6,6,10,180,CLEAN),"pullup":TOP(4,6,6,10,180),"db-shoulder-press":TWO(6,10,120),"cs-row":TWO(8,12,105),"cable-lateral":TWO(10,15,60)}},
   B:{title:"Lower · Knee-Friendly",ex:["leg-press","rdl","leg-curl-seated","calf-raise","cable-crunch"],
-     note:"Knee rule: pain no higher than 3/10 during a set, and no worse the next morning. If it is, shorten the leg-press depth or drop the load. Feet high and wide on the platform, lower only as deep as stays pain-free.",
      p:{"leg-press":TOP(6,10,10,15,180,KNEE),"rdl":TWO(6,10,150,CLEAN),"leg-curl-seated":TWO(8,12,90),"calf-raise":TWO(8,12,75),"cable-crunch":TWO(10,15,60)}},
   C:{title:"Push",ex:["ohp","incline-db-press","dips","cable-lateral","tricep-pushdown"],
      p:{"ohp":TOP(4,6,6,10,180,CLEAN),"incline-db-press":TWO(6,10,120),"dips":TWO(6,10,120),"cable-lateral":TWO(10,15,60),"tricep-pushdown":TWO(8,12,75)}},
   D:{title:"Pull",ex:["barbell-row","lat-pulldown","cable-row-high","shrug","curl"],
      p:{"barbell-row":TOP(4,6,6,10,180,CLEAN),"lat-pulldown":TWO(8,12,105),"cable-row-high":TWO(12,15,60),"shrug":TWO(8,12,90),"curl":TWO(8,12,75)}},
   E:{title:"Lower · Hinge",ex:["trap-bar-dl","hip-thrust","leg-curl-lying","seated-calf","hanging-knee-raise"],
-     note:"High handles on the trap bar keep your knees out of it — push the floor away and let the hips do the work. Stop the deadlift at the last clean rep, never grind it.",
      p:{"trap-bar-dl":TOP(4,6,6,10,210,CLEAN),"hip-thrust":TWO(6,10,120),"leg-curl-lying":TWO(8,12,90),"seated-calf":TWO(10,15,60),"hanging-knee-raise":TWO(10,15,60)}},
   F:{title:"Upper · Size",ex:["incline-bench","db-row-1arm","rev-pec-deck","lateral-raise","hammer-curl","oh-tricep"],superset:["hammer-curl","oh-tricep"],
      p:{"incline-bench":TOP(4,6,6,10,180,CLEAN),"db-row-1arm":TWO(8,12,90),"rev-pec-deck":TWO(12,15,60),"lateral-raise":TWO(12,20,60),"hammer-curl":TWO(10,15,75),"oh-tricep":TWO(10,15,75)}},
@@ -522,8 +554,11 @@ const LEGACY_WORKOUTS={};
 function wkDef(w){ return WORKOUTS[w]||LEGACY_WORKOUTS[w]||{title:"Workout "+w,ex:[],p:{}}; }
 // a stored session, read against the plan it was actually trained under
 function sesDef(s){
-  if(s&&s.legacy) return (S.legacyProgramme||LEGACY_V4_WORKOUTS)[s.workout]||LEGACY_V4_WORKOUTS[s.workout]||{title:"Workout "+s.workout,ex:[],p:{}};
-  return wkDef(s.workout);
+  if(!s||!s.legacy) return wkDef(s.workout);
+  const gens=S.legacyProgrammes||{};
+  const fallback=s.legacy==="v4"?(S.legacyProgramme||LEGACY_V4_WORKOUTS):LEGACY_V5_WORKOUTS;
+  const plan=gens[s.legacy]||fallback;
+  return plan[s.workout]||fallback[s.workout]||{title:"Workout "+s.workout,ex:[],p:{}};
 }
 function rawPresc(ex,wk){
   if(wk&&WORKOUTS[wk]&&WORKOUTS[wk].p[ex]) return WORKOUTS[wk].p[ex];
@@ -570,13 +605,13 @@ const GROUPS = {
   arms:"Arms", core:"Core", quads:"Quads", hamstrings:"Hamstrings", glutes:"Glutes", calves:"Calves",
 };
 const SCORE_GROUPS = {
-  "Chest":["bench","incline-bench","incline-db-press","dips"],
-  "Upper Back":["barbell-row","pullup","lat-pulldown","cs-row","db-row-1arm","shrug","cable-row-high","rev-pec-deck"],
+  "Chest":["bench","incline-bench","machine-chest-press","incline-db-press","pec-fly","dips"],
+  "Upper Back":["barbell-row","pullup","lat-pulldown","cs-row","seated-row","db-row-1arm","shrug","db-shrug","cable-high-pull","cable-row-high","rev-pec-deck"],
   "Shoulders":["ohp","db-shoulder-press","lateral-raise","cable-lateral"],
-  "Arms":["curl","hammer-curl","tricep-pushdown","oh-tricep"],
+  "Arms":["curl","hammer-curl","tricep-pushdown","oh-tricep","tricep-ext-1arm"],
   "Lower Body":["leg-press","calf-raise","seated-calf","front-squat","light-squat"],
   "Posterior Chain":["trap-bar-dl","rdl","hip-thrust","leg-curl-seated","leg-curl-lying","glute-bridge"],
-  "Core":["cable-crunch","hanging-knee-raise"],
+  "Core":["cable-crunch","hanging-knee-raise","farmer-carry"],
 };
 const EX_LEVELS = ["Recruit","Novice","Trained","Strong","Powerful","Elite"];
 const EX_LEVEL_XP = [0,150,400,800,1400,2200]; // cumulative XP to reach level i+1
@@ -592,7 +627,7 @@ function freshState(){
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
     settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
-    programmeVersion:5,
+    programmeVersion:6,
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
     sessions:[],        // {id,workout,dateISO,start,end,dur,sets:[{ex,w,reps}],volume,xp,prs:[{ex,type,label}]}
@@ -638,6 +673,48 @@ function migrateToGym(){
   S.gymStart=Date.now(); S.blockStart=Date.now();
   S.settings.cardioPlan=defaultCardioPlan(dayISO(Date.now()));
 }
+/* chest+triceps, back+biceps and so on — the letters now mean different workouts,
+   so the old sessions are parked against the plan they were actually trained under */
+function migrateToSplit(){
+  S.legacyProgrammes=S.legacyProgrammes||{};
+  if(S.legacyProgramme && !S.legacyProgrammes.v4) S.legacyProgrammes.v4=S.legacyProgramme;
+  S.legacyProgrammes.v5 = S.programme ? JSON.parse(JSON.stringify(S.programme)) : JSON.parse(JSON.stringify(LEGACY_V5_WORKOUTS));
+  for(const x of S.sessions) if(!x.legacy) x.legacy="v5";
+  S.programme=null;
+  S.nextWorkout="A";
+  S.activeSession=null;
+  for(const k in S.exState) if(S.exState[k]) S.exState[k].mastered=[];
+  S.blockStart=Date.now();
+  logPushSession_20261005();
+}
+/* the push session Joe trained on 5 Oct but never logged. Skipped if that day already has one. */
+function logPushSession_20261005(){
+  const iso="2026-10-05";
+  if(S.sessions.some(x=>x.dateISO===iso)) return;
+  const sets=[
+    {ex:"machine-chest-press",w:80,reps:7},{ex:"machine-chest-press",w:80,reps:5},
+    {ex:"pec-fly",w:80,reps:12},{ex:"pec-fly",w:80,reps:9},
+    {ex:"dips",w:0,reps:10},{ex:"dips",w:0,reps:8},
+    {ex:"oh-tricep",w:60,reps:6},{ex:"oh-tricep",w:55,reps:7},
+    {ex:"tricep-ext-1arm",w:10,reps:10},{ex:"tricep-ext-1arm",w:10,reps:9},
+    {ex:"lateral-raise",w:12,reps:20},{ex:"lateral-raise",w:12,reps:18},
+  ];
+  const start=new Date(iso+"T18:00").getTime();
+  const exCount=new Set(sets.map(x=>x.ex)).size;
+  const ses={id:start,workout:"A",dateISO:iso,start,end:start+2700000,dur:2700,
+    sets,volume:sum(sets.map(x=>x.w*x.reps)),xp:sets.length*XP.SET+exCount*XP.EXERCISE+XP.WORKOUT,prs:[],backfilled:true};
+  let i=S.sessions.findIndex(x=>x.dateISO>iso);
+  if(i<0) i=S.sessions.length;
+  S.sessions.splice(i,0,ses);
+  S.workoutsDone++;
+  for(const ex of new Set(sets.map(x=>x.ex))){
+    if(!S.exState[ex]) S.exState[ex]={weight:null,xp:0,mastered:[]};
+    S.exState[ex].weight=Math.max(...sets.filter(x=>x.ex===ex).map(x=>x.w));
+  }
+  addXP(ses.xp,"Workout A — 5 Oct",true);
+  S.nextWorkout="B";
+  rebuildHistory();
+}
 function load(){
   try{ const raw = localStorage.getItem(DB_KEY); S = raw ? JSON.parse(raw) : freshState(); }
   catch(e){ S = freshState(); }
@@ -652,6 +729,7 @@ function load(){
   if(priorVersion===undefined){ S.programmeVersion=3; if(S.sessions.length) S.nextWorkout="B"; }
   if(S.programmeVersion<4){ S.programmeVersion=4; retagSessions(); }   // A/B swapped: pull -> push -> legs
   if(S.programmeVersion<5){ S.programmeVersion=5; migrateToGym(); }    // home plan -> 6-day gym plan
+  if(S.programmeVersion<6){ S.programmeVersion=6; migrateToSplit(); }  // -> two body parts a day
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
