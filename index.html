@@ -627,7 +627,7 @@ function freshState(){
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
     settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
-    programmeVersion:6,
+    programmeVersion:7,
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
     sessions:[],        // {id,workout,dateISO,start,end,dur,sets:[{ex,w,reps}],volume,xp,prs:[{ex,type,label}]}
@@ -715,6 +715,17 @@ function logPushSession_20261005(){
   S.nextWorkout="B";
   rebuildHistory();
 }
+/* starting the plan again from the push day. History, PRs and working weights
+   all stay — only the running order moves. */
+function restartCycleAtA(){
+  const today=dayISO(Date.now());
+  const doneToday=S.sessions.filter(x=>x.dateISO===today&&!x.legacy).pop();
+  S.nextWorkout = doneToday&&CYCLE.includes(doneToday.workout)
+    ? CYCLE[(CYCLE.indexOf(doneToday.workout)+1)%CYCLE.length]   // already trained today: carry on from that
+    : "A";
+  if(S.activeSession && !S.activeSession.sets.length) S.activeSession=null;
+  S.blockStart=Date.now();          // the 6-week deload clock starts from here
+}
 function load(){
   try{ const raw = localStorage.getItem(DB_KEY); S = raw ? JSON.parse(raw) : freshState(); }
   catch(e){ S = freshState(); }
@@ -730,6 +741,7 @@ function load(){
   if(S.programmeVersion<4){ S.programmeVersion=4; retagSessions(); }   // A/B swapped: pull -> push -> legs
   if(S.programmeVersion<5){ S.programmeVersion=5; migrateToGym(); }    // home plan -> 6-day gym plan
   if(S.programmeVersion<6){ S.programmeVersion=6; migrateToSplit(); }  // -> two body parts a day
+  if(S.programmeVersion<7){ S.programmeVersion=7; restartCycleAtA(); }  // fresh start on the push day
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
@@ -1814,8 +1826,29 @@ function openProgramme(){
             <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${WORKOUTS[w].ex.map(k=>(EXERCISES[k]||{short:k}).short).join(" · ")}</div></span>
         </span><span style="color:var(--dim)">›</span></div>`).join("")}
     </div>
-    <button class="btn ghost" style="margin-top:6px" onclick="openNewExercise()">＋ Create an exercise</button>
+    <button class="btn ghost" style="margin-top:6px" onclick="closeSheet();openNextPicker()">Change which workout is next</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="openNewExercise()">＋ Create an exercise</button>
     ${S.programme?`<button class="btn danger" style="margin-top:10px" onclick="if(confirm('Restore the original plan? Your history stays.')){S.programme=null;save();refreshProgramme();closeSheet();renderAll();toast('Programme restored');}">Reset to the original plan</button>`:""}`);
+}
+function openNextPicker(){
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Which workout is next?</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Pick the one you're about to train. The cycle carries on from there — ${CYCLE.join(" → ")} → repeat. Your logged weights don't change.</p>
+    <div class="card">
+      ${CYCLE.map(w=>`<div class="list-item" onclick="setNextWorkout('${w}')">
+        <span style="display:flex;align-items:center;gap:14px;min-width:0">
+          <span style="width:34px;height:34px;border-radius:50%;flex-shrink:0;background:${S.nextWorkout===w?"var(--brand)":"var(--accent-dim)"};color:${S.nextWorkout===w?"#fff":"var(--link)"};display:flex;align-items:center;justify-content:center;font-weight:600">${w}</span>
+          <span style="min-width:0"><div style="font-weight:600;font-size:15px">${esc(WORKOUTS[w].title)}</div>
+            <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${WORKOUTS[w].ex.map(k=>(EXERCISES[k]||{short:k}).short).join(" · ")}</div></span>
+        </span>${S.nextWorkout===w?`<span class="tag acc">Next</span>`:`<span style="color:var(--dim)">›</span>`}</div>`).join("")}
+    </div>`);
+}
+function setNextWorkout(w){
+  if(!CYCLE.includes(w)) return;
+  if(S.activeSession && S.activeSession.sets.length){ toast("Finish or discard the workout in progress first"); return; }
+  S.activeSession=null;
+  S.nextWorkout=w;
+  save(); closeSheet(); renderAll();
+  toast(`Next up: ${w} · ${WORKOUTS[w].title}`,true);
 }
 function openWorkoutEditor(w){
   const wk=WORKOUTS[w];
@@ -2179,7 +2212,7 @@ function weightsTierHTML(){
     <div class="spread" style="align-items:flex-start;gap:12px">
       <div style="min-width:0">
         <div class="eyebrow" style="color:${trainedToday?"var(--link)":"var(--muted)"}">Weights · ${dl?"deload week":"2 sets to failure"}</div>
-        <div class="tbig" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nw}<span> · ${esc(wk.title)}</span></div>
+        <div class="tbig" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onclick="openNextPicker()">${nw}<span> · ${esc(wk.title)} <span style="color:var(--link)">⌄</span></span></div>
       </div>
       <div style="text-align:right;flex-shrink:0">
         <div style="font-size:15px;font-weight:600">${sesWeek.length}<span style="color:var(--muted);font-weight:400"> / 5–6</span></div>
