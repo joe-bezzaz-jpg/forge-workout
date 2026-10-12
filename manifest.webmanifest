@@ -1,7 +1,7 @@
 {
-  "name": "FORGE — Strength",
-  "short_name": "FORGE",
-  "description": "Personal gamified strength training. Momentum streaks, PRs, XP and progression.",
+  "name": "Workout — strength & cardio",
+  "short_name": "Workout",
+  "description": "Personal strength and cardio training. Momentum streaks, PRs, XP and progression.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

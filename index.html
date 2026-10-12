@@ -6,9 +6,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="FORGE">
+<meta name="apple-mobile-web-app-title" content="Workout">
 <meta name="theme-color" content="#0A0A0C">
-<title>FORGE — Strength</title>
+<title>Workout</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -421,7 +421,7 @@ label.fld span{display:block;font-size:12px;color:var(--muted);font-weight:600;m
 <script>
 "use strict";
 /* ================================================================
-   FORGE — personal gamified strength app. All data lives in
+   Workout — personal gamified strength app. All data lives in
    localStorage and every number on screen derives from logged sets.
    ================================================================ */
 
@@ -620,6 +620,7 @@ const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOV
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
+const APP_VERSION = "v28";
 let S = null;
 
 function freshState(){
@@ -715,6 +716,7 @@ function logPushSession_20261005(){
   S.nextWorkout="B";
   rebuildHistory();
 }
+const CYCLE_RESTART="2026-10-12";
 /* starting the plan again from the push day. History, PRs and working weights
    all stay — only the running order moves. */
 function restartCycleAtA(){
@@ -741,7 +743,8 @@ function load(){
   if(S.programmeVersion<4){ S.programmeVersion=4; retagSessions(); }   // A/B swapped: pull -> push -> legs
   if(S.programmeVersion<5){ S.programmeVersion=5; migrateToGym(); }    // home plan -> 6-day gym plan
   if(S.programmeVersion<6){ S.programmeVersion=6; migrateToSplit(); }  // -> two body parts a day
-  if(S.programmeVersion<7){ S.programmeVersion=7; restartCycleAtA(); }  // fresh start on the push day
+  S.programmeVersion=7;
+  if(S.cycleRestart!==CYCLE_RESTART){ S.cycleRestart=CYCLE_RESTART; restartCycleAtA(); }  // fresh start on the push day
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
@@ -759,6 +762,8 @@ function load(){
   if(!S.buffs) S.buffs={}; if(!S.relics) S.relics=[]; if(!S.crates) S.crates=[];
   if(S.redemption===undefined) S.redemption=null;
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
+  if(S.settings.navNudge===undefined) S.settings.navNudge=0;
+  save();
 }
 
 /* ---------------- utils ---------------- */
@@ -880,6 +885,10 @@ const ICONS={
 };
 function ic(n,s=16,extra=""){return `<svg class="icn" style="width:${s}px;height:${s}px;${extra}" viewBox="0 0 24 24">${ICONS[n]||ICONS.star}</svg>`;}
 
+function nudgeNav(d){
+  S.settings.navNudge=Math.max(-20,Math.min(60,(S.settings.navNudge||0)+d));
+  save(); fixNavGap(); renderProfile(); haptic(8);
+}
 /* ---------------- level maths ---------------- */
 /* match a stored session to the workout it actually was, so reordering letters
    never mislabels history. Jaccard overlap on the exercises performed. */
@@ -2341,7 +2350,7 @@ setInterval(()=>{
   lastWalkNudge=Date.now();
   const t=walksToday().length,target=walkTarget();
   if("Notification" in window && Notification.permission==="granted" && S.settings.notify){
-    try{ new Notification("FORGE",{body:`Walk break due — 10 minutes. ${t}/${target} today.`}); }catch(e){}
+    try{ new Notification("Workout",{body:`Walk break due — 10 minutes. ${t}/${target} today.`}); }catch(e){}
   }
   if(activeTab==="today") toast(`🚶 Walk break due · ${t}/${target} today`,true);
 },60000);
@@ -2366,7 +2375,7 @@ function openHealthLog(){
         <li><b>Open URLs</b>: <code style="font-size:12px;color:var(--text);word-break:break-all">https://joe-bezzaz-jpg.github.io/forge-workout/?steps=[Steps]&kcal=[Kcal]</code></li>
         <li>Automation → Time of Day → 9 pm → Run immediately.</li>
       </ol>
-      <div style="font-size:13px;color:var(--dim);margin-top:8px">Note: iOS may open that link in Safari rather than the installed app; if the numbers don't show up in FORGE, use manual entry — it takes 5 seconds.</div>
+      <div style="font-size:13px;color:var(--dim);margin-top:8px">Note: iOS may open that link in Safari rather than the installed app; if the numbers don't show up in the app, use manual entry — it takes 5 seconds.</div>
     </div>`);
 }
 function saveHealth(){
@@ -2481,14 +2490,11 @@ function fixNavGap(){
   const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
   let gap=0;
   if(standalone && innerHeight>innerWidth){
-    const probe=document.createElement("div");
-    probe.style.cssText="position:fixed;bottom:0;height:0;padding-bottom:env(safe-area-inset-bottom,0px);visibility:hidden";
-    document.body.appendChild(probe);
-    const sab=parseFloat(getComputedStyle(probe).paddingBottom)||0;
-    probe.remove();
-    const short=Math.round(screen.height-innerHeight);
-    if(sab===0 && short>=10 && short<=60) gap=short;
+    const short=Math.round(screen.height-innerHeight);   // viewport stops short of the physical screen
+    if(short>=1 && short<=80) gap=short;
   }
+  gap += (S&&S.settings&&S.settings.navNudge)||0;         // manual correction, if the measurement misses
+  gap = Math.max(0,Math.min(80,gap));
   root.style.setProperty("--navgap",gap+"px");
   moveTabInd(false);
 }
@@ -3501,6 +3507,15 @@ function renderProfile(){
         <div style="font-weight:600;font-size:15px">Haptics</div>
         <label class="switch"><input type="checkbox" ${S.settings.haptics?"checked":""} onchange="S.settings.haptics=this.checked;save()"><i></i></label>
       </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Nav bar position</div>
+          <div style="font-size:12px;color:var(--muted)">Nudge it down if it floats above the screen edge</div></div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <button class="chipset" onclick="nudgeNav(-4)">−</button>
+          <span class="mono" style="font-size:13px;min-width:34px;text-align:center">${(S.settings.navNudge||0)>0?"+":""}${S.settings.navNudge||0}px</span>
+          <button class="chipset" onclick="nudgeNav(4)">+</button>
+        </div>
+      </div>
       <div class="spread" style="padding:12px 0">
         <div><div style="font-weight:600;font-size:15px">Reminders</div>
           <div style="font-size:12px;color:var(--muted)">Streak alerts while app is open</div></div>
@@ -3514,15 +3529,16 @@ function renderProfile(){
         <button class="btn ghost small" style="width:100%" onclick="el('imp-file').click()">Import backup</button>
       </div>
       <input type="file" id="imp-file" accept=".json,application/json" style="display:none" onchange="importData(this)">
+      <button class="btn ghost small" style="width:100%;margin-bottom:10px" onclick="checkForUpdate()">Check for update</button>
       ${S.sessions.length===0?`<button class="btn ghost small" style="width:100%;margin-bottom:10px" onclick="seedDemo()">Preview with sample data</button>`:""}
       <button class="btn danger small" style="width:100%" onclick="resetAll()">Reset all data</button>
     </div>
-    <div style="text-align:center;color:var(--dim);font-size:11px;margin-top:6px">FORGE · your data never leaves this device</div>`;
+    <div style="text-align:center;color:var(--dim);font-size:11px;margin-top:6px">Workout · ${APP_VERSION} · your data never leaves this device</div>`;
 }
 function openWalkSettings(){
   const w=S.settings.walk;
   openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Walk breaks</h2>
-    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Short walks through the day burn more than most sessions do. FORGE will nudge you when one is due.</p>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Short walks through the day burn more than most sessions do. The app will nudge you when one is due.</p>
     <div class="spread" style="padding:10px 0"><div style="font-weight:600">Remind me</div>
       <label class="switch"><input type="checkbox" ${w.on?"checked":""} onchange="S.settings.walk.on=this.checked;save();renderProfile()"><i></i></label></div>
     <label class="fld"><span>Every</span><select id="w-every">
@@ -4273,7 +4289,7 @@ setInterval(()=>{
     const day=dayISO(Date.now());
     if(notified[key]===day) return;
     notified[key]=day;
-    try{ new Notification("FORGE",{body}); }catch(e){}
+    try{ new Notification("Workout",{body}); }catch(e){}
   };
   if(h<=1) fire("h1",`${S.streak.cur} workouts. Don't throw it away now.`);
   else if(h<=6) fire("h6",`6 hours. Don't break ${S.streak.cur}.`);
@@ -4376,20 +4392,40 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
       reg.addEventListener("updatefound",()=>{
         const nw=reg.installing; if(!nw) return;
         nw.addEventListener("statechange",()=>{
-          if(nw.state==="installed" && navigator.serviceWorker.controller) showUpdateBanner();
+          if(nw.state!=="installed" || !navigator.serviceWorker.controller) return;
+          // mid-workout, ask first; otherwise just take it — missed updates are worse
+          if(S.activeSession && S.activeSession.sets.length) showUpdateBanner();
+          else if(reg.waiting) reg.waiting.postMessage("SKIP_WAITING");
         });
       });
     }).catch(()=>{});
     let refreshing=false;
-    navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(!refreshing){ refreshing=true; location.reload(); } });
+    navigator.serviceWorker.addEventListener("controllerchange",()=>{
+      if(refreshing) return;
+      if(S.activeSession && S.activeSession.sets.length){ showUpdateBanner(); return; }
+      refreshing=true; location.reload();
+    });
   });
+}
+function checkForUpdate(){
+  toast("Checking…");
+  if(!("serviceWorker" in navigator)){ location.reload(); return; }
+  navigator.serviceWorker.getRegistration().then(r=>{
+    if(!r){ location.reload(); return; }
+    r.update().then(()=>{
+      setTimeout(()=>{
+        if(r.waiting){ r.waiting.postMessage("SKIP_WAITING"); toast("Updating…",true); }
+        else location.reload();
+      },1200);
+    }).catch(()=>location.reload());
+  }).catch(()=>location.reload());
 }
 function showUpdateBanner(){
   if(el("upd-banner")) return;
   const b=document.createElement("div");
   b.id="upd-banner";
   b.style.cssText="position:fixed;left:14px;right:14px;top:calc(10px + var(--sat));z-index:500;max-width:492px;margin:0 auto;background:rgba(66,66,69,.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff;border-radius:9999px;padding:12px 18px;font-weight:500;font-size:15px;display:flex;justify-content:space-between;align-items:center;animation:pop .4s cubic-bezier(.2,.9,.3,1.2) both;cursor:pointer";
-  b.innerHTML='<span>✨ New FORGE version ready</span><span style="background:var(--brand);border-radius:9999px;padding:6px 14px">Update</span>';
+  b.innerHTML='<span>✨ New version ready</span><span style="background:var(--brand);border-radius:9999px;padding:6px 14px">Update</span>';
   b.onclick=()=>{ navigator.serviceWorker.getRegistration().then(r=>{ if(r&&r.waiting) r.waiting.postMessage("SKIP_WAITING"); else location.reload(); }); };
   document.body.appendChild(b);
 }
