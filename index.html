@@ -531,23 +531,19 @@ const DEFAULT_WORKOUTS = {
      note:"Shrugs: pause a full second at the top of every rep — traps grow from weight held, not bounced. Hyperextensions: one second squeeze at the top, no hinging past straight.",
      p:{"pullup":TOP(4,6,6,10,180),"cs-row":TWO(8,12,105),"shrug":TWO(8,12,90),
         "cable-row-high":TWO(12,20,60),"hyperextension":TWO(12,20,75,"2 in reserve"),"curl":TWO(8,12,75)}},
-  C:{title:"Legs + Core",ex:["leg-press","rdl","leg-curl-seated","calf-raise","cable-crunch"],
-     note:"Knee rule: pain no higher than 3/10 during a set, and no worse the next morning. If it is, shorten the leg-press depth or drop the load. Feet high and wide on the platform, lower only as deep as stays pain-free.",
-     p:{"leg-press":TOP(6,10,10,15,180,KNEE),"rdl":TWO(6,10,150,CLEAN),"leg-curl-seated":TWO(8,12,90),
-        "calf-raise":TWO(8,12,75),"cable-crunch":TWO(10,15,60)}},
-  D:{title:"Shoulders + Traps",ex:["ohp","db-shrug","cable-lateral","cable-high-pull","rev-pec-deck","hanging-knee-raise"],
-     note:"High pull goes wide and only to elbow height — never a narrow pull to the chin. You press four times a week, so keep that shoulder position clean.",
+  C:{title:"Legs + Core",ex:["trap-bar-dl","leg-press","leg-curl-lying","calf-raise","hanging-knee-raise"],
+     note:"High handles on the trap bar keep your knees out of it — push the floor away and let the hips do the work, and stop at the last clean rep. Leg press: feet high and wide, only as deep as stays pain-free, one rep in reserve. Knee rule: no worse than 3/10 during, and no worse the next morning.",
+     p:{"trap-bar-dl":TOP(4,6,6,10,210,CLEAN),"leg-press":TWO(8,12,150,KNEE),"leg-curl-lying":TWO(8,12,90),
+        "calf-raise":TWO(8,12,75),"hanging-knee-raise":TWO(10,15,60)}},
+  D:{title:"Shoulders + Traps",ex:["ohp","db-shrug","cable-lateral","cable-high-pull","rev-pec-deck","cable-crunch"],
+     note:"High pull goes wide and only to elbow height — never a narrow pull to the chin. You press three times a week, so keep that shoulder position clean.",
      p:{"ohp":TOP(4,6,6,10,180,CLEAN),"db-shrug":TWO(10,15,75),"cable-lateral":TWO(12,20,60),
-        "cable-high-pull":TWO(10,15,75),"rev-pec-deck":TWO(12,20,60),"hanging-knee-raise":TWO(10,15,60)}},
+        "cable-high-pull":TWO(10,15,75),"rev-pec-deck":TWO(12,20,60),"cable-crunch":TWO(10,15,60)}},
   E:{title:"Chest + Back",ex:["machine-chest-press","lat-pulldown","pec-fly","seated-row","cable-lateral","hammer-curl"],
      superset:["pec-fly","seated-row"],
      note:"Machine press today rather than a barbell — your front delts are a day old from the overhead press.",
      p:{"machine-chest-press":TOP(4,6,6,10,150),"lat-pulldown":TWO(8,12,105),"pec-fly":TWO(10,15,75),
         "seated-row":TWO(8,12,90),"cable-lateral":TWO(12,20,60),"hammer-curl":TWO(10,15,75)}},
-  F:{title:"Legs + Carries",ex:["trap-bar-dl","hip-thrust","leg-curl-lying","seated-calf","farmer-carry"],
-     note:"High handles on the trap bar keep your knees out of it — push the floor away and let the hips do the work. Stop at the last clean rep. Carries: pick them up, walk tall, log the seconds.",
-     p:{"trap-bar-dl":TOP(4,6,6,10,210,CLEAN),"hip-thrust":TWO(6,10,120),"leg-curl-lying":TWO(8,12,90),
-        "seated-calf":TWO(10,15,60),"farmer-carry":TWO(40,60,90,"Set it down when form goes")}},
 };
 // the first gym plan (upper/lower/push/pull), kept so its sessions read true
 const LEGACY_V5_WORKOUTS = {
@@ -582,12 +578,16 @@ const LEGACY_V4_WORKOUTS = {
      p:{"front-squat":P(3,5,8,180,"2–3"),"rdl":P(4,6,10,150,"1–2",34),"calf-raise":P(4,10,20,75,"0–2"),"cable-crunch":P(3,10,20,75,"0–2")}},
 };
 let WORKOUTS = JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
-const CYCLE = ["A","B","C","D","E","F"];
+const CYCLE = ["A","B","C","D","E"];   // five lifting days, two of active recovery
 function refreshProgramme(){
   WORKOUTS = (S&&S.programme) ? JSON.parse(JSON.stringify(S.programme)) : JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
   for(const w of CYCLE) if(!WORKOUTS[w]) WORKOUTS[w]=JSON.parse(JSON.stringify(DEFAULT_WORKOUTS[w]));
 }
-const LEGACY_WORKOUTS={};
+const LEGACY_WORKOUTS={
+  F:{title:"Legs + Carries",ex:["trap-bar-dl","hip-thrust","leg-curl-lying","seated-calf","farmer-carry"],
+     p:{"trap-bar-dl":TOP(4,6,6,10,210,CLEAN),"hip-thrust":TWO(6,10,120),"leg-curl-lying":TWO(8,12,90),
+        "seated-calf":TWO(10,15,60),"farmer-carry":TWO(40,60,90,"Set it down when form goes")}},
+};
 function wkDef(w){ return WORKOUTS[w]||LEGACY_WORKOUTS[w]||{title:"Workout "+w,ex:[],p:{}}; }
 // a stored session, read against the plan it was actually trained under
 function sesDef(s){
@@ -657,7 +657,7 @@ const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOV
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v30";
+const APP_VERSION = "v31";
 let S = null;
 
 function freshState(){
@@ -665,7 +665,7 @@ function freshState(){
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
     settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
-    programmeVersion:7,
+    programmeVersion:8,
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
     sessions:[],        // {id,workout,dateISO,start,end,dur,sets:[{ex,w,reps}],volume,xp,prs:[{ex,type,label}]}
@@ -753,6 +753,14 @@ function logPushSession_20261005(){
   S.nextWorkout="B";
   rebuildHistory();
 }
+/* five lifting days a week, two of active recovery. A, B, D and E keep their
+   meaning, so logged sessions stay current and still set targets. */
+function migrateToFiveDays(){
+  S.programme=null;                       // the six-day customisation no longer applies
+  if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
+  for(const k in S.exState) if(S.exState[k]) S.exState[k].mastered=[];
+  S.blockStart=Date.now();
+}
 const CYCLE_RESTART="2026-10-12";
 /* the push session Joe trained on 12 Oct. Skipped if that day already has one. */
 function logPushSession_20261012(){
@@ -808,12 +816,13 @@ function load(){
   if(S.programmeVersion<4){ S.programmeVersion=4; retagSessions(); }   // A/B swapped: pull -> push -> legs
   if(S.programmeVersion<5){ S.programmeVersion=5; migrateToGym(); }    // home plan -> 6-day gym plan
   if(S.programmeVersion<6){ S.programmeVersion=6; migrateToSplit(); }  // -> two body parts a day
-  S.programmeVersion=7;
+  if(S.programmeVersion<7) S.programmeVersion=7;
   if(S.cycleRestart!==CYCLE_RESTART){ S.cycleRestart=CYCLE_RESTART; restartCycleAtA(); }  // fresh start on the push day
   if(!S.logged20261012){ S.logged20261012=1; logPushSession_20261012(); }
+  if(S.programmeVersion<8){ S.programmeVersion=8; migrateToFiveDays(); }
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && !WORKOUTS[S.activeSession.workout]) S.activeSession=null;
-  if(S.activeSession && !S.activeSession.rows) S.activeSession.rows=sessionRows(S.activeSession);
+  if(S.activeSession) normaliseSession(S.activeSession);
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
   if(!S.health) S.health=[];
   if(!S.walks) S.walks=[];
@@ -1306,7 +1315,7 @@ function openXPSheet(){
       ${today.length?today.map(x=>`<div class="spread" style="padding:6px 0;font-size:14px"><span>${x.reason}</span><span class="xpchip">⚡ +${x.amount}</span></div>`).join(""):`<div style="color:var(--dim);font-size:13px">Nothing yet — every set is +${XP.SET}, every workout +${XP.WORKOUT}.</div>`}
     </div>
     <div class="card"><div class="eyebrow" style="margin-bottom:8px">How to earn</div>
-      ${[["Complete a set",XP.SET],["Complete an exercise",XP.EXERCISE],["Complete a workout",XP.WORKOUT],["Set a personal record",XP.PR],["Master a weight",XP.MASTER],["Finish a full A→F cycle",XP.CYCLE],["Active recovery day",XP.RECOVERY],["Perfect quest day",XP.PERFECT]].map(r=>`<div class="spread" style="padding:5px 0;font-size:13px;color:var(--muted)"><span>${r[0]}</span><span class="xpchip">⚡ +${r[1]}</span></div>`).join("")}
+      ${[["Complete a set",XP.SET],["Complete an exercise",XP.EXERCISE],["Complete a workout",XP.WORKOUT],["Set a personal record",XP.PR],["Master a weight",XP.MASTER],[`Finish a full ${CYCLE[0]}→${CYCLE[CYCLE.length-1]} cycle`,XP.CYCLE],["Active recovery day",XP.RECOVERY],["Perfect quest day",XP.PERFECT]].map(r=>`<div class="spread" style="padding:5px 0;font-size:13px;color:var(--muted)"><span>${r[0]}</span><span class="xpchip">⚡ +${r[1]}</span></div>`).join("")}
     </div>`);
 }
 
@@ -2291,7 +2300,7 @@ function weightsTierHTML(){
         <div class="tbig" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onclick="openNextPicker()">${nw}<span> · ${esc(wk.title)} <span style="color:var(--link)">⌄</span></span></div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:15px;font-weight:600">${sesWeek.length}<span style="color:var(--muted);font-weight:400"> / 5–6</span></div>
+        <div style="font-size:15px;font-weight:600">${sesWeek.length}<span style="color:var(--muted);font-weight:400"> / 5</span></div>
         <div style="font-size:13px;color:var(--muted)">${trainedToday?"Trained today":"this week"}</div>
       </div>
     </div>
@@ -2717,7 +2726,7 @@ function renderToday(){
         <div style="flex:1;min-width:0;max-width:170px">${scPts.length>=2?lineChart(scPts,{w:170,h:60,fill:true,mini:true}):`<div style="font-size:12px;color:var(--dim);text-align:right">Trend appears after a few sessions</div>`}</div>
       </div>
       ${scDelta!==null&&scDelta!==0?`<div style="font-size:13px;color:var(--muted);margin-top:2px">${scDelta>0?"Up":"Down"} ${Math.abs(scDelta)} in the last 30 days</div>`:""}
-      <div class="spread" style="margin:14px 0 12px;font-size:14px;color:var(--muted)"><span>${sesWeek.length} sessions · ${sum(cardioWeek().map(c=>c.mins))} cardio min this week</span><span class="mono">${S.workoutsDone} total</span></div>
+      <div class="spread" style="margin:14px 0 12px;font-size:14px;color:var(--muted)"><span>${sesWeek.length} of 5 sessions · ${sum(cardioWeek().map(c=>c.mins))} cardio min this week</span><span class="mono">${S.workoutsDone} total</span></div>
       <div class="statgrid">
         <div class="stat" style="background:#000"><div class="l">Volume · week</div><div class="v mono" style="font-size:24px;white-space:nowrap">${Math.round(volWeek).toLocaleString("en-GB")}<span style="font-size:14px;color:var(--muted)"> kg</span></div>
           ${volDelta!==null?`<div style="font-size:13px;color:${volDelta>=0?"var(--link)":"var(--danger)"}">${volDelta>=0?"+":""}${volDelta}% vs last week</div>`:`<div style="font-size:13px;color:var(--dim)">First week logged</div>`}</div>
@@ -2787,9 +2796,17 @@ function inProgressHTML(){
     </div>
     <div class="row" style="gap:8px;margin-top:14px">
       <button class="btn primary small" style="width:100%" onclick="startOrResumeWorkout()">Resume</button>
-      <button class="btn ghost small" style="width:100%" onclick="finishWorkout(true)">Finish &amp; save</button>
+      ${A.sets.length?`<button class="btn ghost small" style="width:100%" onclick="finishWorkout(true)">Finish &amp; save</button>`:""}
+      <button class="btn ghost small" style="flex:0 0 auto;padding:0 18px" onclick="discardActive()">Discard</button>
     </div>
   </div>`;
+}
+function discardActive(){
+  const A=S.activeSession; if(!A) return;
+  if(A.sets.length && !confirm(`Discard this workout? ${A.sets.length} logged set${A.sets.length===1?"":"s"} will be lost.`)) return;
+  S.activeSession=null; save();
+  el("workout-overlay").classList.remove("open");
+  renderAll(); toast("Workout discarded");
 }
 function cyclePosition(){
   const i=CYCLE.indexOf(S.nextWorkout);
@@ -3675,6 +3692,16 @@ function resetAll(){
 /* ================================================================
    WORKOUT MODE
    ================================================================ */
+/* a session started before the notes screen existed is missing fields it reads.
+   an empty one left over from another day is just junk — drop it. */
+function normaliseSession(A){
+  if(!A.rows) A.rows=sessionRows(A);
+  if(!A.exStart) A.exStart={};
+  if(!A.tab) A.tab="notes";
+  if(A.lastEntry===undefined) A.lastEntry=null;
+  delete A.rest;
+  if(!A.sets.length && dayISO(A.start)!==dayISO(Date.now())) S.activeSession=null;
+}
 function sessionRows(A){
   // one row per exercise: the plan's, plus anything already logged that isn't in it
   const plan=(WORKOUTS[A.workout]||{ex:[]}).ex.slice();
@@ -3719,7 +3746,8 @@ function startOrResumeWorkout(){
     snapshotSession(S.activeSession);
     save();
   }
-  if(!S.activeSession.rows) S.activeSession.rows=sessionRows(S.activeSession);
+  normaliseSession(S.activeSession);
+  if(!S.activeSession){ renderAll(); return; }
   renderWorkout();
   el("workout-overlay").classList.add("open");
 }
@@ -3743,6 +3771,7 @@ function commitRow(i,value){
   rebuildFromRows();
   const now=Date.now();
   if(A.sets.length>before) A.lastEntry=now;
+  A.exStart=A.exStart||{};
   if(!hadRow && A.sets.some(x=>x.ex===A.rows[i].ex)) A.exStart[A.rows[i].ex]=A.exStart[A.rows[i].ex]||now;
   const meta=el("nmeta-"+i); if(meta) meta.outerHTML=rowMetaHTML(A,i);
   tickWorkoutClocks();
@@ -3797,7 +3826,7 @@ function notesTabHTML(){
       const def=EXERCISES[r.ex]||{short:r.ex,unit:"kg"}, pr=presc(r.ex,A.workout);
       const t=targetFor(r.ex,A.workout), last=lastExposure(r.ex,A.workout);
       const sets=rowSets(A,i);
-      const spent=A.exStart[r.ex]?Math.floor((Date.now()-A.exStart[r.ex])/1000):0;
+      const spent=(A.exStart||{})[r.ex]?Math.floor((Date.now()-A.exStart[r.ex])/1000):0;
       return `<div class="nrow ${sets.length>=pr.sets?"done":""}">
         <div class="spread" style="gap:10px;align-items:flex-start">
           <button class="nname" onclick="openRowMenu(${i})">${def.short} <i>⌄</i></button>
@@ -3821,7 +3850,7 @@ function stopwatchTabHTML(){
   const byEx=[];
   for(const r of A.rows){
     const sets=A.sets.filter(x=>x.ex===r.ex);
-    if(sets.length) byEx.push({ex:r.ex,sets,spent:A.exStart[r.ex]?Math.floor((Date.now()-A.exStart[r.ex])/1000):0});
+    if(sets.length) byEx.push({ex:r.ex,sets,spent:(A.exStart||{})[r.ex]?Math.floor((Date.now()-A.exStart[r.ex])/1000):0});
   }
   const t=restTargetNow(), sec=sinceLast();
   return `<div style="text-align:center;padding:18px 0 6px">
@@ -3845,8 +3874,9 @@ function switchWorkoutTab(t){
   A.tab=t; save(); renderWorkout();
 }
 function renderWorkout(){
-  const A=S.activeSession, wk=WORKOUTS[A.workout];
-  if(!A.rows) A.rows=sessionRows(A);
+  const A=S.activeSession; if(!A) return;
+  const wk=WORKOUTS[A.workout];
+  normaliseSession(A); if(!S.activeSession) return;
   const tab=A.tab||"notes";
   el("workout-overlay").innerHTML=`<div class="wk2">
     <div class="wk2head">
@@ -4153,7 +4183,7 @@ function renderPost(s,x){
       <div class="big-num" id="post-streak" style="margin-top:4px">${S.streak.cur}</div>
       <div style="color:var(--muted);font-size:13px;margin-top:4px">Momentum secured. Window resets: ${S.settings.windowHours}h.</div>
       ${x.streakBonus?`<div class="tag acc" style="margin-top:8px">+${x.streakBonus} XP streak bonus</div>`:""}
-      ${x.cycleDone?`<div class="tag acc" style="margin-top:8px">Full A→F cycle · +${XP.CYCLE} XP</div>`:""}
+      ${x.cycleDone?`<div class="tag acc" style="margin-top:8px">Full ${CYCLE[0]}→${CYCLE[CYCLE.length-1]} cycle · +${XP.CYCLE} XP</div>`:""}
     </div>
     ${s.prs.length?`<div class="card reveal" style="animation-delay:.35s">
       <div class="eyebrow" style="color:var(--gold);margin-bottom:10px">🏆 ${s.prs.length} new PR${s.prs.length>1?"s":""}</div>
