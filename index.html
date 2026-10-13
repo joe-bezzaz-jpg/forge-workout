@@ -31,6 +31,7 @@
   --pink:#f2416b; --blue:#0090f7; --purple:#ba62fc; --ember:#f55600;
   --spectrum:linear-gradient(108deg,#0090f7,#ba62fc 33%,#f2416b 66%,#f55600);
   --shadow:none; --shadow2:none;
+  --accent-o:#ff7a1a;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
   --navgap:0px;                          /* set by fixNavGap() when iOS leaves the viewport short of the screen */
   --sabx:max(var(--sab),var(--navgap));
@@ -110,12 +111,12 @@ b,strong{font-weight:600}
 #tab-ind.on{opacity:1}
 #tab-ind.travel{transform:scaleX(1.35) scaleY(.9)}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;position:relative;z-index:1;
-  color:rgba(235,235,240,.72);font-family:inherit;font-size:11px;font-weight:500;letter-spacing:-.01em;cursor:pointer;padding:8px 0 5px;border-radius:9999px;transition:color .25s}
+  color:#fff;font-family:inherit;font-size:11px;font-weight:500;letter-spacing:-.01em;cursor:pointer;padding:8px 0 5px;border-radius:9999px;transition:color .25s}
 .tab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.tab.active{color:#fff}
+.tab.active{color:var(--accent-o)}
 .tab.train{flex:0 0 auto;padding:0 6px}
-.tab.train .train-btn{width:50px;height:50px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 4px 14px rgba(0,113,227,.45)}
+.tab.train .train-btn{width:50px;height:50px;border-radius:50%;background:var(--accent-o);display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 4px 14px rgba(255,122,26,.42)}
 .tab.train .train-btn svg{stroke:#fff;width:24px;height:24px;stroke-width:2}
 .tab.train:active .train-btn{filter:brightness(1.12);transform:scale(.95)}
 
@@ -231,6 +232,40 @@ b,strong{font-weight:600}
 .icon-btn{width:38px;height:38px;border-radius:50%;background:var(--card);border:none;color:var(--text);
   display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;font-family:inherit}
 .setdots{display:flex;gap:6px;justify-content:center;margin:14px 0 6px}
+/* ---------- workout: notes table + stopwatch ---------- */
+.wk2{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+.wk2head{position:sticky;top:0;z-index:5;background:rgba(10,10,11,.86);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  padding:calc(10px + var(--sat)) 16px 10px;border-bottom:1px solid var(--line)}
+.wk2body{flex:1;padding:14px 16px calc(96px + max(6px,calc(var(--sabx) - 20px)))}
+.wk2clocks{display:flex;gap:10px;margin-top:10px}
+.wk2clock{flex:1;background:var(--card);border-radius:16px;padding:8px 12px}
+.wk2clock .l{font-size:11px;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
+.wk2clock .v{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
+.wk2clock.over .v{color:var(--warn)}
+.nrow{background:var(--card);border-radius:20px;padding:14px 16px;margin-bottom:10px}
+.nrow.done{border:1px solid rgba(255,122,26,.35)}
+.nname{background:none;border:none;color:var(--text);font-family:inherit;font-size:17px;font-weight:600;letter-spacing:-.01em;
+  padding:0;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:0}
+.nname i{font-style:normal;color:var(--dim);font-size:13px}
+.ntarget{font-size:13px;color:var(--muted);flex-shrink:0}
+.nlast{font-size:13px;color:var(--muted);margin-top:3px}
+.nlast b{color:var(--accent-o);font-weight:600}
+.nin{width:100%;margin-top:10px;background:var(--card2);border:1px solid var(--line);border-radius:14px;
+  padding:12px 14px;color:var(--text);font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:17px;outline:none;
+  font-variant-numeric:tabular-nums;-webkit-user-select:text;user-select:text}
+.nin:focus{border-color:var(--accent-o)}
+.nin::placeholder{color:var(--dim)}
+.nmeta{font-size:13px;color:var(--dim);margin-top:6px;min-height:17px}
+.nmeta.ok{color:var(--muted)}
+.wk2tabs{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;z-index:10;display:flex;gap:8px;
+  padding:8px 16px calc(10px + max(6px,calc(var(--sabx) - 22px)));
+  background:rgba(29,29,31,.72);backdrop-filter:blur(26px) saturate(1.8);-webkit-backdrop-filter:blur(26px) saturate(1.8);
+  border-top:1px solid rgba(255,255,255,.07)}
+.wk2tab{flex:1;border:none;border-radius:9999px;background:var(--card3);color:#fff;font-family:inherit;font-size:15px;
+  font-weight:600;padding:12px 0;cursor:pointer}
+.wk2tab.on{background:var(--accent-o);color:#fff}
+.lap{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.lap:last-child{border-bottom:none}
 .setdots i{width:28px;height:6px;border-radius:3px;background:var(--card3)}
 .setdots i.done{background:var(--link)} .setdots i.cur{background:var(--text)}
 .input-stepper{display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:none;
@@ -449,6 +484,7 @@ const DEFAULT_EXERCISES = {
   "db-shrug":{name:"DB Shrug (per DB)",short:"DB Shrug",inc:2,groups:["traps","upperback"],unit:"kg"},
   "cable-high-pull":{name:"Wide Cable High Pull",short:"Cable High Pull",inc:2.5,groups:["traps","shoulders","upperback"],unit:"kg"},
   "seated-row":{name:"Seated Cable Row",short:"Seated Cable Row",inc:2.5,groups:["upperback","lats"],unit:"kg"},
+  "hyperextension":{name:"Hyperextension (45° or horizontal)",short:"Hyperextension",inc:2.5,groups:["hamstrings","glutes","upperback"],unit:"+kg"},
   "farmer-carry":{name:"Farmer's Carry (per hand)",short:"Farmer's Carry",inc:2.5,groups:["traps","core"],unit:"kg",timed:true},
   // carried over from the last plan — same keys, so history, PRs and working weights carry across
   "incline-bench":{name:"Low-Incline Barbell Bench Press",short:"Low-Incline Bench",inc:2.5,groups:["chest","shoulders","arms"],unit:"kg"},
@@ -480,20 +516,21 @@ function refreshExercises(){
 }
 // prescription: sets, rep range, rest seconds, effort, upAt = total-rep threshold (custom 3+ set schemes only)
 const P=(sets,repLo,repHi,rest,rir,upAt)=>({sets,repLo,repHi,rest,rir,upAt});
-// top set + back-off: set 1 heavy in repLo–repHi, set 2 at ~90% for bLo–bHi. Both taken all the way.
-const TOP=(repLo,repHi,bLo,bHi,rest,rir)=>({sets:2,repLo,repHi,bLo,bHi,rest,rir:rir||"Failure",top:true});
+// the opening lift: two heavy sets in repLo–repHi, then one back-off at ~90% for bLo–bHi
+const TOP=(repLo,repHi,bLo,bHi,rest,rir)=>({sets:3,heavy:2,repLo,repHi,bLo,bHi,rest,rir:rir||"Failure",top:true});
 // two straight sets at one weight, both to failure
 const TWO=(repLo,repHi,rest,rir)=>({sets:2,repLo,repHi,rest,rir:rir||"Failure"});
 const CLEAN="Last clean rep";      // barbell lifts: stop where form would break, never grind
 const KNEE="1 rep in reserve";     // knee still sore: loaded leg work stops one short
 const DEFAULT_WORKOUTS = {
   A:{title:"Chest + Triceps",ex:["incline-bench","incline-db-press","pec-fly","dips","oh-tricep","lateral-raise"],
+     note:"Machine chest press is a fine swap for the bench if it's busy — tap the exercise name to change it.",
      p:{"incline-bench":TOP(4,6,6,10,180,CLEAN),"incline-db-press":TWO(6,10,120),"pec-fly":TWO(10,15,75),
-        "dips":TWO(6,10,120),"oh-tricep":TWO(6,10,90),"lateral-raise":TWO(12,20,60)}},
-  B:{title:"Back + Biceps",ex:["pullup","cs-row","db-row-1arm","shrug","cable-row-high","curl"],
-     note:"Shrugs: pause a full second at the top of every rep. Traps grow from heavy weight held, not from bouncing.",
-     p:{"pullup":TOP(4,6,6,10,180),"cs-row":TWO(8,12,105),"db-row-1arm":TWO(8,12,90),
-        "shrug":TWO(8,12,90),"cable-row-high":TWO(12,20,60),"curl":TWO(8,12,75)}},
+        "dips":TWO(8,10,120),"oh-tricep":TWO(6,10,90),"lateral-raise":TWO(12,20,60)}},
+  B:{title:"Back + Biceps",ex:["pullup","cs-row","shrug","cable-row-high","hyperextension","curl"],
+     note:"Shrugs: pause a full second at the top of every rep — traps grow from weight held, not bounced. Hyperextensions: one second squeeze at the top, no hinging past straight.",
+     p:{"pullup":TOP(4,6,6,10,180),"cs-row":TWO(8,12,105),"shrug":TWO(8,12,90),
+        "cable-row-high":TWO(12,20,60),"hyperextension":TWO(12,20,75,"2 in reserve"),"curl":TWO(8,12,75)}},
   C:{title:"Legs + Core",ex:["leg-press","rdl","leg-curl-seated","calf-raise","cable-crunch"],
      note:"Knee rule: pain no higher than 3/10 during a set, and no worse the next morning. If it is, shorten the leg-press depth or drop the load. Feet high and wide on the platform, lower only as deep as stays pain-free.",
      p:{"leg-press":TOP(6,10,10,15,180,KNEE),"rdl":TWO(6,10,150,CLEAN),"leg-curl-seated":TWO(8,12,90),
@@ -610,7 +647,7 @@ const SCORE_GROUPS = {
   "Shoulders":["ohp","db-shoulder-press","lateral-raise","cable-lateral"],
   "Arms":["curl","hammer-curl","tricep-pushdown","oh-tricep","tricep-ext-1arm"],
   "Lower Body":["leg-press","calf-raise","seated-calf","front-squat","light-squat"],
-  "Posterior Chain":["trap-bar-dl","rdl","hip-thrust","leg-curl-seated","leg-curl-lying","glute-bridge"],
+  "Posterior Chain":["trap-bar-dl","rdl","hip-thrust","leg-curl-seated","leg-curl-lying","hyperextension","glute-bridge"],
   "Core":["cable-crunch","hanging-knee-raise","farmer-carry"],
 };
 const EX_LEVELS = ["Recruit","Novice","Trained","Strong","Powerful","Elite"];
@@ -620,7 +657,7 @@ const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOV
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v29";
+const APP_VERSION = "v30";
 let S = null;
 
 function freshState(){
@@ -717,6 +754,34 @@ function logPushSession_20261005(){
   rebuildHistory();
 }
 const CYCLE_RESTART="2026-10-12";
+/* the push session Joe trained on 12 Oct. Skipped if that day already has one. */
+function logPushSession_20261012(){
+  const iso="2026-10-12";
+  if(S.sessions.some(x=>x.dateISO===iso)) return;
+  const sets=[
+    {ex:"machine-chest-press",w:80,reps:7},{ex:"machine-chest-press",w:80,reps:5},{ex:"machine-chest-press",w:65,reps:8},
+    {ex:"dips",w:0,reps:10},{ex:"dips",w:0,reps:8},
+    {ex:"pec-fly",w:72.5,reps:12},{ex:"pec-fly",w:72.5,reps:10},
+    {ex:"oh-tricep",w:55,reps:8},{ex:"oh-tricep",w:55,reps:6},
+    {ex:"tricep-ext-1arm",w:10,reps:12},{ex:"tricep-ext-1arm",w:10,reps:10},
+    {ex:"lateral-raise",w:14,reps:17},{ex:"lateral-raise",w:14,reps:15},
+  ];
+  const start=new Date(iso+"T18:00").getTime();
+  const exCount=new Set(sets.map(x=>x.ex)).size;
+  const ses={id:start,workout:"A",dateISO:iso,start,end:start+2700000,dur:2700,sets,
+    volume:sum(sets.map(x=>x.w*x.reps)),xp:sets.length*XP.SET+exCount*XP.EXERCISE+XP.WORKOUT,prs:[],backfilled:true};
+  let i=S.sessions.findIndex(x=>x.dateISO>iso);
+  if(i<0) i=S.sessions.length;
+  S.sessions.splice(i,0,ses);
+  S.workoutsDone++;
+  for(const ex of new Set(sets.map(x=>x.ex))){
+    if(!S.exState[ex]) S.exState[ex]={weight:null,xp:0,mastered:[]};
+    S.exState[ex].weight=Math.max(...sets.filter(x=>x.ex===ex).map(x=>x.w));
+  }
+  addXP(ses.xp,"Workout A — 12 Oct",true);
+  S.nextWorkout="B";
+  rebuildHistory();
+}
 /* starting the plan again from the push day. History, PRs and working weights
    all stay — only the running order moves. */
 function restartCycleAtA(){
@@ -745,8 +810,10 @@ function load(){
   if(S.programmeVersion<6){ S.programmeVersion=6; migrateToSplit(); }  // -> two body parts a day
   S.programmeVersion=7;
   if(S.cycleRestart!==CYCLE_RESTART){ S.cycleRestart=CYCLE_RESTART; restartCycleAtA(); }  // fresh start on the push day
+  if(!S.logged20261012){ S.logged20261012=1; logPushSession_20261012(); }
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
-  if(S.activeSession && (!WORKOUTS[S.activeSession.workout] || S.activeSession.sets.some(x=>!WORKOUTS[S.activeSession.workout].ex.includes(x.ex)))) S.activeSession=null;
+  if(S.activeSession && !WORKOUTS[S.activeSession.workout]) S.activeSession=null;
+  if(S.activeSession && !S.activeSession.rows) S.activeSession.rows=sessionRows(S.activeSession);
   if(!S.quests) S.quests={date:null,done:{},perfect:false};
   if(!S.health) S.health=[];
   if(!S.walks) S.walks=[];
@@ -1582,7 +1649,7 @@ function rankInfo(){
 /* ---------------- session grade ---------------- */
 function gradeSession(A,session){
   let got=0,max=0,notes=[];
-  for(const ex of WORKOUTS[A.workout].ex){
+  for(const ex of new Set(session.sets.map(x=>x.ex))){
     const pr=presc(ex,A.workout);
     const sets=session.sets.filter(x=>x.ex===ex);
     if(!sets.length) continue;
@@ -3608,197 +3675,247 @@ function resetAll(){
 /* ================================================================
    WORKOUT MODE
    ================================================================ */
+function sessionRows(A){
+  // one row per exercise: the plan's, plus anything already logged that isn't in it
+  const plan=(WORKOUTS[A.workout]||{ex:[]}).ex.slice();
+  for(const st of (A.sets||[])) if(!plan.includes(st.ex)) plan.push(st.ex);
+  return plan.map(ex=>({ex,text:setsToText((A.sets||[]).filter(x=>x.ex===ex))}));
+}
+function setsToText(sets){
+  if(!sets||!sets.length) return "";
+  const def=EXERCISES[sets[0].ex]||{unit:"kg"};
+  let w=null;
+  return sets.map(s=>{
+    let t;
+    if(def.unit==="+kg" && !s.w) t="bw"+s.reps;
+    else t = s.w===w ? String(s.reps) : fmtKg(s.w)+"x"+s.reps;
+    w=s.w; return t;
+  }).join(", ");
+}
+/* "80x7, 5" → 80×7 then 80×5. "10,8" → bodyweight. 72.5x12 works, so does 40x50 for a carry. */
+function parseSets(text,ex){
+  const out=[]; let w=null;
+  for(let tok of String(text||"").split(/[,;\n]+/)){
+    tok=tok.trim(); if(!tok) continue;
+    let m=tok.match(/^(?:bw|bodyweight)\s*[x×*@]?\s*(\d+)$/i);
+    if(m){ w=0; out.push({ex,w:0,reps:+m[1]}); continue; }
+    m=tok.match(/^(\d+(?:\.\d+)?)\s*[x×*@]\s*(\d+)$/i);
+    if(m){ w=parseFloat(m[1]); out.push({ex,w,reps:+m[2]}); continue; }
+    m=tok.match(/^(\d+)\s*(?:reps?)?$/i);
+    if(m && +m[1]>0) out.push({ex,w:w==null?0:w,reps:+m[1]});
+  }
+  return out;
+}
+function rowSets(A,i){ const r=A.rows[i]; return r?parseSets(r.text,r.ex):[]; }
 function startOrResumeWorkout(){
   if(!S.activeSession){
     const wk=S.nextWorkout;
     S.activeSession={
-      workout:wk, start:Date.now(), exIndex:0, setIndex:0,
-      sets:[], prs:[], xp:0,
-      weights:Object.fromEntries(WORKOUTS[wk].ex.map(ex=>{
-        const t=targetFor(ex,wk), def=EXERCISES[ex];
-        let w=t.weight!=null?t.weight:(def.unit==="+kg"?0:40);
-        if(deloadActive()&&w) w=roundInc(w*0.9,def.inc);
-        return [ex,w];
-      })),
-      lastReps:{}, deload:deloadActive(),
+      workout:wk, start:Date.now(), sets:[], prs:[], xp:0, tab:"notes",
+      lastEntry:null, exStart:{},
+      rows:WORKOUTS[wk].ex.map(ex=>({ex,text:""})),
+      weights:{}, lastReps:{}, deload:deloadActive(),
     };
     snapshotSession(S.activeSession);
     save();
   }
+  if(!S.activeSession.rows) S.activeSession.rows=sessionRows(S.activeSession);
   renderWorkout();
   el("workout-overlay").classList.add("open");
 }
 function quitWorkout(){
-  if(S.activeSession.sets.length===0 || confirm("Leave workout? Progress so far is kept — you can resume any time.")){
-    clearInterval(restT); restT=null;
+  if(S.activeSession.sets.length===0 || confirm("Leave workout? Everything you've typed is kept — you can pick it up again.")){
     el("workout-overlay").classList.remove("open");
     renderAll();
   }
 }
 function abandonWorkout(){
   if(!confirm("Discard this workout entirely? Logged sets will be lost.")) return;
-  clearInterval(restT); restT=null;
   S.activeSession=null; save();
   el("workout-overlay").classList.remove("open");
   renderAll();
 }
+function commitRow(i,value){
+  const A=S.activeSession; if(!A||!A.rows[i]) return;
+  const before=A.sets.length;
+  A.rows[i].text=value;
+  const hadRow=(A.sets||[]).some(x=>x.ex===A.rows[i].ex);
+  rebuildFromRows();
+  const now=Date.now();
+  if(A.sets.length>before) A.lastEntry=now;
+  if(!hadRow && A.sets.some(x=>x.ex===A.rows[i].ex)) A.exStart[A.rows[i].ex]=A.exStart[A.rows[i].ex]||now;
+  const meta=el("nmeta-"+i); if(meta) meta.outerHTML=rowMetaHTML(A,i);
+  tickWorkoutClocks();
+}
+function rebuildFromRows(){
+  const A=S.activeSession; if(!A) return;
+  A.sets=A.rows.flatMap((r,i)=>rowSets(A,i));
+  replaySession();
+}
 function ssPartner(wk,ex){ const ss=wkDef(wk).superset; if(!ss||!ss.includes(ex)) return null; return ss[0]===ex?ss[1]:ss[0]; }
 function repLabel(def){ return def.timed?"Seconds":("Reps"+(def.per?" / "+def.per:"")); }
 function unitLabel(def){ return def.unit==="+kg"?"kg added":"kg"; }
-function exHeadHTML(A,wk,ex,def,pr){
-  return `<div style="margin:22px 0 4px">
-      <div style="font-size:13px;color:var(--muted)">Exercise ${A.exIndex+1} of ${wk.ex.length}</div>
-      <h2 style="font-size:32px;line-height:1.13;letter-spacing:.004em;margin-top:2px">${def.name}</h2>
-      <div style="font-size:15px;color:var(--muted);margin-top:6px">${prescTxt(pr,def)} &nbsp;·&nbsp; rest ${fmtDur(pr.rest)}</div>
-    </div>`;
+function wkElapsed(){ const A=S.activeSession; return A?Math.floor((Date.now()-A.start)/1000):0; }
+function sinceLast(){ const A=S.activeSession; if(!A) return 0; return Math.floor((Date.now()-(A.lastEntry||A.start))/1000); }
+function restTargetNow(){
+  const A=S.activeSession; if(!A||!A.sets.length) return 0;
+  return presc(A.sets[A.sets.length-1].ex,A.workout).rest||0;
 }
-function scoreHTML(A,ex,def,pr,doneSets,w){
-  const t=targetFor(ex,A.workout);
-  const uw=def.timed?"sec":"reps";
-  if(pr.deload) return `<div class="score">
-      <div class="k" style="font-size:14px;color:var(--link)">Deload week</div>
-      <div class="msg" style="margin-top:6px">One easy set, stop 2–3 ${uw} short. It doesn't count toward progression — it's what lets the next block go up.</div>
-    </div>`;
-  if(pr.top && doneSets.length===1) return `<div class="score">
-      <div class="k" style="font-size:14px;color:var(--muted)">Back-off set</div>
-      <div class="msg" style="margin-top:6px">Top set done: ${fmtKg(doneSets[0].w)}${def.unit} × ${doneSets[0].reps}. Now ~90% — ${fmtKg(backoffWeight(ex,doneSets[0].w))}${def.unit} for ${pr.bLo}–${pr.bHi}, ${effortTxt(pr).toLowerCase()}.</div>
-    </div>`;
-  const cur=doneSets.length?topSetOf(doneSets):null;
-  if(t.mode==="beat"){
-    const target=t.prevReps, today=cur?cur.reps:0;
-    const win=!!cur&&(cur.w>t.weight||(cur.w===t.weight&&cur.reps>target));
-    const pct=Math.min(100,today/(target+1)*100);
-    return `<div class="score">
-      <div class="vs">
-        <div class="side"><div class="k">Last top set</div><div class="n">${target}</div><div class="u">${uw} @ ${fmtKg(t.weight)}${def.unit}</div></div>
-        <div class="vsmark">vs</div>
-        <div class="side right"><div class="k">Today</div><div class="n" style="color:${win?"var(--link)":"var(--text)"}">${cur?today:"—"}</div><div class="u">${uw} @ ${fmtKg(cur?cur.w:w)}${def.unit}</div></div>
-      </div>
-      <div class="bar ${win?"win":""}"><i style="width:${pct}%"></i><em></em></div>
-      ${!cur?`<div class="msg">${pr.top?"Top set":"First set"}: ${target+1}+ ${uw} beats last time</div>`
-        :win?`<div class="msg win">Past you: beaten. ${today>=pr.repHi?"Top of the range — weight goes up next time.":"+"+(today-target)+" on the top set."}</div>`
-        :`<div class="msg">Not this time — take the next set to failure and bank it</div>`}
-      <div class="sub">Weight goes up when your top set hits <b style="color:var(--text)">${pr.repHi}</b> ${uw}</div>
-    </div>`;
-  }
-  if(t.mode==="increase"||t.mode==="reset") return `<div class="score">
-      <div class="vs">
-        <div class="side"><div class="k">${t.mode==="reset"?"Stalled at":"Cleared"}</div><div class="n">${fmtKg(t.prevW)}</div><div class="u">${def.unit} × ${t.prevReps}</div></div>
-        <div class="vsmark">→</div>
-        <div class="side right"><div class="k">${t.mode==="reset"?"Reset to":"New weight"}</div><div class="n" style="color:${t.mode==="reset"?"var(--warn)":"var(--link)"}">${fmtKg(t.weight)}</div><div class="u">${def.unit} · aim ${pr.repLo}+</div></div>
-      </div>
-      <div class="msg" style="margin-top:14px">${t.mode==="reset"?"Three sessions without progress. Drop 10%, build back — you'll pass the old best within a few weeks.":`Level up. Own the new weight — ${pr.repLo}–${pr.repHi}${def.timed?" sec":""} on the top set.`}</div>
-    </div>`;
-  return `<div class="score">
-      <div class="k" style="font-size:14px;color:var(--muted)">Set the bar</div>
-      <div class="msg" style="margin-top:6px">First session on this plan. ${t.weight?`Start around ${fmtKg(t.weight)}${def.unit}. `:""}Pick a weight you can hit ${pr.repLo}–${pr.repHi} with, then go to ${effortTxt(pr).toLowerCase()||"failure"}. Today's numbers become the score to beat.</div>
-    </div>`;
-}
-function tileHTML(ex,def,w,reps,idx){
-  const sfx=idx==null?"":"-"+idx;
-  return `<div class="row" style="gap:10px">
-      <div class="tile">
-        <div class="tl">${unitLabel(def)}</div>
-        <input class="tv mono" id="in-w${sfx}" type="number" inputmode="decimal" step="0.5" value="${w}" readonly onclick="editNum(this)" onblur="this.readOnly=true">
-        <div class="tb"><button onpointerdown="event.preventDefault()" onclick="bumpN('in-w${sfx}',-${def.inc})">−</button><button onpointerdown="event.preventDefault()" onclick="bumpN('in-w${sfx}',${def.inc})">+</button></div>
-      </div>
-      <div class="tile">
-        <div class="tl">${repLabel(def)}</div>
-        <input class="tv mono" id="in-r${sfx}" type="number" inputmode="numeric" value="${reps}" readonly onclick="editNum(this)" onblur="this.readOnly=true">
-        <div class="tb"><button onpointerdown="event.preventDefault()" onclick="bumpN('in-r${sfx}',-${def.timed?5:1})">−</button><button onpointerdown="event.preventDefault()" onclick="bumpN('in-r${sfx}',${def.timed?5:1})">+</button></div>
-      </div>
-    </div>`;
-}
-function suggestReps(A,ex,pr,doneSets){
-  const last=lastExposure(ex,A.workout);
-  if(pr.top&&doneSets.length===1) return last&&last.sets[1]?last.sets[1].reps:pr.bLo;
-  if(A.lastReps[ex]!=null) return A.lastReps[ex];
-  return last?last.sets[Math.min(doneSets.length,last.sets.length-1)].reps:pr.repHi;
-}
-function setChips(doneSets,ex){
-  if(!doneSets.length) return "";
-  const vol=sum(doneSets.map(s=>s.w*s.reps));
-  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px">
-    ${doneSets.map((s,i)=>`<button class="chipset" onclick="openEditSet('live','${ex}',${i})">${i+1} \u00B7 ${fmtKg(s.w)}\u00D7${s.reps}</button>`).join("")}
-    ${vol?`<span class="tag gold mono" style="opacity:.6">${fmtKg(vol)}kg</span>`:""}
-    <button class="chipset undo" onclick="undoLastSet()">\u21A9 Undo last</button>
+function clockHTML(){
+  const t=restTargetNow(), sec=sinceLast(), over=t&&sec>t;
+  return `<div class="wk2clocks">
+    <div class="wk2clock"><div class="l">Workout</div><div class="v mono" id="wk2-total">${fmtDur(wkElapsed())}</div></div>
+    <div class="wk2clock ${over?"over":""}" id="wk2-restbox"><div class="l">Since last set${t?` · ${fmtDur(t)} rest`:""}</div>
+      <div class="v mono" id="wk2-rest">${fmtDur(sec)}${over?` <span style="font-size:14px">+${fmtDur(sec-t)}</span>`:""}</div></div>
   </div>`;
+}
+function tickWorkoutClocks(){
+  const A=S.activeSession; if(!A) return;
+  const tot=el("wk2-total"); if(tot) tot.textContent=fmtDur(wkElapsed());
+  const r=el("wk2-rest");
+  if(r){
+    const t=restTargetNow(), sec=sinceLast(), over=t&&sec>t;
+    r.innerHTML=fmtDur(sec)+(over?` <span style="font-size:14px">+${fmtDur(sec-t)}</span>`:"");
+    const box=el("wk2-restbox"); if(box) box.classList.toggle("over",!!over);
+  }
+  const sw=el("sw-total"); if(sw) sw.textContent=fmtDur(wkElapsed());
+  const sr=el("sw-rest");
+  if(sr){ const t=restTargetNow(), sec=sinceLast(); sr.innerHTML=fmtDur(sec)+(t&&sec>t?` <span style="color:var(--warn)">+${fmtDur(sec-t)} over</span>`:t?` <span style="color:var(--dim)">/ ${fmtDur(t)}</span>`:""); }
+}
+function rowMetaHTML(A,i){
+  const r=A.rows[i], sets=rowSets(A,i), def=EXERCISES[r.ex]||{unit:"kg"};
+  if(!sets.length) return `<div class="nmeta" id="nmeta-${i}">Type your sets — ${def.timed?"40x50 is 40kg for 50 sec":"80x7, 5 means 80×7 then 80×5"}</div>`;
+  const top=topSetOf(sets), vol=sum(sets.map(x=>x.w*x.reps));
+  const pr=presc(r.ex,A.workout);
+  const hit=!pr.deload&&earnsIncrease(r.ex,A.workout,sets);
+  return `<div class="nmeta ok" id="nmeta-${i}">${sets.length} set${sets.length>1?"s":""} · top ${fmtKg(top.w)}${def.unit}×${top.reps}${vol?` · ${fmtKg(vol)}kg`:""}${hit?` · <b style="color:var(--accent-o)">top of the range — go up next time</b>`:""}</div>`;
+}
+function notesTabHTML(){
+  const A=S.activeSession, wk=WORKOUTS[A.workout];
+  return `${wk.note?`<div class="card" style="padding:14px 16px;margin-bottom:12px"><div style="font-size:14px;color:var(--muted)">${wk.note}</div></div>`:""}
+    ${A.rows.map((r,i)=>{
+      const def=EXERCISES[r.ex]||{short:r.ex,unit:"kg"}, pr=presc(r.ex,A.workout);
+      const t=targetFor(r.ex,A.workout), last=lastExposure(r.ex,A.workout);
+      const sets=rowSets(A,i);
+      const spent=A.exStart[r.ex]?Math.floor((Date.now()-A.exStart[r.ex])/1000):0;
+      return `<div class="nrow ${sets.length>=pr.sets?"done":""}">
+        <div class="spread" style="gap:10px;align-items:flex-start">
+          <button class="nname" onclick="openRowMenu(${i})">${def.short} <i>⌄</i></button>
+          <span class="ntarget">${pr.deload?"deload · 1 set":pr.top?`${pr.heavy||1}×${pr.repLo}–${pr.repHi} + back-off`:`${pr.sets}×${pr.repLo}–${pr.repHi}`}</span>
+        </div>
+        <div class="nlast">${last?`Last ${fmtDateShort(last.date)} · ${setsToText(last.sets)}`:"No history yet"}${
+          t.mode==="increase"?` · <b>↑ go ${fmtKg(t.weight)}${def.unit}</b>`
+          :t.mode==="reset"?` · <b>↓ drop to ${fmtKg(t.weight)}${def.unit}</b>`
+          :t.mode==="beat"?` · <b>beat ${t.prevReps}</b>`:""}</div>
+        <input class="nin" id="nin-${i}" inputmode="text" autocomplete="off" autocapitalize="off" spellcheck="false"
+          value="${esc(r.text)}" placeholder="${def.timed?"40x50, 40":"80x7, 5"}"
+          oninput="commitRow(${i},this.value)" onchange="commitRow(${i},this.value)">
+        ${rowMetaHTML(A,i)}
+        ${spent>60&&sets.length?`<div style="font-size:12px;color:var(--dim);margin-top:4px">${fmtDur(spent)} on this exercise</div>`:""}
+      </div>`;}).join("")}
+    <button class="btn ghost" style="margin-top:4px" onclick="openAddToSession()">＋ Add an exercise</button>
+    <button class="btn primary" style="margin-top:10px" onclick="confirmFinishEarly()">Finish &amp; save workout</button>`;
+}
+function stopwatchTabHTML(){
+  const A=S.activeSession;
+  const byEx=[];
+  for(const r of A.rows){
+    const sets=A.sets.filter(x=>x.ex===r.ex);
+    if(sets.length) byEx.push({ex:r.ex,sets,spent:A.exStart[r.ex]?Math.floor((Date.now()-A.exStart[r.ex])/1000):0});
+  }
+  const t=restTargetNow(), sec=sinceLast();
+  return `<div style="text-align:center;padding:18px 0 6px">
+      <div class="eyebrow">Workout time</div>
+      <div class="mono" id="sw-total" style="font-family:'SF Pro Display',-apple-system,sans-serif;font-size:72px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums">${fmtDur(wkElapsed())}</div>
+      <div style="color:var(--muted);font-size:14px;margin-top:6px">Runs from the moment you started. It never resets.</div>
+    </div>
+    <div class="card" style="margin-top:18px;text-align:center">
+      <div class="eyebrow">Since your last set</div>
+      <div class="mono" id="sw-rest" style="font-size:38px;font-weight:600;margin-top:4px;font-variant-numeric:tabular-nums">${fmtDur(sec)}${t&&sec>t?` <span style="color:var(--warn)">+${fmtDur(sec-t)} over</span>`:t?` <span style="color:var(--dim)">/ ${fmtDur(t)}</span>`:""}</div>
+      <button class="btn ghost small" style="margin-top:12px" onclick="S.activeSession.lastEntry=Date.now();save();tickWorkoutClocks()">Restart this timer</button>
+    </div>
+    ${byEx.length?`<div class="card">
+      <div class="eyebrow" style="margin-bottom:6px">Time on each exercise</div>
+      ${byEx.map(o=>`<div class="lap"><span>${EXERCISES[o.ex].short}<div style="font-size:12px;color:var(--dim)">${setsToText(o.sets)}</div></span>
+        <span class="mono" style="color:var(--muted)">${fmtDur(o.spent)}</span></div>`).join("")}
+    </div>`:`<div style="text-align:center;color:var(--dim);font-size:14px;margin-top:20px">Log a set and your time per exercise appears here.</div>`}`;
+}
+function switchWorkoutTab(t){
+  const A=S.activeSession; if(!A) return;
+  A.tab=t; save(); renderWorkout();
 }
 function renderWorkout(){
   const A=S.activeSession, wk=WORKOUTS[A.workout];
-  let ex=wk.ex[A.exIndex];
-  // a superset is always entered at its first member so both halves show together
-  const ss=wk.superset;
-  if(ss&&ss.includes(ex)&&ex!==ss[0]){ A.exIndex=wk.ex.indexOf(ss[0]); ex=ss[0]; }
-  const isSS = !!(ss&&ss.includes(ex));
-
-  const head=`<div class="wk-wrap"><div class="onband">
-    <div class="wk-top">
-      <button class="icon-btn" onclick="quitWorkout()">✕</button>
-      <div style="text-align:center">
-        <div style="font-size:15px;color:var(--text);letter-spacing:-.01em">Workout ${A.workout} · ${wk.title}</div>
-        <div style="font-size:13px;color:var(--muted)" class="mono" id="wk-clock">${fmtDur((Date.now()-A.start)/1000)}</div>
-      </div>
-      <button class="icon-btn" onclick="abandonWorkout()" title="Discard">🗑</button>
-    </div>`;
-
-  if(isSS){
-    const pair=ss.map(k=>({k,def:EXERCISES[k],pr:presc(k,A.workout),done:A.sets.filter(x=>x.ex===k)}));
-    const setN=Math.min(Math.min(...pair.map(o=>o.done.length))+1,Math.max(...pair.map(o=>o.pr.sets)));
-    const totalSets=Math.max(...pair.map(o=>o.pr.sets));
-    el("workout-overlay").innerHTML=head+`
-      <div style="margin:22px 0 6px">
-        <div style="font-size:13px;color:var(--link)">Superset · both exercises, back to back</div>
-        <h2 style="font-size:28px;line-height:1.14;letter-spacing:.007em;margin-top:2px">${pair.map(o=>o.def.short).join(" + ")}</h2>
-        <div style="font-size:15px;color:var(--muted);margin-top:6px">No rest between them — rest ${fmtDur(pair[0].pr.rest)} after the pair</div>
-      </div>
-      </div>
-      <div class="spread" style="margin:8px 2px 10px">
-        <span style="font-size:15px;color:var(--muted)">Set ${setN} of ${totalSets}</span>
-        <span class="setdots" style="margin:0">${Array.from({length:totalSets},(_,i)=>`<i class="${i<pair[0].done.length?"done":i===pair[0].done.length?"cur":""}" style="width:18px"></i>`).join("")}</span>
-      </div>
-      ${restBarHTML()}
-      ${pair.map((o,i)=>`<div class="sscard">
-        <div class="spread" style="margin-bottom:10px">
-          <div style="min-width:0">
-            <div class="ssnum">${i+1}</div>
-            <span style="font-size:18px;font-weight:600;letter-spacing:.011em">${o.def.name}</span>
-            <div style="font-size:13px;color:var(--muted);margin-top:2px">${prescTxt(o.pr,o.def)}${(()=>{if(o.pr.deload)return "";const t=targetFor(o.k,A.workout);return t.mode==="beat"?` · beat ${t.prevReps}`:t.mode==="increase"?` · ⬆ ${fmtKg(t.weight)}${o.def.unit}`:t.mode==="reset"?` · reset ${fmtKg(t.weight)}${o.def.unit}`:"";})()}</div>
-          </div>
-          <span class="mono" style="font-size:13px;color:${o.done.length>=o.pr.sets?"var(--link)":"var(--dim)"};flex-shrink:0">${o.done.length}/${o.pr.sets}</span>
+  if(!A.rows) A.rows=sessionRows(A);
+  const tab=A.tab||"notes";
+  el("workout-overlay").innerHTML=`<div class="wk2">
+    <div class="wk2head">
+      <div class="wk-top" style="margin-bottom:0">
+        <button class="icon-btn" onclick="quitWorkout()">✕</button>
+        <div style="text-align:center;min-width:0">
+          <div style="font-size:15px">Workout ${A.workout} · ${esc(wk.title)}</div>
+          <div style="font-size:13px;color:var(--muted)">${A.sets.length} set${A.sets.length===1?"":"s"} · ${fmtKg(sum(A.sets.map(x=>x.w*x.reps)))}kg${A.deload?" · deload":""}</div>
         </div>
-        ${tileHTML(o.k,o.def,A.weights[o.k],suggestReps(A,o.k,o.pr,o.done),i)}
-        ${setChips(o.done,o.k)}
-      </div>`).join("")}
-      <div style="flex:1"></div>
-      <button class="btn primary" style="margin-top:18px" onclick="completeSuperset()">Complete both <span class="xpchip" style="background:rgba(255,255,255,.18);color:#fff">⚡ +${XP.SET*2}</span></button>
-    </div>`;
-    return;
-  }
-
-  const def=EXERCISES[ex], pr=presc(ex,A.workout);
-  const doneSets=A.sets.filter(s=>s.ex===ex);
-  const setN=Math.min(doneSets.length+1,pr.sets);
-  const setLbl=pr.top&&!pr.deload?(doneSets.length?"Back-off set":"Top set"):`Set ${setN} of ${pr.sets}`;
-  el("workout-overlay").innerHTML=head+exHeadHTML(A,wk,ex,def,pr)+`</div>
-    ${scoreHTML(A,ex,def,pr,doneSets,A.weights[ex])}
-    ${wk.note&&A.exIndex===0?`<div class="card" style="padding:14px 16px;margin-bottom:10px"><div style="font-size:14px;color:var(--muted)">${wk.note}</div></div>`:""}
-    <div class="spread" style="margin:4px 2px 10px">
-      <span style="font-size:15px;color:var(--muted)">${setLbl}</span>
-      <span class="setdots" style="margin:0">${Array.from({length:pr.sets},(_,i)=>`<i class="${i<doneSets.length?"done":i===doneSets.length?"cur":""}" style="width:18px"></i>`).join("")}</span>
+        <button class="icon-btn" onclick="abandonWorkout()" title="Discard">🗑</button>
+      </div>
+      ${clockHTML()}
     </div>
-    ${restBarHTML()}
-    ${tileHTML(ex,def,A.weights[ex],suggestReps(A,ex,pr,doneSets),null)}
-    ${setChips(doneSets,ex)}
-    <div style="flex:1"></div>
-    <button class="btn primary" style="margin-top:20px" onclick="completeSet()">Complete set <span class="xpchip" style="background:rgba(255,255,255,.18);color:#fff">⚡ +${XP.SET}</span></button>
-    ${A.sets.length?`<button class="btn ghost small" style="width:100%;margin-top:10px" onclick="confirmFinishEarly()">Finish &amp; save workout</button>`:""}
+    <div class="wk2body">${tab==="notes"?notesTabHTML():stopwatchTabHTML()}</div>
+    <div class="wk2tabs">
+      <button class="wk2tab ${tab==="notes"?"on":""}" onclick="switchWorkoutTab('notes')">Notes</button>
+      <button class="wk2tab ${tab==="watch"?"on":""}" onclick="switchWorkoutTab('watch')">Stopwatch</button>
+    </div>
   </div>`;
+}
+function openRowMenu(i){
+  const A=S.activeSession, r=A.rows[i], def=EXERCISES[r.ex]||{short:r.ex};
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">${def.name||def.short}</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Changes here apply to today's session only — your programme stays as it is.</p>
+    <button class="btn ghost" onclick="closeSheet();openSwapExercise(${i})">Swap for another exercise</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();openExercise('${r.ex}')">History &amp; records</button>
+    <button class="btn danger" style="margin-top:10px" onclick="removeRow(${i})">Remove from this workout</button>`);
+}
+function openSwapExercise(i){
+  const A=S.activeSession, inSes=new Set(A.rows.map(r=>r.ex));
+  const pool=ACTIVE_EX.filter(k=>!inSes.has(k));
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Swap exercise</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Machine taken? Pick what you're doing instead. Today only.</p>
+    <div class="card">${pool.map(k=>`<div class="list-item" onclick="swapRow(${i},'${k}')">
+      <span style="min-width:0"><div style="font-weight:600;font-size:15px">${EXERCISES[k].name}</div>
+        <div style="font-size:13px;color:var(--muted)">${EXERCISES[k].groups.map(g=>GROUPS[g]).join(" · ")}</div></span>
+      <span style="color:var(--link)">Use</span></div>`).join("")}</div>`);
+}
+function swapRow(i,k){
+  const A=S.activeSession;
+  A.rows[i]={ex:k,text:A.rows[i].text};
+  rebuildFromRows(); closeSheet(); renderWorkout();
+  toast("Swapped to "+EXERCISES[k].short,true);
+}
+function removeRow(i){
+  const A=S.activeSession;
+  A.rows.splice(i,1);
+  rebuildFromRows(); closeSheet(); renderWorkout();
+}
+function openAddToSession(){
+  const A=S.activeSession, inSes=new Set(A.rows.map(r=>r.ex));
+  const pool=ACTIVE_EX.filter(k=>!inSes.has(k));
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Add an exercise</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Today only. To change the plan itself, use Programme in your profile.</p>
+    <div class="card">${pool.map(k=>`<div class="list-item" onclick="addRow('${k}')">
+      <span style="min-width:0"><div style="font-weight:600;font-size:15px">${EXERCISES[k].name}</div>
+        <div style="font-size:13px;color:var(--muted)">${EXERCISES[k].groups.map(g=>GROUPS[g]).join(" · ")}</div></span>
+      <span style="color:var(--link)">Add</span></div>`).join("")}</div>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();openNewExercise()">＋ Create a new exercise</button>`);
+}
+function addRow(k){
+  const A=S.activeSession;
+  A.rows.push({ex:k,text:""});
+  save(); closeSheet(); renderWorkout();
 }
 function confirmFinishEarly(){
   const A=S.activeSession; if(!A) return;
   const wk=WORKOUTS[A.workout];
-  const left=wk.ex.map(k=>({k,done:A.sets.filter(x=>x.ex===k).length,need:presc(k,A.workout).sets}))
+  const left=A.rows.map(r=>({k:r.ex,done:A.sets.filter(x=>x.ex===r.ex).length,need:presc(r.ex,A.workout).sets}))
                   .filter(o=>o.done<o.need);
   openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Finish workout?</h2>
     <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Saves everything you've logged. ${left.length?"These aren't finished:":"All exercises are complete."}</p>
@@ -3812,67 +3929,6 @@ function bumpW(d){ bumpN("in-w",d); }
 function bumpR(d){ bumpN("in-r",d); }
 function editNum(inp){ inp.readOnly=false; inp.focus(); try{ inp.select(); }catch(e){} }
 
-function logSet(ex,w,reps){
-  const A=S.activeSession;
-  A.weights[ex]=w; A.lastReps[ex]=reps;
-  A.sets.push({ex,w,reps});
-  A.xp+=XP.SET;
-  const prs=checkSetPRs(ex,w,reps,dayISO(Date.now()));
-  for(const pp of prs){
-    A.prs.push(pp); A.xp+=XP.PR;
-    S.prLog.push({date:dayISO(Date.now()),ex,type:pp.type,label:pp.label});
-    prToast(pp);
-  }
-  if(!prs.length){ sndSet(); haptic(15); }
-}
-function markExDone(ex,sets){
-  const A=S.activeSession; A.finished=A.finished||[];
-  if(A.finished.includes(ex)) return;
-  A.finished.push(ex);
-  scoreExercise(ex,sets);
-}
-function nextIncompleteIdx(){
-  const A=S.activeSession, wk=WORKOUTS[A.workout];
-  for(let i=0;i<wk.ex.length;i++){
-    const k=wk.ex[i];
-    if(A.sets.filter(x=>x.ex===k).length < presc(k,A.workout).sets) return i;
-  }
-  return -1;
-}
-function advanceAfter(idx){
-  const A=S.activeSession, wk=WORKOUTS[A.workout];
-  const n=nextIncompleteIdx();
-  if(n<0){ finishWorkout(); return; }
-  const restFor=presc(wk.ex[idx],A.workout).rest;
-  A.exIndex=n; save();
-  startRest(true,restFor);
-}
-function completeSet(){
-  const A=S.activeSession, wk=WORKOUTS[A.workout];
-  const ex=wk.ex[A.exIndex], pr=presc(ex,A.workout);
-  const w=parseFloat(el("in-w").value)||0;
-  const reps=parseInt(el("in-r").value)||0;
-  if(reps<=0){ toast(EXERCISES[ex].timed?"Enter your hold in seconds":"Enter your reps first"); return; }
-  logSet(ex,w,reps);
-  const done=A.sets.filter(s=>s.ex===ex);
-  if(pr.top&&!pr.deload&&done.length===1) A.weights[ex]=backoffWeight(ex,w);
-  if(done.length>=pr.sets){ markExDone(ex,done); save(); advanceAfter(A.exIndex); }
-  else { save(); startRest(false,pr.rest); }
-}
-function completeSuperset(){
-  const A=S.activeSession, wk=WORKOUTS[A.workout], ss=wk.superset;
-  const vals=ss.map((k,i)=>({k,w:parseFloat(el("in-w-"+i).value)||0,reps:parseInt(el("in-r-"+i).value)||0}));
-  if(vals.some(v=>v.reps<=0)){ toast("Enter reps for both exercises"); return; }
-  vals.forEach(v=>logSet(v.k,v.w,v.reps));
-  let allDone=true;
-  for(const v of vals){
-    const done=A.sets.filter(x=>x.ex===v.k);
-    if(done.length>=presc(v.k,A.workout).sets) markExDone(v.k,done); else allDone=false;
-  }
-  save();
-  if(allDone) advanceAfter(A.exIndex);
-  else startRest(false,presc(ss[0],A.workout).rest);
-}
 function scoreExercise(ex,sets){
   const A=S.activeSession, def=EXERCISES[ex], pr=presc(ex,A.workout);
   A.xp+=XP.EXERCISE;
@@ -3918,7 +3974,7 @@ function replaySession(){
     const prs=checkSetPRs(st.ex,st.w,st.reps,d,seen.has(st.ex));
     for(const pp of prs){ A.prs.push(pp); A.xp+=XP.PR; S.prLog.push({date:d,ex:st.ex,type:pp.type,label:pp.label}); }
   }
-  for(const ex of WORKOUTS[A.workout].ex){
+  for(const ex of (A.rows?A.rows.map(r=>r.ex):WORKOUTS[A.workout].ex)){
     const sets=byEx[ex]||[]; const pr=presc(ex,A.workout);
     if(sets.length<pr.sets) continue;
     A.finished.push(ex); A.xp+=XP.EXERCISE;
@@ -3930,19 +3986,7 @@ function replaySession(){
       S.exState[ex].mastered.push(key); A.xp+=XP.MASTER;
     }
   }
-  const n=nextIncompleteIdx();
-  if(n>=0) A.exIndex=n;
   save();
-}
-function undoLastSet(){
-  const A=S.activeSession; if(!A||!A.sets.length) return;
-  const last=A.sets[A.sets.length-1];
-  A.sets.pop();
-  A.weights[last.ex]=last.w;
-  replaySession();
-  clearInterval(restT); restT=null; A.rest=null; save();
-  renderWorkout(); haptic(20);
-  toast("Removed "+EXERCISES[last.ex].short+" "+fmtKg(last.w)+"×"+last.reps);
 }
 /* unified set editor — works on the live session and on saved ones */
 function openEditSet(scope,exOrId,arg1,arg2){
@@ -4022,59 +4066,8 @@ function rebuildHistory(){
   save();
 }
 
-/* ---------------- rest timer (inline, non-blocking) ---------------- */
-let restT=null;
-function restMs(){ const A=S.activeSession; return A&&A.rest?Math.max(0,A.rest.until-Date.now()):0; }
-function startRest(betweenEx,secs){
-  const A=S.activeSession; if(!A) return;
-  const total=(S.settings.restSec>0?S.settings.restSec:null)||secs||120;
-  A.rest={until:Date.now()+total*1000,total,next:!!betweenEx};
-  save(); renderWorkout();
-  clearInterval(restT); restT=setInterval(tickRest,250); tickRest();
-}
-function tickRest(){
-  const A=S.activeSession;
-  if(!A||!A.rest){ clearInterval(restT); restT=null; return; }
-  const left=restMs(), t=el("rest-time"), b=el("rest-bar");
-  if(!t){ return; }
-  t.textContent=fmtDur(Math.ceil(left/1000));
-  if(b) b.style.width=(left/(A.rest.total*1000)*100)+"%";
-  if(left<=0) endRest(true);
-}
-function addRest(sec){ const A=S.activeSession; if(A&&A.rest){ A.rest.until+=sec*1000; A.rest.total+=sec; save(); tickRest(); haptic(10); } }
-function endRest(natural){
-  clearInterval(restT); restT=null;
-  const A=S.activeSession; if(A) A.rest=null;
-  save();
-  if(natural){ sndTimer(); haptic([60,80,60,80,60]); }
-  renderWorkout();
-}
-function restBarHTML(){
-  const A=S.activeSession; if(!A||!A.rest) return "";
-  const wk=WORKOUTS[A.workout], nextEx=EXERCISES[wk.ex[A.exIndex]];
-  const left=restMs(), pct=left/(A.rest.total*1000)*100;
-  return `<div class="restbar">
-    <div class="spread">
-      <div style="display:flex;align-items:center;gap:10px;min-width:0">
-        <span class="rdot"></span>
-        <div style="min-width:0">
-          <div style="font-size:15px;font-weight:600">Rest</div>
-          <div style="font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${A.rest.next?"Next: "+nextEx.short:"Next set"}</div>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <span class="mono" id="rest-time" style="font-size:26px;font-weight:600;font-family:'SF Pro Display',-apple-system,sans-serif">${fmtDur(Math.ceil(left/1000))}</span>
-        <button class="rbtn" onclick="addRest(30)">+30s</button>
-        <button class="rbtn skip" onclick="endRest(false)">Skip</button>
-      </div>
-    </div>
-    <div class="rtrack"><i id="rest-bar" style="width:${pct}%"></i></div>
-  </div>`;
-}
-
 /* ---------------- finish workout ---------------- */
 function finishWorkout(early){
-  clearInterval(restT); restT=null;
   const A=S.activeSession;
   if(!A||!A.sets.length){ toast("Log at least one set first"); return; }
   const now=Date.now();
@@ -4091,7 +4084,7 @@ function finishWorkout(early){
   if(stCur===10)streakBonus=100; else if(stCur===25)streakBonus=300; else if(stCur===50)streakBonus=750; else if(stCur===100)streakBonus=2000;
   A.xp+=streakBonus;
   // per-exercise XP
-  for(const ex of WORKOUTS[A.workout].ex){
+  for(const ex of new Set(A.sets.map(x=>x.ex))){
     const exSets=A.sets.filter(s=>s.ex===ex);
     if(!exSets.length) continue;                       // skipped exercises earn nothing
     const exPRs=A.prs.filter(p=>p.ex===ex).length;
@@ -4303,10 +4296,7 @@ setInterval(()=>{
 },60000);
 
 /* ---------------- workout clock tick ---------------- */
-setInterval(()=>{
-  const c=el("wk-clock");
-  if(c&&S.activeSession) c.textContent=fmtDur((Date.now()-S.activeSession.start)/1000);
-},1000);
+setInterval(()=>{ if(S.activeSession) tickWorkoutClocks(); },1000);
 
 /* ---------------- demo seed (optional preview) ---------------- */
 function seedDemo(){
@@ -4381,9 +4371,7 @@ setTimeout(()=>{
 renderToday();
 if(S.activeSession){
   // resume in-progress workout after refresh
-  if(S.activeSession.rest && S.activeSession.rest.until<=Date.now()) S.activeSession.rest=null;
   renderWorkout(); el("workout-overlay").classList.add("open");
-  if(S.activeSession.rest){ restT=setInterval(tickRest,250); tickRest(); }
 }
 
 /* ---------------- PWA + update banner ---------------- */
