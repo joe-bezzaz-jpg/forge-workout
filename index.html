@@ -497,6 +497,7 @@ const DEFAULT_EXERCISES = {
   "db-shrug":{name:"DB Shrug (per DB)",short:"DB Shrug",inc:2,groups:["traps","upperback"],unit:"kg"},
   "cable-high-pull":{name:"Wide Cable High Pull",short:"Cable High Pull",inc:2.5,groups:["traps","shoulders","upperback"],unit:"kg"},
   "seated-row":{name:"Seated Cable Row",short:"Seated Cable Row",inc:2.5,groups:["upperback","lats"],unit:"kg"},
+  "leg-extension":{name:"Leg Extension",short:"Leg Extension",inc:5,groups:["quads"],unit:"kg"},
   "hyperextension":{name:"Hyperextension (45° or horizontal)",short:"Hyperextension",inc:2.5,groups:["hamstrings","glutes","upperback"],unit:"+kg"},
   "farmer-carry":{name:"Farmer's Carry (per hand)",short:"Farmer's Carry",inc:2.5,groups:["traps","core"],unit:"kg",timed:true},
   // carried over from the last plan — same keys, so history, PRs and working weights carry across
@@ -544,10 +545,10 @@ const DEFAULT_WORKOUTS = {
      note:"Shrugs: pause a full second at the top of every rep — traps grow from weight held, not bounced. Hyperextensions: one second squeeze at the top, no hinging past straight.",
      p:{"pullup":TOP(4,6,6,10,180),"cs-row":TWO(8,12,105),"shrug":TWO(8,12,90),
         "cable-row-high":TWO(12,20,60),"hyperextension":TWO(12,20,75,"2 in reserve"),"curl":TWO(8,12,75)}},
-  C:{title:"Legs + Core",ex:["trap-bar-dl","leg-press","leg-curl-lying","calf-raise","hanging-knee-raise"],
-     note:"High handles on the trap bar keep your knees out of it — push the floor away and let the hips do the work, and stop at the last clean rep. Leg press: feet high and wide, only as deep as stays pain-free, one rep in reserve. Knee rule: no worse than 3/10 during, and no worse the next morning.",
-     p:{"trap-bar-dl":TOP(4,6,6,10,210,CLEAN),"leg-press":TWO(8,12,150,KNEE),"leg-curl-lying":TWO(8,12,90),
-        "calf-raise":TWO(8,12,75),"hanging-knee-raise":TWO(10,15,60)}},
+  C:{title:"Legs",ex:["leg-extension","leg-press","leg-curl-seated","calf-raise"],
+     note:"The short day — four machines, about 25 minutes. Start the extensions light for a set or two to warm the knee up, then work. Leg press: feet high and wide, only as deep as stays pain-free. Knee rule: no worse than 3/10 during a set, and no worse the next morning.",
+     p:{"leg-extension":TWO(12,20,60,KNEE),"leg-press":TOP(8,12,12,20,150,KNEE),
+        "leg-curl-seated":TWO(8,12,90),"calf-raise":TWO(8,12,75)}},
   D:{title:"Shoulders + Traps",ex:["ohp","db-shrug","cable-lateral","cable-high-pull","rev-pec-deck","cable-crunch"],
      note:"High pull goes wide and only to elbow height — never a narrow pull to the chin. You press three times a week, so keep that shoulder position clean.",
      p:{"ohp":TOP(4,6,6,10,180,CLEAN),"db-shrug":TWO(10,15,75),"cable-lateral":TWO(12,20,60),
@@ -659,7 +660,7 @@ const SCORE_GROUPS = {
   "Upper Back":["barbell-row","pullup","lat-pulldown","cs-row","seated-row","db-row-1arm","shrug","db-shrug","cable-high-pull","cable-row-high","rev-pec-deck"],
   "Shoulders":["ohp","db-shoulder-press","lateral-raise","cable-lateral"],
   "Arms":["curl","hammer-curl","tricep-pushdown","oh-tricep","tricep-ext-1arm"],
-  "Lower Body":["leg-press","calf-raise","seated-calf","front-squat","light-squat"],
+  "Lower Body":["leg-press","leg-extension","calf-raise","seated-calf","front-squat","light-squat"],
   "Posterior Chain":["trap-bar-dl","rdl","hip-thrust","leg-curl-seated","leg-curl-lying","hyperextension","glute-bridge"],
   "Core":["cable-crunch","hanging-knee-raise","farmer-carry"],
 };
@@ -670,7 +671,7 @@ const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOV
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v32";
+const APP_VERSION = "v33";
 let S = null;
 
 function freshState(){
@@ -678,7 +679,7 @@ function freshState(){
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
     settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
-    programmeVersion:8,
+    programmeVersion:9,
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
     sessions:[],        // {id,workout,dateISO,start,end,dur,sets:[{ex,w,reps}],volume,xp,prs:[{ex,type,label}]}
@@ -833,6 +834,7 @@ function load(){
   if(S.cycleRestart!==CYCLE_RESTART){ S.cycleRestart=CYCLE_RESTART; restartCycleAtA(); }  // fresh start on the push day
   if(!S.logged20261012){ S.logged20261012=1; logPushSession_20261012(); }
   if(S.programmeVersion<8){ S.programmeVersion=8; migrateToFiveDays(); }
+  if(S.programmeVersion<9){ S.programmeVersion=9; S.programme=null; }   // machine leg day
   if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
   if(S.activeSession && !WORKOUTS[S.activeSession.workout]) S.activeSession=null;
   if(S.activeSession) normaliseSession(S.activeSession);
