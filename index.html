@@ -41,6 +41,7 @@
   --accent-o:#e0912f;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
   --navpad:0px;        /* manual bottom padding on the nav, set in Profile */
+  --navfill:0px;       /* measured: screen iOS keeps below the page, filled by the bar */
   --sabx:var(--sab);
   --r:16px;
 }
@@ -129,12 +130,12 @@ b,strong{font-weight:600}
 #tabbar{position:relative;flex:0 0 auto;z-index:50;width:100%;max-width:520px;margin:0 auto;
   background:var(--nav);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);
   border-radius:26px 26px 0 0;display:flex;align-items:center;justify-content:space-around;
-  padding:5px 8px calc(6px + var(--navpad));
+  padding:5px 8px calc(6px + var(--navpad) + var(--navfill));
   box-shadow:0 -6px 24px rgba(0,0,0,.25);
   border-top:1px solid var(--nav-line)}
 /* the bar's own background continues past the screen edge, so it can never look lifted */
 
-#tab-ind{position:absolute;top:5px;bottom:calc(6px + var(--navpad));left:0;width:0;border-radius:9999px;pointer-events:none;
+#tab-ind{position:absolute;top:5px;bottom:calc(6px + var(--navpad) + var(--navfill));left:0;width:0;border-radius:9999px;pointer-events:none;
   background:var(--card3);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 2px 10px rgba(0,0,0,.25);
   backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);-webkit-backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);
   transition:left .5s cubic-bezier(.3,1.4,.4,1),width .5s cubic-bezier(.3,1.4,.4,1),transform .5s cubic-bezier(.3,1.4,.4,1);
@@ -619,9 +620,9 @@ const THREE=(repLo,repHi,rest,rir)=>({sets:3,repLo,repHi,rest,rir:rir||"Failure"
 const CLEAN="Last clean rep";      // barbell lifts: stop where form would break, never grind
 const KNEE="1 rep in reserve";     // knee still sore: loaded leg work stops one short
 const DEFAULT_WORKOUTS = {
-  A:{title:"Push",ex:["machine-chest-press","incline-db-press","pec-fly","db-shoulder-press","cable-lateral","oh-tricep"],
-     note:"Monday. Chest and shoulders. Finish with 30–45 min on the incline — same visit, no second trip.",
-     p:{"machine-chest-press":TOP(5,8,8,12,150),"incline-db-press":TWO(6,10,120),"pec-fly":TWO(10,15,75),
+  A:{title:"Push",ex:["dips","machine-chest-press","pec-fly","db-shoulder-press","cable-lateral","oh-tricep"],
+     note:"Dips lead. Lean the torso forward and stop a touch above the deepest point your shoulders like — at your height the range is long enough already. Add weight once you clear 8 clean reps. Finish with 35 min on the incline.",
+     p:{"dips":TOP(5,8,8,12,150),"machine-chest-press":TWO(6,10,120),"pec-fly":TWO(10,15,75),
         "db-shoulder-press":TWO(6,10,120),"cable-lateral":THREE(12,20,60),"oh-tricep":TWO(8,12,75)}},
   B:{title:"Pull",ex:["pullup","cs-row","lat-pulldown","shrug","cable-row-high","hammer-curl"],
      note:"Tuesday. Back and traps. Shrugs: a full second held at the top, heavy — this is the lift that builds the yoke.",
@@ -755,6 +756,8 @@ const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOV
 
 /* the week: 0 = Sunday. Lifts Mon/Wed/Fri, 90-min walks Tue/Sat/Sun, intervals Thu. */
 const DEFAULT_WEEK={lift:{1:"A",2:"B",4:"C",5:"D"},walk:[0,3],intervals:[6],postLift:35};
+/* the first session back is Push, whatever weekday that falls on */
+const FIRST_LIFT="A";
 function weekPlan(){ return (S&&S.settings&&S.settings.week)||DEFAULT_WEEK; }
 function dowOf(iso){ return new Date(iso+"T12:00").getDay(); }
 function liftFor(iso){ const w=weekPlan().lift[dowOf(iso||dayISO(Date.now()))]; return CYCLE.includes(w)?w:null; }
@@ -772,7 +775,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v39";
+const APP_VERSION = "v40";
 let S = null;
 
 function freshState(){
@@ -780,7 +783,7 @@ function freshState(){
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
     settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3500},macros:{kcal:2650,p:200,c:270,f:80},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
-    programmeVersion:11,
+    programmeVersion:12,
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
     sessions:[],        // {id,workout,dateISO,start,end,dur,sets:[{ex,w,reps}],volume,xp,prs:[{ex,type,label}]}
@@ -942,6 +945,7 @@ function load(){
   if(S.freshStart!==FRESH_START && dayISO(Date.now())>=FRESH_START){
     S.freshStart=FRESH_START; wipeHistory();
   }
+  if(S.programmeVersion<12){ S.programmeVersion=12; S.programme=null; }  // dips lead the push day
   if(S.programmeVersion<11){                                            // four days: push, pull, legs, upper
     S.programmeVersion=11; S.programme=null; S.blockStart=Date.now();
     S.settings.week=JSON.parse(JSON.stringify(DEFAULT_WEEK));
@@ -3215,8 +3219,14 @@ document.querySelectorAll("#tabbar .tab").forEach(b=>b.addEventListener("click",
    iOS keeps for itself. Size the shell to it and the bar lands on the real edge. */
 function sizeShell(){
   const vv=window.visualViewport;
-  const h=Math.round(vv?vv.height:innerHeight);
-  if(h>200) document.body.style.height=h+"px";
+  const visible=Math.round(vv?vv.height:innerHeight);
+  if(visible<=200) return;
+  // how much screen sits below what the page is allowed to lay out in
+  const spare=Math.max(0,Math.min(120,Math.round(screen.height-visible)));
+  const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+  const fill=standalone&&innerHeight>innerWidth?spare:0;
+  document.documentElement.style.setProperty("--navfill",fill+"px");
+  document.body.style.height=(visible+fill)+"px";
   moveTabInd(false);
 }
 function viewportShortfall(){
@@ -4414,6 +4424,7 @@ function wipeHistory(){
   for(const k in EXERCISES) if(!S.exState[k]) S.exState[k]={weight:null,xp:0,mastered:[]};
   S.gymStart=Date.now(); S.blockStart=Date.now(); S.schedSynced=null;
   S.foodFaves=S.foodFaves||[];
+  S.nextWorkout=FIRST_LIFT;
 }
 function startFresh(){
   if(!confirm("Clear all training, cardio, food and XP history and start from scratch? Your profile, photos, body measurements and settings stay.")) return;
