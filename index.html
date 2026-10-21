@@ -714,7 +714,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v36";
+const APP_VERSION = "v37";
 let S = null;
 
 function freshState(){
@@ -911,6 +911,7 @@ function load(){
   if(!S.buffs) S.buffs={}; if(!S.relics) S.relics=[]; if(!S.crates) S.crates=[];
   if(S.redemption===undefined) S.redemption=null;
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
+  if(!S.skillLevels){ refreshExercises(); refreshProgramme(); try{ S.skillLevels=skillSnapshot(); }catch(e){ S.skillLevels={}; } }
   if(S.settings.navNudge===undefined) S.settings.navNudge=0;
   if(!S.settings.theme) S.settings.theme="dark";
   if(S.settings.theme==="light"&&!S.settings.themePicked) S.settings.theme="dark";   // v35 shipped light by mistake
@@ -2295,7 +2296,7 @@ function logCardio(){
     else if(mins>before.long) pr=`Longest session — ${mins} min`;
   }
   evalAchievements();
-  save(); closeSheet(); renderAll();
+  save(); closeSheet(); renderAll(); checkSkillLevels();
   if(!before.hit && total>=target){
     confetti({count:60}); sndDone(); haptic([40,70,40]);
     toast(`Cardio done — ${total} min${cardioStreak()>1?` · ${cardioStreak()} days running`:""}`,true);
@@ -2428,6 +2429,163 @@ function weightsTierHTML(){
   </div>`;
 }
 
+/* ---------------- skills: the RuneScape ladder ----------------
+   Levels come from what you can actually do, not from grinding taps. The XP
+   table is RuneScape's own, so the last levels cost what they should. */
+const RS_XP=(()=>{ const t=[0,0]; let p=0;
+  for(let l=1;l<99;l++){ p+=Math.floor(l+300*Math.pow(2,l/7)); t[l+1]=Math.floor(p/4); }
+  return t; })();
+const RS_MAX=RS_XP[99];
+function rsLevel(xp){ let l=1; while(l<99 && xp>=RS_XP[l+1]) l++; return l; }
+function rsProgress(xp){
+  const l=rsLevel(xp);
+  if(l>=99) return {lvl:99,pct:100,into:0,need:0,next:null};
+  const a=RS_XP[l], b=RS_XP[l+1];
+  return {lvl:l,pct:Math.max(0,Math.min(100,(xp-a)/(b-a)*100)),into:Math.round(xp-a),need:Math.round(b-a),next:l+1};
+}
+/* Where you sit between a beginner's mark and the 99 goal, mapped onto the
+   level ladder. Early levels come quickly, the last ten are brutal. */
+function capSkill(value,floor,goal,curve){
+  const f=Math.max(0,Math.min(1,(value-floor)/(goal-floor)));
+  const pos=1+98*Math.pow(f,curve||0.85);
+  const lvl=Math.min(99,Math.floor(pos)), frac=Math.min(1,pos-lvl);
+  const base=RS_XP[lvl], next=RS_XP[Math.min(99,lvl+1)];
+  return {lvl,xp:Math.round(base+frac*(next-base))};
+}
+function bodyWeight(){
+  const b=[...(S.bodyLogs||[])].filter(x=>x.weight).sort((x,y)=>x.date<y.date?-1:1).pop();
+  return b?b.weight:(S.profile.startWeightKg||95);
+}
+/* best estimated 1RM across a group, counting bodyweight on pull-ups and dips */
+function bestE1(keys){
+  const set=new Set(keys); let best=0;
+  for(const ses of S.sessions) for(const st of ses.sets){
+    if(!set.has(st.ex)) continue;
+    const def=EXERCISES[st.ex]||{};
+    const load=def.unit==="+kg"?bodyWeight()+st.w:st.w;
+    best=Math.max(best,e1rm(load,st.reps));
+  }
+  return best;
+}
+function bestSet(ex,fn){
+  let best=0;
+  for(const ses of S.sessions) for(const st of ses.sets) if(st.ex===ex) best=Math.max(best,fn(st));
+  return best;
+}
+function coreScore(){
+  const carry=bestSet("farmer-carry",st=>st.reps>=40?st.w:0);       // kg a hand held 40s+
+  const raise=bestSet("hanging-knee-raise",st=>st.reps)*2;
+  const crunch=bestSet("cable-crunch",st=>st.w)/2;
+  const hyper=bestSet("hyperextension",st=>st.w)/2;
+  return carry+raise+crunch+hyper;
+}
+const PUSH_EX=["bench","incline-bench","machine-chest-press","incline-db-press","ohp","db-shoulder-press","dips"];
+const PULL_EX=["pullup","barbell-row","cs-row","db-row-1arm","lat-pulldown","seated-row"];
+const LEG_EX=["leg-press","leg-extension","leg-curl-seated","leg-curl-lying","trap-bar-dl","rdl","hip-thrust"];
+/* The 99s are Joe's own targets. Strength: bench 180×5 is a 210kg estimated max.
+   Attack: +60kg pull-ups × 5 at ~95kg bodyweight is about 180. */
+const SKILLS=[
+  {k:"strength",n:"Strength",e:"🗡️",goal:"Bench 180kg × 5",
+   calc:()=>capSkill(bestE1(PUSH_EX),40,210)},
+  {k:"attack",n:"Attack",e:"⚔️",goal:"Weighted pull-up +60kg × 5",
+   calc:()=>capSkill(bestE1(PULL_EX),60,180)},
+  {k:"defence",n:"Defence",e:"🛡️",goal:"Leg press 300kg × 10",
+   calc:()=>capSkill(bestE1(LEG_EX),60,400)},
+  {k:"hitpoints",n:"Hitpoints",e:"❤️",goal:"50kg carries, 20 hanging raises",
+   calc:()=>capSkill(coreScore(),0,150)},
+  {k:"agility",n:"Agility",e:"🏃",goal:"10,000m climbed · 50 cardio sessions",
+   calc:()=>capSkill(totalClimb()/100+(S.cardio||[]).length,0,150,0.7)},
+  {k:"cooking",n:"Cooking",e:"🍳",goal:"Hit protein 200 days",
+   calc:()=>{const days=[...new Set((S.food||[]).map(f=>f.date))].filter(d=>foodTotals(d).p>=macroTargets().p).length;
+     return capSkill(days,0,200,0.7);}},
+  {k:"mining",n:"Mining",e:"⛏️",goal:"1,000,000kg lifted",
+   calc:()=>capSkill(sum(S.sessions.map(x=>x.volume||0)),0,1000000,0.7)},
+  {k:"slayer",n:"Slayer",e:"💀",goal:"500 sessions logged",
+   calc:()=>capSkill(S.sessions.length+(S.cardio||[]).length,0,500,0.7)},
+];
+function skillState(){
+  return SKILLS.map(sk=>{
+    let r; try{ r=sk.calc(); }catch(e){ r={lvl:1,xp:0}; }
+    return Object.assign({},sk,{xpv:r.xp},rsProgress(r.xp));
+  });
+}
+function totalLevel(){ return sum(skillState().map(s=>s.lvl)); }
+function skillSnapshot(){ return Object.fromEntries(skillState().map(s=>[s.k,s.lvl])); }
+/* called after anything that could move a skill; announces the level-ups */
+function checkSkillLevels(){
+  const before=S.skillLevels||{};
+  const now=skillSnapshot();
+  const ups=[];
+  for(const sk of SKILLS){
+    const was=before[sk.k], is=now[sk.k];
+    if(was!==undefined && is>was) ups.push({sk,from:was,to:is});
+  }
+  S.skillLevels=now; save();
+  if(ups.length) setTimeout(()=>announceLevels(ups),600);
+  return ups;
+}
+function announceLevels(ups){
+  const u=ups[0], rest=ups.length-1;
+  openSheet(`<div style="text-align:center;padding:10px 0">
+      <div style="font-size:64px;line-height:1">${u.sk.e}</div>
+      <div class="eyebrow acc" style="margin-top:8px">Congratulations</div>
+      <h2 style="font-size:28px;font-weight:600;margin:4px 0 6px">${u.sk.n} level ${u.to}</h2>
+      <p style="color:var(--muted);font-size:15px;line-height:1.5">You've just advanced a ${u.sk.n} level.<br>
+        Total level is now <b style="color:var(--text)">${totalLevel()}</b>.</p>
+      ${rest>0?`<div class="tag acc" style="margin-top:12px">+${rest} other skill${rest>1?"s":""} levelled</div>`:""}
+      <button class="btn primary" style="margin-top:20px" onclick="closeSheet();switchTab('awards')">See the ladder</button>
+    </div>`);
+  sndPR(); confetti({count:70}); haptic([40,70,40,70,120]);
+}
+function skillsCardHTML(){
+  const st=skillState();
+  return `<div class="card">
+    <div class="spread" style="align-items:baseline;margin-bottom:12px">
+      <span class="eyebrow">Skills</span>
+      <span style="font-size:15px">Total level <b class="mono">${totalLevel()}</b><span style="color:var(--dim)">/792</span></span>
+    </div>
+    ${st.map(s=>`<div class="spread" style="padding:7px 0;gap:12px" onclick="openSkill('${s.k}')">
+      <span style="display:flex;align-items:center;gap:10px;min-width:0">
+        <span style="font-size:17px;width:22px;text-align:center">${s.e}</span>
+        <span style="min-width:0"><div style="font-weight:600;font-size:15px">${s.n}</div>
+          <div style="font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.goal}</div></span>
+      </span>
+      <span style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+        <span class="xpbar" style="width:72px;margin:0"><i style="width:${s.pct}%"></i></span>
+        <span class="mono" style="font-weight:600;font-size:15px;width:24px;text-align:right">${s.lvl}</span>
+      </span>
+    </div>`).join("")}
+  </div>`;
+}
+function openSkill(k){
+  const s=skillState().find(x=>x.k===k); if(!s) return;
+  openSheet(`<div style="text-align:center;padding:4px 0 2px">
+      <div style="font-size:48px;line-height:1">${s.e}</div>
+      <h2 style="font-size:26px;font-weight:600;margin:8px 0 2px">${s.n}</h2>
+      <div style="color:var(--muted);font-size:15px">Level ${s.lvl} · ${s.xpv.toLocaleString("en-GB")} xp</div>
+    </div>
+    <div class="lvlbar" style="margin:18px 0 6px"><i style="width:${s.pct}%"></i></div>
+    <div class="spread" style="font-size:13px;color:var(--muted)">
+      <span>${s.next?`${s.into.toLocaleString("en-GB")} / ${s.need.toLocaleString("en-GB")} to ${s.next}`:"Maxed"}</span>
+      <span>${Math.round(s.pct)}%</span>
+    </div>
+    <div class="card" style="margin-top:18px">
+      <div class="eyebrow" style="margin-bottom:6px">Level 99</div>
+      <div style="font-size:16px;font-weight:600">${s.goal}</div>
+      <div style="font-size:14px;color:var(--muted);margin-top:6px;line-height:1.45">${SKILL_BLURB[s.k]||""}</div>
+    </div>`);
+}
+const SKILL_BLURB={
+  strength:"Your best estimated one-rep max across every pressing lift — bench, machine press, incline, overhead and dips. Heavier top sets move it; volume doesn't.",
+  attack:"Pulling strength: weighted pull-ups and every row. Added weight on pull-ups moves this fastest.",
+  defence:"Legs and the joints around them — presses, extensions, curls and hinges. Knee-friendly work still counts.",
+  hitpoints:"Trunk work: loaded carries, hanging raises, cable crunches and hyperextensions. The hardest one to fake.",
+  agility:"Cardio fitness — metres climbed on the incline plus sessions banked. The long walks carry this one.",
+  cooking:"Days you hit your protein target. One a day, no shortcuts — the slowest burn of the lot and the one that decides whether the rest shows.",
+  mining:"Every kilo you've ever moved, added up. Pure grind. It only ever goes up.",
+  slayer:"Sessions logged, lifting and cardio both. Turning up is the whole skill.",
+};
+
 /* ---------------- food ---------------- */
 function macroTargets(){ return S.settings.goals.macros||{kcal:2650,p:200,c:270,f:80}; }
 function foodOn(iso){ return (S.food||[]).filter(f=>f.date===iso); }
@@ -2460,7 +2618,7 @@ function addFood(item,grams){
     addXP(40,"Protein target hit"); haptic([30,60,30]);
     setTimeout(()=>toast(`Protein hit — ${Math.round(t.p)}g 💪`,true),300);
   }
-  save(); renderAll();
+  save(); renderAll(); checkSkillLevels();
   return entry;
 }
 function deleteFood(id){
@@ -3079,6 +3237,17 @@ function renderToday(){
       ${pillsHTML()}
     </div>
     ${inProgressHTML()}
+    <div class="card" style="padding:14px 18px;cursor:pointer" onclick="switchTab('awards')">
+      <div class="spread" style="align-items:center;gap:10px">
+        <div style="min-width:0"><div class="eyebrow">Total level</div>
+          <div style="font-size:22px;font-weight:600;letter-spacing:.011em" class="mono">${totalLevel()}<span style="color:var(--dim);font-size:15px;font-weight:400">/792</span></div></div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          ${skillState().map(s=>`<span style="text-align:center">
+            <div style="font-size:14px;line-height:1.1">${s.e}</div>
+            <div class="mono" style="font-size:11px;color:var(--muted)">${s.lvl}</div></span>`).join("")}
+        </div>
+      </div>
+    </div>
     ${weightsTierHTML()}
     ${cardioTierHTML()}
     ${foodTierHTML()}
@@ -3862,11 +4031,13 @@ function openExercise(ex){
 
 /* ---------------- AWARDS ---------------- */
 function renderAwards(){
+  window.__skillsFirst=1;
   const unlocked=ACHIEVEMENTS.filter(a=>S.achievements[a.id]);
   const locked=ACHIEVEMENTS.filter(a=>!S.achievements[a.id]);
   el("screen-awards").innerHTML=`
     <div class="spread" style="margin-bottom:4px"><h1>Awards</h1>${pillsHTML()}</div>
-    <div style="color:var(--muted);font-size:14px;margin-bottom:18px;font-weight:600">${unlocked.length} of ${ACHIEVEMENTS.length} trophies unlocked</div>
+    <div style="color:var(--muted);font-size:14px;margin-bottom:18px;font-weight:600">Total level ${totalLevel()} · ${unlocked.length} of ${ACHIEVEMENTS.length} trophies</div>
+    ${skillsCardHTML()}
     <div class="card" style="cursor:pointer" onclick="openRankSheet()">
       <div class="spread">
         <div style="display:flex;align-items:center;gap:14px">
@@ -4619,6 +4790,7 @@ function finishWorkout(early){
   const newAch=evalAchievements();
   S.activeSession=null;
   save();
+  checkSkillLevels();
   sndDone(); haptic([50,100,50,100,50,100,150]);
   el("workout-overlay").classList.remove("open");
   window.__pendingCrate=true;
