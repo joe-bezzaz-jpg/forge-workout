@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Workout">
-<meta name="theme-color" content="#f6f6f7">
+<meta name="theme-color" content="#18181a">
 <title>Workout</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -15,64 +15,67 @@
 <style>
 /* Light system modelled on Twenty: off-white canvas, white cards, hairline
    borders, generous radii, one blue action and calm data colours. */
+/* Dark system sampled from Twenty's own screenshots: near-black canvas, slate
+   cards a shade lighter, hairline borders, one blue action, violet data. */
 :root{
+  --brand:#3e64dd; --brand2:#5b7ce8; --brand-deep:#2f4fba;
+  --bg:#18181a; --bg2:#1f2125;
+  --card:#1f2125; --card2:#1a1b1e; --card3:#2a2c31;
+  --line:#2b2d33; --line2:#3a3d44;
+  --text:#e9eaec; --muted:#9ba0a8; --dim:#6e737c;
+  --accent:#3e64dd; --accent-ink:#ffffff; --accent-dim:rgba(62,100,221,.18);
+  --link:#7f9bf0;
+  --gold:#e9eaec; --gold-dim:rgba(233,234,236,.08); --gold-bg:#2a2c31;
+  --orange:#e9eaec; --orange-bg:#2a2c31;
+  --success:#3bb27f; --success-dim:rgba(59,178,127,.14); --success-line:rgba(59,178,127,.45);
+  --danger:#e5544b; --danger-dim:rgba(229,84,75,.14); --danger-deep:#c33b33;
+  --warn:#e0912f;
+  --pink:#c04d96; --pink-dim:#451a36; --blue:#3e64dd; --purple:#a07cf0; --ember:#e0912f;
+  --viz:#a07cf0; --viz2:#3bb27f;
+  --spectrum:linear-gradient(108deg,#3e64dd,#a07cf0 45%,#3bb27f);
+  --shadow:0 1px 2px rgba(0,0,0,.3); --shadow2:0 8px 28px rgba(0,0,0,.45);
+  --nav:rgba(24,24,26,.86); --nav-solid:#141416; --nav-line:#2b2d33; --nav-ink:#e9eaec;
+  --accent-o:#e0912f;
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --navpad:0px;        /* manual bottom padding on the nav, set in Profile */
+  --sabx:var(--sab);
+  --r:16px;
+}
+html[data-theme="light"]{
   --brand:#1961ed; --brand2:#4b83f2; --brand-deep:#1748b8;
   --bg:#f6f6f7; --bg2:#ffffff;
   --card:#ffffff; --card2:#fbfbfc; --card3:#f0f0f2;
   --line:#e8e8ec; --line2:#d9d9df;
   --text:#17171a; --muted:#6b6b76; --dim:#9b9ba6;
-  --accent:#1961ed; --accent-ink:#ffffff; --accent-dim:rgba(25,97,237,.09);
+  --accent:#1961ed; --accent-dim:rgba(25,97,237,.09);
   --link:#1961ed;
   --gold:#17171a; --gold-dim:rgba(23,23,26,.06); --gold-bg:#f0f0f2;
   --orange:#17171a; --orange-bg:#f0f0f2;
   --success:#1f9d76; --success-dim:rgba(31,157,118,.12); --success-line:rgba(31,157,118,.4);
   --danger:#e5484d; --danger-dim:rgba(229,72,77,.1); --danger-deep:#c62a2f;
   --warn:#d97706;
-  --pink:#e5484d; --blue:#1961ed; --purple:#7c5cff; --ember:#d97706;
+  --pink:#e5484d; --pink-dim:#fde8ea; --blue:#1961ed; --purple:#7c5cff; --ember:#d97706;
   --viz:#7c5cff; --viz2:#1f9d76;
-  --spectrum:linear-gradient(108deg,#1961ed,#7c5cff 45%,#1f9d76);
   --shadow:0 1px 2px rgba(23,23,26,.04); --shadow2:0 4px 16px rgba(23,23,26,.07);
-  --nav:rgba(255,255,255,.82); --nav-line:#e8e8ec; --nav-ink:#6b6b76;
+  --nav:rgba(255,255,255,.82); --nav-solid:#ffffff; --nav-line:#e8e8ec; --nav-ink:#6b6b76;
   --accent-o:#e8590c;
-  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
-  --navgap:0px;
-  --sabx:max(var(--sab),var(--navgap));
-  --r:16px;
-}
-html[data-theme="dark"]{
-  --brand:#0071e3; --brand2:#2997ff; --brand-deep:#0071e3;
-  --bg:#000000; --bg2:#1d1d1f;
-  --card:#1d1d1f; --card2:#161617; --card3:#333336;
-  --line:rgba(134,134,139,.22); --line2:rgba(134,134,139,.38);
-  --text:#f5f5f7; --muted:#86868b; --dim:#6e6e73;
-  --accent:#0071e3; --accent-dim:rgba(41,151,255,.14);
-  --link:#2997ff;
-  --gold:#f5f5f7; --gold-dim:rgba(255,255,255,.08); --gold-bg:#333336;
-  --orange:#f5f5f7; --orange-bg:#333336;
-  --success:#2997ff; --success-dim:rgba(41,151,255,.12); --success-line:rgba(41,151,255,.45);
-  --danger:#ff453a; --danger-dim:rgba(255,69,58,.14); --danger-deep:#ff453a;
-  --warn:#ff9f0a;
-  --pink:#f2416b; --blue:#0090f7; --purple:#ba62fc; --ember:#f55600;
-  --viz:#ba62fc; --viz2:#2997ff;
-  --shadow:none; --shadow2:none;
-  --nav:rgba(29,29,31,.72); --nav-line:rgba(255,255,255,.07); --nav-ink:#ffffff;
-  --accent-o:#ff7a1a;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 button,a,.tab,.quest,.dcard,.chip,.pill,.list-item,.trophy,input,select{touch-action:manipulation}
-html{-webkit-text-size-adjust:100%;height:100%;background:var(--bg);color-scheme:light}
-html[data-theme="dark"]{color-scheme:dark}
+html{-webkit-text-size-adjust:100%;height:100%;background:var(--nav-solid);color-scheme:dark}
+html[data-theme="light"]{color-scheme:light}
 body{
   background:var(--bg); color:var(--text);
   font-family:"SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size:17px; line-height:1.47; letter-spacing:-.022em; overscroll-behavior:none;
   -webkit-font-smoothing:antialiased; user-select:none; -webkit-user-select:none;
   position:fixed; inset:0; overflow:hidden; width:100%;
+  display:flex; flex-direction:column;
 }
-#app{max-width:520px;margin:0 auto;height:100%;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
-  overscroll-behavior:contain;position:relative;z-index:1}
+#app{max-width:520px;width:100%;margin:0 auto;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:1}
 html,body{overflow-x:hidden}
-.screen{display:none;padding:calc(10px + var(--sat)) 16px calc(92px + max(6px,calc(var(--sabx) - 20px)));animation:fadeUp .28s ease both;position:relative;min-height:100%;overflow:hidden}
+.screen{display:none;padding:calc(10px + var(--sat)) 16px 20px;animation:fadeUp .28s ease both;position:relative;min-height:100%;overflow:hidden}
 .screen.active{display:block}
 /* brand band curving in from the top (every screen) */
 /* faint volt glow at the top instead of a colour band */
@@ -117,15 +120,15 @@ b,strong{font-weight:600}
 .btn:disabled{opacity:.4;pointer-events:none}
 
 /* ---------- tab bar (floating white pill) ---------- */
-#tabbar{position:fixed;bottom:calc(0px - var(--navgap));left:0;right:0;z-index:50;width:100%;
+#tabbar{position:relative;flex:0 0 auto;z-index:50;width:100%;max-width:520px;margin:0 auto;
   background:var(--nav);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);
   border-radius:26px 26px 0 0;display:flex;align-items:center;justify-content:space-around;
-  padding:5px 8px max(6px,calc(var(--sabx) - 20px));
-  box-shadow:0 -6px 24px rgba(23,23,26,.07);
+  padding:5px 8px calc(6px + var(--navpad));
+  box-shadow:0 -6px 24px rgba(0,0,0,.25);
   border-top:1px solid var(--nav-line)}
 /* the bar's own background continues past the screen edge, so it can never look lifted */
-#tabbar::after{content:"";position:absolute;left:0;right:0;top:100%;height:160px;background:var(--nav);pointer-events:none}
-#tab-ind{position:absolute;top:5px;bottom:max(6px,calc(var(--sabx) - 20px));left:0;width:0;border-radius:9999px;pointer-events:none;
+
+#tab-ind{position:absolute;top:5px;bottom:calc(6px + var(--navpad));left:0;width:0;border-radius:9999px;pointer-events:none;
   background:var(--card3);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 2px 10px rgba(0,0,0,.25);
   backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);-webkit-backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);
   transition:left .5s cubic-bezier(.3,1.4,.4,1),width .5s cubic-bezier(.3,1.4,.4,1),transform .5s cubic-bezier(.3,1.4,.4,1);
@@ -136,8 +139,7 @@ b,strong{font-weight:600}
   color:var(--nav-ink);font-family:inherit;font-size:11px;font-weight:500;letter-spacing:-.01em;cursor:pointer;padding:8px 0 5px;border-radius:9999px;transition:color .25s}
 .tab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tab.active{color:var(--accent-o)}
-html:not([data-theme="dark"]) .tab{color:var(--muted)}
-html:not([data-theme="dark"]) .tab.active{color:var(--accent-o)}
+html[data-theme="light"] .tab{color:var(--muted)}
 .tab.train{flex:0 0 auto;padding:0 6px}
 .tab.train .train-btn{width:50px;height:50px;border-radius:50%;background:var(--accent-o);display:flex;align-items:center;justify-content:center;
   box-shadow:0 4px 14px rgba(232,89,12,.35)}
@@ -712,7 +714,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v35";
+const APP_VERSION = "v36";
 let S = null;
 
 function freshState(){
@@ -910,7 +912,8 @@ function load(){
   if(S.redemption===undefined) S.redemption=null;
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
   if(S.settings.navNudge===undefined) S.settings.navNudge=0;
-  if(!S.settings.theme) S.settings.theme="light";
+  if(!S.settings.theme) S.settings.theme="dark";
+  if(S.settings.theme==="light"&&!S.settings.themePicked) S.settings.theme="dark";   // v35 shipped light by mistake
   save();
 }
 
@@ -2934,19 +2937,19 @@ function viewportShortfall(){
   return short>=8 && short<=120 ? short : 0;
 }
 function applyTheme(){
-  const t=(S&&S.settings&&S.settings.theme)||"light";
+  const t=(S&&S.settings&&S.settings.theme)||"dark";
   document.documentElement.setAttribute("data-theme",t);
   const m=document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute("content",t==="dark"?"#000000":"#f6f6f7");
+  if(m) m.setAttribute("content",t==="light"?"#f6f6f7":"#18181a");
 }
-function setTheme(t){ S.settings.theme=t; save(); applyTheme(); renderAll(); }
+function setTheme(t){ S.settings.theme=t; S.settings.themePicked=1; save(); applyTheme(); renderAll(); }
 function fixNavGap(){
   const root=document.documentElement;
-  // the window is already inset below the page: don't add home-indicator padding on top of it
-  if(viewportShortfall()) root.style.setProperty("--sab","0px");
-  else root.style.removeProperty("--sab");
-  const nudge=Math.max(-24,Math.min(60,(S&&S.settings&&S.settings.navNudge)||0));
-  root.style.setProperty("--navgap",nudge+"px");
+  const short=viewportShortfall();
+  // iOS already keeps the home-indicator strip outside the page: don't pad for it twice
+  if(short) root.style.setProperty("--sab","0px"); else root.style.removeProperty("--sab");
+  const nudge=Math.max(0,Math.min(60,(S&&S.settings&&S.settings.navNudge)||0));
+  root.style.setProperty("--navpad",(short?0:0)+nudge+"px");
   moveTabInd(false);
 }
 function moveTabInd(animate){
@@ -3998,14 +4001,14 @@ function renderProfile(){
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Appearance</div>
-          <div style="font-size:12px;color:var(--muted)">Light is the new default</div></div>
+          <div style="font-size:12px;color:var(--muted)">Dark by default</div></div>
         <div class="seg" style="width:150px;margin:0">
-          ${["light","dark"].map(t=>`<button class="${(S.settings.theme||"light")===t?"active":""}" onclick="setTheme('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join("")}
+          ${["dark","light"].map(t=>`<button class="${(S.settings.theme||"dark")===t?"active":""}" onclick="setTheme('${t}')">${t[0].toUpperCase()+t.slice(1)}</button>`).join("")}
         </div>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Nav bar position</div>
-          <div style="font-size:12px;color:var(--muted)">Nudge the bar up or down if it doesn't sit right</div></div>
+          <div style="font-size:12px;color:var(--muted)">Extra height on the bar, if it still sits short</div></div>
         <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
           <button class="chipset" onclick="nudgeNav(-4)">−</button>
           <span class="mono" style="font-size:13px;min-width:34px;text-align:center">${(S.settings.navNudge||0)>0?"+":""}${S.settings.navNudge||0}px</span>
