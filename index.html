@@ -807,7 +807,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v43";
+const APP_VERSION = "v44";
 let S = null;
 
 function freshState(){
@@ -3280,11 +3280,8 @@ function sizeShell(){
   const visible=Math.round(vv?vv.height:innerHeight);
   if(visible<=200) return;
   // how much screen sits below what the page is allowed to lay out in
-  const spare=Math.max(0,Math.min(120,Math.round(screen.height-visible)));
-  const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
-  const fill=standalone&&innerHeight>innerWidth?spare:0;
-  document.documentElement.style.setProperty("--navfill",fill+"px");
-  document.body.style.height=(visible+fill)+"px";
+  document.documentElement.style.setProperty("--navfill","0px");
+  document.body.style.height=visible+"px";
   moveTabInd(false);
 }
 function viewportShortfall(){
