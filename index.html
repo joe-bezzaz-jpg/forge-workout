@@ -12,6 +12,9 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* Light system modelled on Twenty: off-white canvas, white cards, hairline
    borders, generous radii, one blue action and calm data colours. */
@@ -66,8 +69,8 @@ html{-webkit-text-size-adjust:100%;height:100%;background:var(--nav-solid);color
 html[data-theme="light"]{color-scheme:light}
 body{
   background:var(--bg); color:var(--text);
-  font-family:"SF Pro Text",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
-  font-size:17px; line-height:1.47; letter-spacing:-.022em; overscroll-behavior:none;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size:15px; line-height:1.5; letter-spacing:-.011em; overscroll-behavior:none;
   -webkit-font-smoothing:antialiased; user-select:none; -webkit-user-select:none;
   position:fixed; inset:0; overflow:hidden; width:100%;
   display:flex; flex-direction:column;
@@ -87,7 +90,7 @@ html,body{overflow-x:hidden}
 @keyframes pop{0%{transform:scale(.92);opacity:0}60%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
 @keyframes pulseGlow{0%,100%{opacity:.85}50%{opacity:1}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-h1,h2,h3,.big-num,.countdown,.wletter{font-family:"SF Pro Display",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600}
+h1,h2,h3,.big-num,.countdown,.wletter{font-family:Inter,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-.021em}
 h1{font-size:32px;letter-spacing:.004em;line-height:1.13}
 b,strong{font-weight:600}
 .icn{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;display:inline-block;flex-shrink:0}
@@ -96,7 +99,7 @@ b,strong{font-weight:600}
 @keyframes crateShake{0%,88%,100%{transform:rotate(0)}91%{transform:rotate(-7deg)}94%{transform:rotate(7deg)}97%{transform:rotate(-4deg)}}
 @keyframes ringPulse{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.9);opacity:0}}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
-.eyebrow{font-size:14px;font-weight:400;letter-spacing:-.006em;color:var(--muted)}
+.eyebrow{font-size:11px;font-weight:500;letter-spacing:.055em;text-transform:uppercase;color:var(--dim)}
 .eyebrow.acc{color:var(--link)}
 .big-num{font-size:56px;font-weight:600;letter-spacing:-.005em;line-height:1.07;font-variant-numeric:tabular-nums}
 .mono{font-variant-numeric:tabular-nums}
@@ -221,7 +224,7 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .nextup .wletter{font-size:64px;font-weight:600;letter-spacing:-.009em;line-height:.9;color:var(--link)}
 .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat{background:var(--card);border:none;border-radius:20px;padding:16px}
-.stat .v{font-size:28px;font-weight:600;letter-spacing:.007em;margin-top:2px;font-family:"SF Pro Display",-apple-system,sans-serif}
+.stat .v{font-size:28px;font-weight:600;letter-spacing:.007em;margin-top:2px;font-family:Inter,-apple-system,sans-serif}
 .stat .l{font-size:14px;color:var(--muted);font-weight:400;letter-spacing:-.006em}
 .xpbar{height:8px;border-radius:4px;background:var(--card3);overflow:hidden;margin-top:8px}
 .xpbar i{display:block;height:100%;background:var(--brand);border-radius:4px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
@@ -267,7 +270,7 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .wk2clocks{display:flex;gap:10px;margin-top:10px}
 .wk2clock{flex:1;background:var(--card);border-radius:16px;padding:8px 12px}
 .wk2clock .l{font-size:11px;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
-.wk2clock .v{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
+.wk2clock .v{font-family:Inter,-apple-system,sans-serif;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
 .wk2clock.over .v{color:var(--warn)}
 .nrow{background:var(--card);border-radius:20px;padding:14px 14px 12px;margin-bottom:10px}
 .grid3{display:grid;grid-template-columns:76px repeat(var(--cols,2),minmax(0,1fr));gap:7px;align-items:end}
@@ -312,18 +315,18 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .input-stepper .stp{width:50px;height:50px;border-radius:50%;background:var(--card3);border:none;color:var(--text);
   font-size:26px;font-weight:400;cursor:pointer;font-family:inherit}
 .input-stepper .stp:active{filter:brightness(1.2)}
-.input-stepper .val{flex:1;text-align:center;background:none;border:none;color:var(--text);font-family:"SF Pro Display",-apple-system,sans-serif;
+.input-stepper .val{flex:1;text-align:center;background:none;border:none;color:var(--text);font-family:Inter,-apple-system,sans-serif;
   font-size:40px;font-weight:600;letter-spacing:0;width:90px;font-variant-numeric:tabular-nums;outline:none}
 .tile{background:var(--card2);border-radius:22px;padding:14px 14px 12px}
 .tile .tl{font-size:14px;color:var(--muted);letter-spacing:-.006em;font-weight:400;margin-bottom:4px}
-.tile .tv{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:44px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-align:center;background:none;border:none;color:var(--text);width:100%;outline:none}
+.tile .tv{font-family:Inter,-apple-system,sans-serif;font-size:44px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums;text-align:center;background:none;border:none;color:var(--text);width:100%;outline:none}
 .tile .tb{display:flex;gap:8px;margin-top:10px}
 .tile .tb button{flex:1;height:44px;border-radius:9999px;border:none;background:var(--card3);color:var(--text);font-size:24px;font-family:inherit;cursor:pointer}
 .tile .tb button:active{filter:brightness(1.2)}
 .score{background:var(--card);border-radius:var(--r);padding:20px 22px;margin:14px 0 12px}
 .score .vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:end;gap:10px}
 .score .side .k{font-size:14px;color:var(--muted);letter-spacing:-.006em;font-weight:400}
-.score .side .n{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:40px;font-weight:600;line-height:1.05;letter-spacing:-.005em;font-variant-numeric:tabular-nums}
+.score .side .n{font-family:Inter,-apple-system,sans-serif;font-size:40px;font-weight:600;line-height:1.05;letter-spacing:-.005em;font-variant-numeric:tabular-nums}
 .score .side .u{font-size:13px;color:var(--muted);margin-top:2px}
 .score .side.right{text-align:right}
 .score .vsmark{font-size:13px;color:var(--dim);padding-bottom:16px}
@@ -341,7 +344,7 @@ html[data-theme="light"] .tab{color:var(--muted)}
 /* the two tiers: weights + cardio */
 .tier{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:12px;border:1px solid var(--line);box-shadow:var(--shadow)}
 .tier.done{border-color:var(--success-line)}
-.tbig{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:34px;font-weight:600;letter-spacing:-.005em;line-height:1.1;margin-top:4px}
+.tbig{font-family:Inter,-apple-system,sans-serif;font-size:34px;font-weight:600;letter-spacing:-.005em;line-height:1.1;margin-top:4px}
 .tbig span{font-size:17px;font-weight:400;color:var(--muted)}
 .tbar{height:6px;border-radius:3px;background:var(--card3);margin-top:16px;overflow:hidden}
 .tbar i{display:block;height:100%;border-radius:3px;background:var(--link);transition:width .6s cubic-bezier(.2,.8,.2,1)}
@@ -360,6 +363,12 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .tnote{font-size:14px;color:var(--muted);line-height:1.45;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--card3)}
 .tnote.warn{color:var(--text);background:rgba(255,159,10,.14)}
 .tnote a{cursor:pointer;font-weight:600}
+.planrow{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
+.planrow:first-of-type{border-top:none}
+.planchk{width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--card3);color:transparent;
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.planrow.on .planchk{background:var(--success);color:#fff}
+.planrow.on>span:nth-child(2) div:first-child{color:var(--muted)}
 /* editable set chips */
 .chipset{border:none;border-radius:9999px;background:var(--card3);color:var(--text);font-family:inherit;
   font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;padding:7px 13px;cursor:pointer}
@@ -459,7 +468,7 @@ label.fld span{display:block;font-size:12px;color:var(--muted);font-weight:600;m
   animation:hsweep 1.5s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes hsweep{0%{background-position:0% 0}100%{background-position:100% 0}}
 .quote-card{background:transparent;border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;margin-bottom:12px;cursor:pointer;position:relative;overflow:hidden;min-height:96px}
-.quote-card .qtxt{font-family:"SF Pro Display",-apple-system,sans-serif;font-size:21px;font-weight:600;line-height:1.19;letter-spacing:.011em;transition:opacity .35s}
+.quote-card .qtxt{font-family:Inter,-apple-system,sans-serif;font-size:21px;font-weight:600;line-height:1.19;letter-spacing:.011em;transition:opacity .35s}
 .quote-card .qwho{font-size:13px;font-weight:400;letter-spacing:.02em;color:var(--muted);margin-top:10px}
 .quote-card.fade .qtxt,.quote-card.fade .qwho{opacity:0}
 </style>
@@ -566,18 +575,23 @@ const THREE=(repLo,repHi,rest,rir)=>({sets:3,repLo,repHi,rest,rir:rir||"Failure"
 const CLEAN="Last clean rep";      // barbell lifts: stop where form would break, never grind
 const KNEE="1 rep in reserve";     // knee still sore: loaded leg work stops one short
 const DEFAULT_WORKOUTS = {
-  A:{title:"Full Body · Push-led",ex:["machine-chest-press","pec-fly","db-shoulder-press","lat-pulldown","leg-press","cable-crunch"],
-     note:"Monday. Chest and shoulders lead. Leg press: feet high and wide, only as deep as stays pain-free, one rep in reserve — drive the concentric fast, that's where the explosiveness comes from.",
-     p:{"machine-chest-press":TOP(5,8,8,12,150),"pec-fly":TWO(10,15,75),"db-shoulder-press":TWO(6,10,120),
-        "lat-pulldown":TWO(8,12,105),"leg-press":TWO(8,12,150,KNEE),"cable-crunch":TWO(10,15,60)}},
-  B:{title:"Full Body · Pull-led",ex:["pullup","cs-row","shrug","cable-lateral","leg-extension","hanging-knee-raise"],
-     note:"Wednesday. Shrugs: a full second held at the top, heavy — this is the lift that builds the yoke. Leg extensions: slow down on the way back, they're what settles the knee.",
-     p:{"pullup":TOP(4,6,6,10,180),"cs-row":TWO(8,12,105),"shrug":THREE(8,12,90),
-        "cable-lateral":THREE(12,20,60),"leg-extension":TWO(12,20,60,KNEE),"hanging-knee-raise":TWO(10,15,60)}},
-  C:{title:"Full Body · Thickness",ex:["incline-db-press","db-row-1arm","db-shrug","leg-curl-seated","hyperextension","farmer-carry"],
-     note:"Friday. Hyperextensions and carries finish it — trunk, hips and grip. Walk tall on the carries and let them burn.",
-     p:{"incline-db-press":TOP(6,10,10,15,150),"db-row-1arm":TWO(8,12,90),"db-shrug":TWO(10,15,75),
-        "leg-curl-seated":TWO(8,12,90),"hyperextension":TWO(12,20,75,"2 in reserve"),"farmer-carry":TWO(40,60,90,"Set it down when form goes")}},
+  A:{title:"Push",ex:["machine-chest-press","incline-db-press","pec-fly","db-shoulder-press","cable-lateral","oh-tricep"],
+     note:"Monday. Chest and shoulders. Finish with 30–45 min on the incline — same visit, no second trip.",
+     p:{"machine-chest-press":TOP(5,8,8,12,150),"incline-db-press":TWO(6,10,120),"pec-fly":TWO(10,15,75),
+        "db-shoulder-press":TWO(6,10,120),"cable-lateral":THREE(12,20,60),"oh-tricep":TWO(8,12,75)}},
+  B:{title:"Pull",ex:["pullup","cs-row","lat-pulldown","shrug","cable-row-high","hammer-curl"],
+     note:"Tuesday. Back and traps. Shrugs: a full second held at the top, heavy — this is the lift that builds the yoke.",
+     p:{"pullup":TOP(4,6,6,10,180),"cs-row":TWO(8,12,105),"lat-pulldown":TWO(8,12,105),
+        "shrug":THREE(8,12,90),"cable-row-high":TWO(12,20,60),"hammer-curl":TWO(10,15,75)}},
+  C:{title:"Legs + Core",ex:["leg-extension","leg-press","leg-curl-seated","hyperextension","hanging-knee-raise","farmer-carry"],
+     note:"Thursday. Machines only, in and out. Start the extensions light for a set to warm the knee, then work. Leg press: feet high and wide, only as deep as stays pain-free, one rep in reserve. Knee rule — no worse than 3/10 during a set, and no worse the next morning.",
+     p:{"leg-extension":TWO(12,20,60,KNEE),"leg-press":TOP(8,12,12,20,150,KNEE),"leg-curl-seated":TWO(8,12,90),
+        "hyperextension":TWO(12,20,75,"2 in reserve"),"hanging-knee-raise":TWO(10,15,60),
+        "farmer-carry":TWO(40,60,90,"Set it down when form goes")}},
+  D:{title:"Upper",ex:["incline-bench","db-row-1arm","seated-row","db-shrug","cable-lateral","cable-crunch"],
+     note:"Friday. The priorities again — chest, back, delts, traps. Heaviest barbell pressing of the week goes here, while you're fresh from Thursday's legs day being easy.",
+     p:{"incline-bench":TOP(5,8,8,12,150,CLEAN),"db-row-1arm":TWO(8,12,90),"seated-row":TWO(8,12,90),
+        "db-shrug":TWO(10,15,75),"cable-lateral":THREE(12,20,60),"cable-crunch":TWO(10,15,60)}},
 };
 // the first gym plan (upper/lower/push/pull), kept so its sessions read true
 const LEGACY_V5_WORKOUTS = {
@@ -612,7 +626,7 @@ const LEGACY_V4_WORKOUTS = {
      p:{"front-squat":P(3,5,8,180,"2–3"),"rdl":P(4,6,10,150,"1–2",34),"calf-raise":P(4,10,20,75,"0–2"),"cable-crunch":P(3,10,20,75,"0–2")}},
 };
 let WORKOUTS = JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
-const CYCLE = ["A","B","C"];   // three full-body days: Mon, Wed, Fri
+const CYCLE = ["A","B","C","D"];   // four lifting days: Mon, Tue, Thu, Fri
 function refreshProgramme(){
   WORKOUTS = (S&&S.programme) ? JSON.parse(JSON.stringify(S.programme)) : JSON.parse(JSON.stringify(DEFAULT_WORKOUTS));
   for(const w of CYCLE) if(!WORKOUTS[w]) WORKOUTS[w]=JSON.parse(JSON.stringify(DEFAULT_WORKOUTS[w]));
@@ -696,7 +710,7 @@ const XP = {SET:10, EXERCISE:25, WORKOUT:100, PR:50, CYCLE:250, MASTER:40, RECOV
   WALK:15, STEPS_5K:20, STEPS_10K:40, STEPS_15K:40, KCAL_GOAL:30, MOVE_DAY:60};
 
 /* the week: 0 = Sunday. Lifts Mon/Wed/Fri, 90-min walks Tue/Sat/Sun, intervals Thu. */
-const DEFAULT_WEEK={lift:{1:"A",3:"B",5:"C"},walk:[0,2,6],intervals:[4]};
+const DEFAULT_WEEK={lift:{1:"A",2:"B",4:"C",5:"D"},walk:[0,3],intervals:[6],postLift:35};
 function weekPlan(){ return (S&&S.settings&&S.settings.week)||DEFAULT_WEEK; }
 function dowOf(iso){ return new Date(iso+"T12:00").getDay(); }
 function liftFor(iso){ const w=weekPlan().lift[dowOf(iso||dayISO(Date.now()))]; return CYCLE.includes(w)?w:null; }
@@ -714,15 +728,15 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v37";
+const APP_VERSION = "v38";
 let S = null;
 
 function freshState(){
   return {
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
-    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},macros:{kcal:2650,p:200,c:270,f:80},walk:{every:2.5,from:8,to:20,on:true}},
+    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3500},macros:{kcal:2650,p:200,c:270,f:80},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
-    programmeVersion:10,
+    programmeVersion:11,
     xp:0,
     exState:Object.fromEntries(Object.keys(EXERCISES).map(k=>[k,{weight:null,xp:0,mastered:[]}])),
     sessions:[],        // {id,workout,dateISO,start,end,dur,sets:[{ex,w,reps}],volume,xp,prs:[{ex,type,label}]}
@@ -880,6 +894,12 @@ function load(){
   if(!S.logged20261012){ S.logged20261012=1; logPushSession_20261012(); }
   if(S.programmeVersion<8){ S.programmeVersion=8; migrateToFiveDays(); }
   if(S.programmeVersion<9){ S.programmeVersion=9; S.programme=null; }   // machine leg day
+  if(S.programmeVersion<11){                                            // four days: push, pull, legs, upper
+    S.programmeVersion=11; S.programme=null; S.blockStart=Date.now();
+    S.settings.week=JSON.parse(JSON.stringify(DEFAULT_WEEK));
+    if(!CYCLE.includes(S.nextWorkout)) S.nextWorkout="A";
+    S.schedSynced=null;
+  }
   if(S.programmeVersion<10){                                            // three full-body days
     S.programmeVersion=10; S.programme=null; S.blockStart=Date.now();
     S.settings.cardio={walkMins:90,intervalMins:30};
@@ -904,7 +924,8 @@ function load(){
   syncScheduledWorkout();
   if(!S.moveStreak) S.moveStreak={cur:0,longest:0,lastDay:null};
   if(!S.settings.walk) S.settings.walk={every:2.5,from:8,to:20,on:true};
-  if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3000};
+  if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3500};
+  if(S.settings.goals.water<3500) S.settings.goals.water=3500;
   if(!S.settings.goals.macros) S.settings.goals.macros={kcal:2650,p:200,c:270,f:80};
   if(!S.food) S.food=[];
   if(!S.foodFaves) S.foodFaves=[];
@@ -2171,11 +2192,13 @@ function defaultCardioPlan(startISO){
 function cardioPlan(){ return S.settings.cardioPlan; }
 function walkMins(){ return (S.settings.cardio&&S.settings.cardio.walkMins)||90; }
 function intervalMins(){ return (S.settings.cardio&&S.settings.cardio.intervalMins)||30; }
+function postLiftMins(){ const w=weekPlan(); return w.postLift!=null?w.postLift:35; }
 function cardioTarget(iso){
   iso=iso||dayISO(Date.now());
   if(isIntervalDay(iso)) return intervalMins();
   if(isWalkDay(iso)) return walkMins();
-  return 0;                                  // lifting day — walk if you fancy it, nothing owed
+  if(liftFor(iso)) return postLiftMins();    // the incline walk that follows the session
+  return 0;
 }
 function cardioWeekTarget(){
   const t0=noonOf(weekKey(Date.now()));
@@ -2185,7 +2208,8 @@ function todaysCardioLabel(iso){
   iso=iso||dayISO(Date.now());
   if(isIntervalDay(iso)) return "Intervals · 4 × 4 min hard, 3 easy";
   if(isWalkDay(iso)) return walkMins()+" min incline walk";
-  return "Optional — lifting day";
+  if(liftFor(iso)) return postLiftMins()+" min incline walk after lifting";
+  return "Rest";
 }
 function cardioOn(iso){ return (S.cardio||[]).filter(c=>c.date===iso); }
 function cardioMins(iso){ return cardioOn(iso).reduce((a,c)=>a+c.mins,0); }
@@ -2324,16 +2348,17 @@ function openCardioSettings(){
     <div class="card">
       ${[1,2,3,4,5,6,0].map(d=>{
         const lift=W.lift[d], iv=W.intervals.includes(d), wkd=W.walk.includes(d);
-        const what=lift?`Lift ${lift} · ${WORKOUTS[lift].title.replace("Full Body · ","")}`:iv?`Intervals · ${intervalMins()} min`:wkd?`Walk · ${walkMins()} min`:"Rest";
+        const what=lift?`Lift ${lift} · ${WORKOUTS[lift].title} + ${postLiftMins()} min walk`:iv?`Intervals · ${intervalMins()} min`:wkd?`Walk · ${walkMins()} min`:"Rest";
         return `<div class="list-item" onclick="cycleDayKind(${d})">
           <span style="min-width:0"><div style="font-weight:600;font-size:15px">${DAY_NAMES[d]}</div>
             <div style="font-size:13px;color:var(--muted)">${what}</div></span>
           <span style="color:var(--dim)">change</span></div>`;}).join("")}
     </div>
     <div class="row" style="margin-top:14px">
-      <label class="fld"><span>Walk length</span><input type="number" id="cs-walk" inputmode="numeric" value="${walkMins()}"></label>
+      <label class="fld"><span>Long walk</span><input type="number" id="cs-walk" inputmode="numeric" value="${walkMins()}"></label>
       <label class="fld"><span>Interval session</span><input type="number" id="cs-iv" inputmode="numeric" value="${intervalMins()}"></label>
     </div>
+    <label class="fld"><span>Walk after lifting (min)</span><input type="number" id="cs-post" inputmode="numeric" value="${postLiftMins()}"></label>
     <button class="btn primary" onclick="saveCardioSettings()">Save</button>`);
 }
 /* rest -> walk -> intervals -> lift A/B/C -> rest */
@@ -2353,6 +2378,7 @@ function cycleDayKind(d){
 }
 function saveCardioSettings(){
   S.settings.cardio={walkMins:Math.max(10,parseInt(el("cs-walk").value)||90),intervalMins:Math.max(5,parseInt(el("cs-iv").value)||30)};
+  const pw=el("cs-post"); if(pw){ const W=weekPlan(); W.postLift=Math.max(0,parseInt(pw.value)||0); S.settings.week=W; }
   save(); closeSheet(); renderAll(); toast("Week saved",true);
 }
 function weekDotsHTML(fn){
@@ -2411,7 +2437,7 @@ function weightsTierHTML(){
         <div class="tbig" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis" onclick="openNextPicker()">${nw}<span> · ${esc(wk.title.replace("Full Body · ",""))} <span style="color:var(--accent-o)">⌄</span></span></div>
       </div>
       <div style="text-align:right;flex-shrink:0">
-        <div style="font-size:15px;font-weight:600">${sesWeek.length}<span style="color:var(--muted);font-weight:400"> / 3</span></div>
+        <div style="font-size:15px;font-weight:600">${sesWeek.length}<span style="color:var(--muted);font-weight:400"> / 4</span></div>
         <div style="font-size:13px;color:var(--muted)">${trainedToday?"trained today":"this week"}</div>
       </div>
     </div>
@@ -2645,6 +2671,68 @@ function offToItem(p){
     per100:{kcal:Math.round(kcal),p:+(n.proteins_100g||0),c:+(n.carbohydrates_100g||0),f:+(n.fat_100g||0)}};
 }
 let foodPick=null;
+function waterGoal(){ return (S.settings.goals&&S.settings.goals.water)||3500; }
+function waterToday(){ const h=S.health.find(x=>x.date===dayISO(Date.now())); return (h&&h.water)||0; }
+/* one card that answers "what do I owe today" across all three */
+function todayPlanHTML(){
+  const iso=dayISO(Date.now()), d=new Date();
+  const lift=liftFor(iso), trained=S.sessions.some(x=>x.dateISO===iso);
+  const cTarget=cardioTarget(iso), cDone=cardioMins(iso);
+  const ft=foodTotals(iso), m=macroTargets();
+  const rows=[
+    {on:trained, icon:"🏋️", what:lift?`Lift ${lift} · ${WORKOUTS[lift].title.replace("Full Body · ","")}`:"No lift scheduled",
+     sub:trained?"done":lift?`${WORKOUTS[lift].ex.length} exercises · about 50 min`:"rest from lifting",
+     act:lift&&!trained?`onclick="startOrResumeWorkout()"`:""},
+    {on:cTarget?cDone>=cTarget:cDone>0, icon:isIntervalDay(iso)?"⚡":"🚶",
+     what:todaysCardioLabel(iso), sub:cTarget?`${cDone} of ${cTarget} min`:cDone?`${cDone} min logged`:"optional today",
+     act:`onclick="openCardioLog('${isIntervalDay(iso)?"Bike":"Incline walk"}')"`},
+    {on:ft.p>=m.p, icon:"🥩", what:`${m.kcal} kcal · ${m.p}g protein`,
+     sub:`${Math.round(ft.kcal)} kcal · ${Math.round(ft.p)}g so far`, act:`onclick="openFoodLog()"`},
+    {on:waterToday()>=waterGoal(), icon:"💧", what:`${(waterGoal()/1000).toFixed(1)}L water`,
+     sub:`${(waterToday()/1000).toFixed(1)}L so far`, act:`onclick="addWater(500)"`},
+  ];
+  const done=rows.filter(r=>r.on).length;
+  return `<div class="card" style="padding:18px">
+    <div class="spread" style="align-items:baseline;margin-bottom:12px">
+      <span class="eyebrow">${DAY_NAMES[d.getDay()]} ${d.getDate()} ${d.toLocaleDateString("en-GB",{month:"short"})}</span>
+      <span style="font-size:13px;color:${done===rows.length?"var(--success)":"var(--muted)"}"><b class="mono">${done}</b>/${rows.length} done</span>
+    </div>
+    ${rows.map(r=>`<div class="planrow ${r.on?"on":""}" ${r.act}>
+      <span class="planchk">${r.on?"✓":""}</span>
+      <span style="min-width:0;flex:1">
+        <div style="font-weight:600;font-size:15px">${r.icon} ${esc(r.what)}</div>
+        <div style="font-size:13px;color:var(--muted)">${esc(r.sub)}</div>
+      </span>
+    </div>`).join("")}
+  </div>`;
+}
+function weekAheadHTML(){
+  const t0=noonOf(weekKey(Date.now())), today=dayISO(Date.now());
+  const sesByDay={}; for(const x of S.sessions) sesByDay[x.dateISO]=x;
+  const rows=Array.from({length:7},(_,i)=>{
+    const iso=dayISO(t0+i*86400000), dow=dowOf(iso);
+    const lift=liftFor(iso), ses=sesByDay[iso], mins=cardioMins(iso), target=cardioTarget(iso);
+    const bits=[];
+    if(lift) bits.push(`Lift ${lift} · ${WORKOUTS[lift].title}`);
+    if(isIntervalDay(iso)) bits.push(`Intervals ${intervalMins()} min`);
+    else if(isWalkDay(iso)) bits.push(`${walkMins()} min walk`);
+    else if(lift && postLiftMins()) bits.push(`${postLiftMins()} min walk`);
+    if(!bits.length) bits.push("Rest");
+    const liftOK=!lift||!!ses, cardioOK=!target||mins>=target;
+    return {iso,dow,label:DAY_NAMES[dow].slice(0,3),what:bits.join(" · "),
+      done:liftOK&&cardioOK, past:iso<today, isToday:iso===today};
+  });
+  return `<div class="card" style="padding:18px">
+    <div class="eyebrow" style="margin-bottom:10px">This week</div>
+    ${rows.map(r=>`<div class="spread" style="padding:8px 0;gap:12px;border-top:1px solid var(--line);${r.isToday?"":"opacity:"+(r.past&&!r.done?".75":"1")}">
+      <span style="display:flex;gap:12px;min-width:0;align-items:baseline">
+        <span class="mono" style="width:30px;flex-shrink:0;font-size:13px;color:${r.isToday?"var(--accent-o)":"var(--dim)"};font-weight:${r.isToday?"700":"500"}">${r.label}</span>
+        <span style="min-width:0;font-size:14px;${r.isToday?"font-weight:600":""};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(r.what)}</span>
+      </span>
+      <span style="flex-shrink:0;font-size:13px;color:${r.done?"var(--success)":r.past?"var(--danger)":"var(--dim)"}">${r.done?"✓":r.past?"missed":r.isToday?"today":""}</span>
+    </div>`).join("")}
+  </div>`;
+}
 function foodTierHTML(){
   const iso=dayISO(Date.now()), t=foodTotals(iso), m=macroTargets();
   const hit=t.kcal>0&&t.p>=m.p;
@@ -3237,6 +3325,8 @@ function renderToday(){
       ${pillsHTML()}
     </div>
     ${inProgressHTML()}
+    ${todayPlanHTML()}
+    ${weekAheadHTML()}
     <div class="card" style="padding:14px 18px;cursor:pointer" onclick="switchTab('awards')">
       <div class="spread" style="align-items:center;gap:10px">
         <div style="min-width:0"><div class="eyebrow">Total level</div>
@@ -3272,7 +3362,7 @@ function renderToday(){
         <div style="flex:1;min-width:0;max-width:170px">${scPts.length>=2?lineChart(scPts,{w:170,h:60,fill:true,mini:true}):`<div style="font-size:12px;color:var(--dim);text-align:right">Trend appears after a few sessions</div>`}</div>
       </div>
       ${scDelta!==null&&scDelta!==0?`<div style="font-size:13px;color:var(--muted);margin-top:2px">${scDelta>0?"Up":"Down"} ${Math.abs(scDelta)} in the last 30 days</div>`:""}
-      <div class="spread" style="margin:14px 0 12px;font-size:14px;color:var(--muted)"><span>${sesWeek.length} of 5 sessions · ${sum(cardioWeek().map(c=>c.mins))} cardio min this week</span><span class="mono">${S.workoutsDone} total</span></div>
+      <div class="spread" style="margin:14px 0 12px;font-size:14px;color:var(--muted)"><span>${sesWeek.length} of 4 sessions · ${sum(cardioWeek().map(c=>c.mins))} cardio min this week</span><span class="mono">${S.workoutsDone} total</span></div>
       <div class="statgrid">
         <div class="stat" style="background:var(--card2)"><div class="l">Volume · week</div><div class="v mono" style="font-size:24px;white-space:nowrap">${Math.round(volWeek).toLocaleString("en-GB")}<span style="font-size:14px;color:var(--muted)"> kg</span></div>
           ${volDelta!==null?`<div style="font-size:13px;color:${volDelta>=0?"var(--link)":"var(--danger)"}">${volDelta>=0?"+":""}${volDelta}% vs last week</div>`:`<div style="font-size:13px;color:var(--dim)">First week logged</div>`}</div>
@@ -4498,7 +4588,7 @@ function stopwatchTabHTML(){
   const t=restTargetNow(), sec=sinceLast();
   return `<div style="text-align:center;padding:18px 0 6px">
       <div class="eyebrow">Workout time</div>
-      <div class="mono" id="sw-total" style="font-family:'SF Pro Display',-apple-system,sans-serif;font-size:72px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums">${fmtDur(wkElapsed())}</div>
+      <div class="mono" id="sw-total" style="font-family:Inter,-apple-system,sans-serif;font-size:72px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums">${fmtDur(wkElapsed())}</div>
       <div style="color:var(--muted);font-size:14px;margin-top:6px">Runs from the moment you started. It never resets.</div>
     </div>
     <div class="card" style="margin-top:18px;text-align:center">
@@ -4813,7 +4903,7 @@ function renderPost(s,x){
     <div class="onband" style="text-align:center;margin:26px 0 8px;animation:pop .5s cubic-bezier(.2,.9,.3,1.3) both;position:relative">
       <span style="position:absolute;left:50%;top:56%;width:110px;height:110px;margin:-55px;border-radius:50%;border:2px solid var(--link);animation:ringPulse 1s ease-out .2s both;pointer-events:none"></span>
       <div class="eyebrow acc">Workout ${s.workout} complete</div>
-      <div style="font-size:96px;font-weight:600;letter-spacing:-.015em;line-height:1;margin:6px 0 0;font-family:'SF Pro Display',-apple-system,sans-serif;color:${GRADE_COL[x.grade.grade]}">${x.grade.grade}</div>
+      <div style="font-size:96px;font-weight:600;letter-spacing:-.015em;line-height:1;margin:6px 0 0;font-family:Inter,-apple-system,sans-serif;color:${GRADE_COL[x.grade.grade]}">${x.grade.grade}</div>
       <div style="font-size:15px;color:var(--muted);margin-top:2px">${GRADE_MSG[x.grade.grade]} · ${wkDef(s.workout).title}</div>
       ${x.mult!==1?`<div class="tag acc" style="margin-top:10px">${x.mult}× XP · ${x.multWhy.join(" + ")}</div>`:""}
     </div>
