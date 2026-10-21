@@ -396,6 +396,36 @@ html[data-theme="light"] .tab{color:var(--muted)}
 @keyframes mBob{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
 @keyframes mWave{0%{transform:translateX(-3px)}100%{transform:translateX(3px)}}
 @keyframes ringPop{0%{transform:scale(.8);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+/* cards arrive rather than appear */
+@keyframes riseIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.rise{animation:riseIn .55s cubic-bezier(.22,.9,.3,1) both}
+/* a slow highlight crossing the primary action */
+@keyframes shine{0%{transform:translateX(-120%)}55%,100%{transform:translateX(220%)}}
+.btn.primary{position:relative;overflow:hidden}
+.btn.primary::after{content:"";position:absolute;top:0;bottom:0;width:38%;pointer-events:none;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);
+  animation:shine 4.6s ease-in-out infinite;animation-delay:1.2s}
+/* bars fill from nothing */
+@keyframes growBar{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.tbar i,.qbar i,.xpbar i,.lvlbar i{transform-origin:left center;animation:growBar .9s cubic-bezier(.22,.9,.3,1) both}
+/* the glow behind the hero breathes */
+@keyframes drift{0%,100%{transform:translateY(0) scale(1);opacity:.85}50%{transform:translateY(6px) scale(1.06);opacity:1}}
+.hero::before{animation:drift 7s ease-in-out infinite}
+/* the flame */
+@keyframes flameCore{0%,100%{transform:scaleY(1) scaleX(1) translateY(0)}35%{transform:scaleY(1.14) scaleX(.93) translateY(-1px)}70%{transform:scaleY(.94) scaleX(1.05) translateY(.5px)}}
+@keyframes flameMid{0%,100%{transform:scaleY(1) translateY(0) rotate(-1.5deg)}40%{transform:scaleY(1.1) translateY(-1.5px) rotate(2deg)}75%{transform:scaleY(.95) translateY(.5px) rotate(-2deg)}}
+@keyframes flameTip{0%,100%{opacity:.55;transform:translateY(0) scaleY(1)}50%{opacity:1;transform:translateY(-2px) scaleY(1.2)}}
+@keyframes emberUp{0%{opacity:0;transform:translateY(2px) scale(.6)}30%{opacity:.9}100%{opacity:0;transform:translateY(-11px) scale(.3)}}
+.flm{display:inline-block;vertical-align:-2px;overflow:visible}
+.flm .f-out{animation:flameMid 2.1s ease-in-out infinite;transform-origin:50% 90%}
+.flm .f-mid{animation:flameCore 1.45s ease-in-out infinite;transform-origin:50% 92%}
+.flm .f-tip{animation:flameTip 1.05s ease-in-out infinite;transform-origin:50% 100%}
+.flm .f-e1{animation:emberUp 2.3s ease-out infinite}
+.flm .f-e2{animation:emberUp 2.9s ease-out .7s infinite}
+@media (prefers-reduced-motion:reduce){
+  .rise,.tbar i,.qbar i,.xpbar i,.lvlbar i{animation:none!important}
+  .btn.primary::after,.hero::before,.flm *{animation:none!important}
+}
 @media (prefers-reduced-motion:reduce){ .mi *{animation:none!important} }
 .rings{display:flex;gap:6px;margin-top:18px}
 .ringbtn{flex:1;background:none;border:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
@@ -775,7 +805,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v41";
+const APP_VERSION = "v42";
 let S = null;
 
 function freshState(){
@@ -1997,6 +2027,19 @@ function openRankSheet(){
 }
 
 /* ---------------- daily activity (steps · kcal · water) ---------------- */
+/* a flame that actually burns: three layered bodies plus two embers */
+function flameSVG(size){
+  size=size||18;
+  return `<svg class="flm" width="${size}" height="${size*1.16}" viewBox="0 0 20 23" fill="none" aria-hidden="true">
+    <path class="f-out" d="M10 1.5c3.6 4.2 6.5 7 6.5 11.1a6.5 6.5 0 1 1-13 0C3.5 9.3 5.4 7.4 7 5.1c.5 1.5 1.2 2.3 2 2.8.1-2.9.5-4.9 1-6.4z"
+      fill="#e0912f" fill-opacity=".28"/>
+    <path class="f-mid" d="M10 4.6c2.4 3 4.3 5 4.3 7.9a4.3 4.3 0 1 1-8.6 0c0-1.9 1-3.3 2.2-4.8.4 1 .9 1.5 1.5 1.8 0-2.1.2-3.6.6-4.9z"
+      fill="#f0a93c"/>
+    <path class="f-tip" d="M10 11.6c1.2 1.5 2 2.5 2 3.8a2 2 0 1 1-4 0c0-1.3.8-2.3 2-3.8z" fill="#ffd79a"/>
+    <circle class="f-e1" cx="14.6" cy="9" r="1" fill="#f0a93c"/>
+    <circle class="f-e2" cx="5.4" cy="10.5" r=".8" fill="#e0912f"/>
+  </svg>`;
+}
 function ring(pct,size,stroke,color){
   const r=(size-stroke)/2, C=2*Math.PI*r, off=C*(1-Math.min(1,pct));
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="transform:rotate(-90deg)">
@@ -2570,7 +2613,7 @@ function heroHTML(){
         <div class="herobig" id="hero-pct">${pct}<span>%</span></div>
         <div style="font-size:14px;color:${all?"var(--success)":"var(--muted)"};margin-top:2px">${sub}</div>
       </div>
-      ${streak?`<div class="streakchip ${streak>=3?"hot":""}"><span class="flame">🔥</span> ${streak}<span>day${streak>1?"s":""}</span></div>`:""}
+      ${streak?`<div class="streakchip ${streak>=3?"hot":""}">${flameSVG(19)} ${streak}<span>day${streak>1?"s":""}</span></div>`:""}
     </div>
     <div class="rings">
       ${RING_DEF.map(r=>{
@@ -2595,7 +2638,7 @@ function checkDayComplete(){
   const n=perfectStreak();
   confetti({count:110}); sndDone(); haptic([60,90,60,90,160]);
   setTimeout(()=>openSheet(`<div style="text-align:center;padding:12px 0">
-    <div style="font-size:64px;line-height:1">🔥</div>
+    <div style="display:flex;justify-content:center">${flameSVG(58)}</div>
     <div class="eyebrow acc" style="margin-top:10px">Day complete</div>
     <h2 style="font-size:30px;font-weight:600;margin:4px 0 8px">${n} day${n>1?"s":""} in a row</h2>
     <p style="color:var(--muted);font-size:15px;line-height:1.5">Lift, cardio, food and water. All four.<br>
@@ -3254,10 +3297,7 @@ function statusBarInset(){
 function fixNavGap(){
   const root=document.documentElement;
   const short=viewportShortfall();
-  // page is short by exactly the status bar: the window starts under it already
-  const sat=statusBarInset();
-  if(short && sat && Math.abs(short-sat)<=4) root.style.setProperty("--sat","0px");
-  else root.style.removeProperty("--sat");
+  root.style.removeProperty("--sat");   // the status bar overlays the page: keep padding for it
   // iOS already keeps the home-indicator strip outside the page: don't pad for it twice
   if(short) root.style.setProperty("--sab","0px"); else root.style.removeProperty("--sab");
   const nudge=Math.max(0,Math.min(60,(S&&S.settings&&S.settings.navNudge)||0));
@@ -3274,6 +3314,15 @@ function moveTabInd(animate){
 }
 window.addEventListener("resize",()=>moveTabInd(false));
 window.addEventListener("load",()=>setTimeout(()=>moveTabInd(false),50));
+/* each screen's cards come in one after another */
+function stagger(id){
+  const host=el(id); if(!host) return;
+  [...host.children].forEach((c,i)=>{
+    c.classList.remove("rise"); void c.offsetWidth;
+    c.style.animationDelay=Math.min(i*55,440)+"ms";
+    c.classList.add("rise");
+  });
+}
 function renderTab(t){
   if(t==="today") renderToday();
   else if(t==="progress") renderProgress();
@@ -3352,7 +3401,7 @@ function renderToday(){
     const tierCls = ss.tier==="critical"||ss.tier==="danger"?"danger":(ss.tier==="due"||ss.tier==="soon"?"warn":"");
     streakCard=`<div class="streak-hero ${ss.tier==="critical"||ss.tier==="danger"?"danger":""}">
       <div class="spread">
-        <div class="eyebrow acc"><span class="flame">🔥</span> Current streak · ${forgeTier().name}</div>
+        <div class="eyebrow acc">${flameSVG(16)} Current streak · ${forgeTier().name}</div>
         ${st.tokens>0?`<div class="tag acc">🧊 ×${st.tokens}</div>`:""}
       </div>
       <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px">
@@ -3445,6 +3494,7 @@ function renderToday(){
     </div>`;
   requestAnimationFrame(startEmbers);
   animateHero();
+  stagger("screen-today");
 }
 function animateHero(){
   const sc=dayScore();
