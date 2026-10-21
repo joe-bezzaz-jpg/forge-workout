@@ -712,13 +712,13 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v34";
+const APP_VERSION = "v35";
 let S = null;
 
 function freshState(){
   return {
     profile:{name:"Joe",age:30,heightCm:193,startWeightKg:95,avatar:null},
-    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},walk:{every:2.5,from:8,to:20,on:true}},
+    settings:{windowHours:48,restSec:0,sound:true,haptics:true,notify:false,goals:{steps:10000,kcal:600,water:3000},macros:{kcal:2650,p:200,c:270,f:80},walk:{every:2.5,from:8,to:20,on:true}},
     nextWorkout:"A",
     programmeVersion:10,
     xp:0,
@@ -729,6 +729,8 @@ function freshState(){
     streak:{cur:0,longest:0,lastEnd:null,windowEnds:null,tokens:0,tokenProgress:0,history:[],startedAt:null,protectedDates:[]},
     recovery:[],        // active rest days: {date,ts,type,value}
     health:[],          // {date,steps,kcal,water}
+    food:[],            // {id,date,ts,name,brand,barcode,grams,kcal,p,c,f,per100}
+    foodFaves:[],       // recently used items, for one-tap logging
     walks:[],           // {date,ts,mins}
     cardio:[],          // {date,ts,type,mins,incline,speed,dist(km),hr,hard}
     hard75:null,        // retired — old data is left as it was
@@ -901,6 +903,9 @@ function load(){
   if(!S.moveStreak) S.moveStreak={cur:0,longest:0,lastDay:null};
   if(!S.settings.walk) S.settings.walk={every:2.5,from:8,to:20,on:true};
   if(!S.settings.goals) S.settings.goals={steps:10000,kcal:600,water:3000};
+  if(!S.settings.goals.macros) S.settings.goals.macros={kcal:2650,p:200,c:270,f:80};
+  if(!S.food) S.food=[];
+  if(!S.foodFaves) S.foodFaves=[];
   if(!S.buffs) S.buffs={}; if(!S.relics) S.relics=[]; if(!S.crates) S.crates=[];
   if(S.redemption===undefined) S.redemption=null;
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
@@ -2420,6 +2425,262 @@ function weightsTierHTML(){
   </div>`;
 }
 
+/* ---------------- food ---------------- */
+function macroTargets(){ return S.settings.goals.macros||{kcal:2650,p:200,c:270,f:80}; }
+function foodOn(iso){ return (S.food||[]).filter(f=>f.date===iso); }
+function foodTotals(iso){
+  return foodOn(iso).reduce((a,f)=>({kcal:a.kcal+f.kcal,p:a.p+f.p,c:a.c+f.c,f:a.f+f.f}),{kcal:0,p:0,c:0,f:0});
+}
+function foodWeekAvg(){
+  const t0=noonOf(weekKey(Date.now())), days=[];
+  for(let i=0;i<7;i++){
+    const d=dayISO(t0+i*86400000);
+    if(d>dayISO(Date.now())) break;
+    if(foodOn(d).length) days.push(foodTotals(d));
+  }
+  if(!days.length) return null;
+  const n=days.length;
+  return {days:n,kcal:Math.round(sum(days.map(d=>d.kcal))/n),p:Math.round(sum(days.map(d=>d.p))/n),
+          c:Math.round(sum(days.map(d=>d.c))/n),f:Math.round(sum(days.map(d=>d.f))/n)};
+}
+const scaled=(per100,grams)=>Math.round(per100*grams/100*10)/10;
+function addFood(item,grams){
+  const iso=dayISO(Date.now()), per=item.per100;
+  const entry={id:Date.now(),date:iso,ts:Date.now(),name:item.name,brand:item.brand||"",barcode:item.barcode||"",
+    grams,per100:per,kcal:Math.round(per.kcal*grams/100),p:scaled(per.p,grams),c:scaled(per.c,grams),f:scaled(per.f,grams)};
+  S.food.push(entry);
+  S.foodFaves=[{name:item.name,brand:item.brand||"",barcode:item.barcode||"",per100:per,grams}]
+    .concat((S.foodFaves||[]).filter(x=>x.name!==item.name||x.brand!==(item.brand||""))).slice(0,24);
+  const t=foodTotals(iso), m=macroTargets();
+  if(!S.xpLog.some(x=>x.reason==="Food logged"&&dayISO(x.ts)===iso)) addXP(20,"Food logged");
+  if(t.p>=m.p && !S.xpLog.some(x=>x.reason==="Protein target hit"&&dayISO(x.ts)===iso)){
+    addXP(40,"Protein target hit"); haptic([30,60,30]);
+    setTimeout(()=>toast(`Protein hit — ${Math.round(t.p)}g 💪`,true),300);
+  }
+  save(); renderAll();
+  return entry;
+}
+function deleteFood(id){
+  S.food=S.food.filter(f=>f.id!==id); save(); renderAll();
+  if(el("sheet").classList.contains("open")) openFoodLog();
+}
+/* Open Food Facts — barcode lookup and name search. No key, works offline-fail-safe. */
+async function offLookup(barcode){
+  const r=await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=product_name,brands,nutriments,code`);
+  const j=await r.json();
+  if(!j||j.status===0||!j.product) return null;
+  return offToItem(j.product);
+}
+async function offSearch(q){
+  const r=await fetch(`https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20&fields=product_name,brands,nutriments,code`);
+  const j=await r.json();
+  return (j.products||[]).map(offToItem).filter(Boolean).slice(0,15);
+}
+function offToItem(p){
+  const n=p.nutriments||{};
+  const kcal=n["energy-kcal_100g"]!=null?n["energy-kcal_100g"]:(n.energy_100g!=null?n.energy_100g/4.184:null);
+  if(!p.product_name||kcal==null) return null;
+  return {name:p.product_name,brand:(p.brands||"").split(",")[0].trim(),barcode:p.code||"",
+    per100:{kcal:Math.round(kcal),p:+(n.proteins_100g||0),c:+(n.carbohydrates_100g||0),f:+(n.fat_100g||0)}};
+}
+let foodPick=null;
+function foodTierHTML(){
+  const iso=dayISO(Date.now()), t=foodTotals(iso), m=macroTargets();
+  const hit=t.kcal>0&&t.p>=m.p;
+  const bar=(v,g,col)=>`<div style="flex:1;min-width:0">
+    <div class="spread" style="font-size:12px;color:var(--muted)"><span>${col.l}</span><span class="mono"><b style="color:var(--text)">${Math.round(v)}</b>/${g}${col.u||"g"}</span></div>
+    <div class="tbar" style="margin-top:5px;height:5px"><i style="width:${Math.min(100,g?v/g*100:0)}%;background:${col.c}"></i></div>
+  </div>`;
+  return `<div class="tier ${hit?"done":""}">
+    <div class="spread" style="align-items:flex-start">
+      <div>
+        <div class="eyebrow">Food · ${foodOn(iso).length} item${foodOn(iso).length===1?"":"s"} today</div>
+        <div class="tbig">${Math.round(t.kcal)}<span> / ${m.kcal} kcal</span></div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:15px;font-weight:600;color:${t.p>=m.p?"var(--success)":"var(--text)"}">${Math.round(t.p)}g</div>
+        <div style="font-size:13px;color:var(--muted)">protein</div>
+      </div>
+    </div>
+    <div class="tbar"><i style="width:${Math.min(100,t.kcal/m.kcal*100)}%"></i></div>
+    <div style="display:flex;gap:12px;margin-top:14px">
+      ${bar(t.p,m.p,{l:"Protein",c:"var(--success)"})}
+      ${bar(t.c,m.c,{l:"Carbs",c:"var(--viz)"})}
+      ${bar(t.f,m.f,{l:"Fat",c:"var(--warn)"})}
+    </div>
+    <div class="row" style="gap:8px;margin-top:14px">
+      <button class="btn primary small" style="width:100%" onclick="openFoodLog()">＋ Log food</button>
+      <button class="btn ghost small" style="flex:0 0 auto;padding:0 18px" onclick="openScanner()">Scan</button>
+    </div>
+  </div>`;
+}
+function openFoodLog(){
+  const iso=dayISO(Date.now()), items=foodOn(iso), t=foodTotals(iso), m=macroTargets();
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Food today</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:14px">${Math.round(t.kcal)} of ${m.kcal} kcal · ${Math.round(t.p)}g protein of ${m.p}g</p>
+    <div class="row" style="gap:8px;margin-bottom:12px">
+      <button class="btn primary small" style="width:100%" onclick="openScanner()">📷 Scan barcode</button>
+      <button class="btn ghost small" style="width:100%" onclick="openFoodSearch()">Search</button>
+    </div>
+    ${(S.foodFaves||[]).length?`<div class="card" style="padding:14px 16px">
+      <div class="eyebrow" style="margin-bottom:8px">Recent</div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px">
+        ${S.foodFaves.slice(0,10).map((f,i)=>`<button class="chipset" onclick="openFoodAmount(${i})">${esc(f.name.slice(0,22))}</button>`).join("")}
+      </div></div>`:""}
+    ${items.length?`<div class="card">
+      ${items.map(f=>`<div class="spread" style="padding:9px 0;border-bottom:1px solid var(--line);gap:10px">
+        <span style="min-width:0"><div style="font-weight:600;font-size:15px">${esc(f.name)}</div>
+          <div style="font-size:13px;color:var(--muted)">${f.grams}g · ${f.kcal} kcal · ${f.p}P ${f.c}C ${f.f}F</div></span>
+        <button class="chipset" onclick="deleteFood(${f.id})">✕</button></div>`).join("")}
+    </div>`:`<div style="text-align:center;color:var(--dim);font-size:14px;padding:18px 0">Nothing logged yet today.</div>`}
+    <button class="btn ghost" style="margin-top:6px" onclick="closeSheet();openMacroSettings()">Adjust targets</button>`);
+}
+function openFoodSearch(){
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Find a food</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:14px">Searches the Open Food Facts database, or type a barcode.</p>
+    <label class="fld"><span>Name or barcode</span><input type="text" id="fs-q" placeholder="chicken breast / 5000112637922" autocapitalize="off"></label>
+    <button class="btn primary" onclick="runFoodSearch()">Search</button>
+    <div id="fs-out" style="margin-top:14px"></div>`);
+  setTimeout(()=>{ const i=el("fs-q"); if(i) i.focus(); },250);
+}
+async function runFoodSearch(){
+  const q=(el("fs-q").value||"").trim(); if(!q) return;
+  const out=el("fs-out"); out.innerHTML=`<div style="color:var(--muted);font-size:14px">Searching…</div>`;
+  try{
+    const results=/^\d{6,14}$/.test(q) ? [await offLookup(q)].filter(Boolean) : await offSearch(q);
+    if(!results.length){ out.innerHTML=`<div style="color:var(--muted);font-size:14px">Nothing found. <a onclick="openManualFood()" style="color:var(--link)">Enter it by hand</a>.</div>`; return; }
+    window.__fsResults=results;
+    out.innerHTML=`<div class="card" style="padding:6px 16px">${results.map((r,i)=>`<div class="list-item" onclick="pickSearchResult(${i})">
+      <span style="min-width:0"><div style="font-weight:600;font-size:15px">${esc(r.name)}</div>
+        <div style="font-size:13px;color:var(--muted)">${r.brand?esc(r.brand)+" · ":""}${r.per100.kcal} kcal · ${r.per100.p}P per 100g</div></span>
+      <span style="color:var(--link)">Add</span></div>`).join("")}</div>`;
+  }catch(e){
+    out.innerHTML=`<div style="color:var(--muted);font-size:14px">Couldn't reach the food database — you may be offline. <a onclick="openManualFood()" style="color:var(--link)">Enter it by hand</a>.</div>`;
+  }
+}
+function pickSearchResult(i){ foodPick=window.__fsResults[i]; openFoodAmount(null); }
+function openFoodAmount(faveIdx){
+  const item=faveIdx!=null?S.foodFaves[faveIdx]:foodPick;
+  if(!item) return;
+  foodPick=item;
+  const g=item.grams||100, per=item.per100;
+  openSheet(`<h2 style="font-size:22px;margin-bottom:2px">${esc(item.name)}</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">${item.brand?esc(item.brand)+" · ":""}${per.kcal} kcal · ${per.p}P ${per.c}C ${per.f}F per 100g</p>
+    <label class="fld"><span>Weight (grams)</span><input type="number" id="fa-g" inputmode="numeric" value="${g}" oninput="updateFoodPreview()"></label>
+    <div class="card" style="padding:14px 16px"><div class="spread" style="font-size:15px"><span style="color:var(--muted)">That works out as</span>
+      <span class="mono" id="fa-prev" style="font-weight:600">${Math.round(per.kcal*g/100)} kcal · ${scaled(per.p,g)}P</span></div></div>
+    <button class="btn primary" style="margin-top:12px" onclick="confirmFood()">Add to today</button>`);
+  setTimeout(()=>{ const i=el("fa-g"); if(i){ i.focus(); try{i.select();}catch(e){} } },250);
+}
+function updateFoodPreview(){
+  const g=parseFloat(el("fa-g").value)||0, per=foodPick.per100;
+  el("fa-prev").textContent=`${Math.round(per.kcal*g/100)} kcal · ${scaled(per.p,g)}P`;
+}
+function confirmFood(){
+  const g=parseFloat(el("fa-g").value)||0;
+  if(g<=0){ toast("Enter the weight in grams"); return; }
+  const e=addFood(foodPick,g);
+  closeSheet(); toast(`${e.kcal} kcal · ${e.p}g protein added`,true);
+}
+function openManualFood(){
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Enter a food</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:14px">Per 100g, from the packet.</p>
+    <label class="fld"><span>Name</span><input type="text" id="mf-n" placeholder="Chicken breast"></label>
+    <div class="row">
+      <label class="fld"><span>kcal /100g</span><input type="number" id="mf-k" inputmode="numeric"></label>
+      <label class="fld"><span>Protein /100g</span><input type="number" id="mf-p" inputmode="decimal"></label>
+    </div>
+    <div class="row">
+      <label class="fld"><span>Carbs /100g</span><input type="number" id="mf-c" inputmode="decimal"></label>
+      <label class="fld"><span>Fat /100g</span><input type="number" id="mf-f" inputmode="decimal"></label>
+    </div>
+    <button class="btn primary" onclick="saveManualFood()">Next — weight</button>`);
+}
+function saveManualFood(){
+  const n=(el("mf-n").value||"").trim();
+  const k=parseFloat(el("mf-k").value);
+  if(!n||isNaN(k)){ toast("Name and calories at least"); return; }
+  foodPick={name:n,brand:"",barcode:"",per100:{kcal:Math.round(k),p:parseFloat(el("mf-p").value)||0,
+    c:parseFloat(el("mf-c").value)||0,f:parseFloat(el("mf-f").value)||0}};
+  openFoodAmount(null);
+}
+let scanStream=null, scanRAF=null;
+function scannerSupported(){ return typeof BarcodeDetector!=="undefined" && !!navigator.mediaDevices; }
+async function openScanner(){
+  if(!scannerSupported()){
+    openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Scanning isn't available here</h2>
+      <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Safari on iOS doesn't let a web app read barcodes with the camera yet. Type the number from the packet instead — it's the fastest route, and the lookup is the same.</p>
+      <button class="btn primary" onclick="closeSheet();openFoodSearch()">Type a barcode</button>
+      <button class="btn ghost" style="margin-top:10px" onclick="closeSheet();openManualFood()">Enter it by hand</button>`);
+    return;
+  }
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Scan a barcode</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:12px">Hold the barcode inside the frame.</p>
+    <div style="border-radius:16px;overflow:hidden;background:#000;aspect-ratio:4/3">
+      <video id="scan-v" playsinline muted style="width:100%;height:100%;object-fit:cover"></video>
+    </div>
+    <div id="scan-msg" style="font-size:14px;color:var(--muted);margin-top:10px;text-align:center">Starting the camera…</div>
+    <button class="btn ghost" style="margin-top:12px" onclick="stopScanner();closeSheet();openFoodSearch()">Type it instead</button>`);
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    const v=el("scan-v"); if(!v){ stopScanner(); return; }
+    v.srcObject=scanStream; await v.play();
+    el("scan-msg").textContent="Looking…";
+    const det=new BarcodeDetector({formats:["ean_13","ean_8","upc_a","upc_e","code_128"]});
+    const tick=async()=>{
+      if(!scanStream) return;
+      try{
+        const codes=await det.detect(v);
+        if(codes&&codes.length){ const code=codes[0].rawValue; stopScanner(); haptic(25); lookupScanned(code); return; }
+      }catch(e){}
+      scanRAF=requestAnimationFrame(tick);
+    };
+    tick();
+  }catch(e){
+    const m=el("scan-msg"); if(m) m.innerHTML=`Couldn't open the camera. <a onclick="stopScanner();closeSheet();openFoodSearch()" style="color:var(--link)">Type the barcode</a> instead.`;
+  }
+}
+function stopScanner(){
+  if(scanRAF) cancelAnimationFrame(scanRAF); scanRAF=null;
+  if(scanStream){ scanStream.getTracks().forEach(t=>t.stop()); scanStream=null; }
+}
+async function lookupScanned(code){
+  openSheet(`<div style="text-align:center;padding:20px 0"><div style="font-size:15px;color:var(--muted)">Looking up ${esc(code)}…</div></div>`);
+  try{
+    const item=await offLookup(code);
+    if(!item){
+      openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Not in the database</h2>
+        <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Barcode ${esc(code)} isn't listed. Enter it from the packet once and it'll be in your recents.</p>
+        <button class="btn primary" onclick="closeSheet();openManualFood()">Enter it by hand</button>`);
+      return;
+    }
+    foodPick=item; openFoodAmount(null);
+  }catch(e){
+    openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Couldn't reach the database</h2>
+      <p style="color:var(--muted);font-size:15px;margin-bottom:16px">You may be offline. Try again, or enter it by hand.</p>
+      <button class="btn primary" onclick="closeSheet();openManualFood()">Enter it by hand</button>`);
+  }
+}
+function openMacroSettings(){
+  const m=macroTargets();
+  openSheet(`<h2 style="font-size:22px;margin-bottom:4px">Daily targets</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px">Protein is the one that matters most — hit it every day, training or not.</p>
+    <div class="row">
+      <label class="fld"><span>Calories</span><input type="number" id="mt-k" inputmode="numeric" value="${m.kcal}"></label>
+      <label class="fld"><span>Protein (g)</span><input type="number" id="mt-p" inputmode="numeric" value="${m.p}"></label>
+    </div>
+    <div class="row">
+      <label class="fld"><span>Carbs (g)</span><input type="number" id="mt-c" inputmode="numeric" value="${m.c}"></label>
+      <label class="fld"><span>Fat (g)</span><input type="number" id="mt-f" inputmode="numeric" value="${m.f}"></label>
+    </div>
+    <button class="btn primary" onclick="saveMacroSettings()">Save</button>`);
+}
+function saveMacroSettings(){
+  S.settings.goals.macros={kcal:parseInt(el("mt-k").value)||2650,p:parseInt(el("mt-p").value)||200,
+    c:parseInt(el("mt-c").value)||270,f:parseInt(el("mt-f").value)||80};
+  save(); closeSheet(); renderAll(); toast("Targets saved",true);
+}
+
 /* ---------------- movement: walks, step rewards, move streak ---------------- */
 function awardOnce(key,amount,reason){
   const d=dayISO(Date.now());
@@ -2713,6 +2974,7 @@ function openSheet(html){
   el("sheet").scrollTop=0;
 }
 function closeSheet(){
+  if(scanStream) stopScanner();
   const sh=el("sheet"), v=el("sheet-veil");
   sh.classList.remove("open"); v.classList.remove("open");
   sh.style.transform=""; sh.style.transition=""; v.style.opacity="";
@@ -2816,6 +3078,7 @@ function renderToday(){
     ${inProgressHTML()}
     ${weightsTierHTML()}
     ${cardioTierHTML()}
+    ${foodTierHTML()}
     ${streakCard}
 
     ${redemptionHTML()}
@@ -3076,9 +3339,9 @@ function renderProgress(){
     </div>
 
     <div class="seg">
-      ${["strength","cardio","training","body","muscle","history","reports"].map(v=>`<button class="${progView===v?"active":""}" onclick="progView='${v}';renderProgress()">${v[0].toUpperCase()+v.slice(1)}</button>`).join("")}
+      ${["strength","cardio","food","training","body","muscle","history","reports"].map(v=>`<button class="${progView===v?"active":""}" onclick="progView='${v}';renderProgress()">${v[0].toUpperCase()+v.slice(1)}</button>`).join("")}
     </div>
-    <div id="prog-body">${progView==="strength"?strengthViewHTML():progView==="cardio"?cardioViewHTML():progView==="training"?trainingViewHTML():progView==="body"?bodyViewHTML():progView==="muscle"?muscleViewHTML():progView==="history"?historyViewHTML():reportsViewHTML()}</div>`;
+    <div id="prog-body">${progView==="strength"?strengthViewHTML():progView==="cardio"?cardioViewHTML():progView==="food"?foodViewHTML():progView==="training"?trainingViewHTML():progView==="body"?bodyViewHTML():progView==="muscle"?muscleViewHTML():progView==="history"?historyViewHTML():reportsViewHTML()}</div>`;
 }
 
 function strengthViewHTML(){
@@ -3144,6 +3407,29 @@ function cardioViewHTML(){
         .map(r=>`<div class="spread" style="padding:6px 0;font-size:15px"><span style="color:var(--muted)">${r[0]}</span><span class="mono">${r[1]||"—"}${r[2]?` <span style="color:var(--dim);font-size:12px">${fmtDateShort(r[2].date)}</span>`:""}</span></div>`).join("")}
     </div>
     <button class="btn ghost" onclick="openCardioHistory()">All cardio sessions →</button>`;
+}
+
+function foodViewHTML(){
+  const m=macroTargets(), avg=foodWeekAvg(), today=foodTotals(dayISO(Date.now()));
+  const days=[];
+  for(let i=13;i>=0;i--){
+    const d=dayISO(Date.now()-i*86400000);
+    days.push({key:d,label:fmtDateShort(d).split(" ")[0],value:foodTotals(d).kcal});
+  }
+  const pDays=days.map(d=>({x:noonOf(d.key),y:foodTotals(d.key).p})).filter(x=>x.y>0);
+  const logged=(S.food||[]).length;
+  return `
+    <div class="statgrid" style="margin-bottom:14px">
+      <div class="stat"><div class="l">Today</div><div class="v mono">${Math.round(today.kcal)}<span style="font-size:14px;color:var(--muted)"> / ${m.kcal}</span></div><div style="font-size:13px;color:var(--dim)">${Math.round(today.p)}g protein</div></div>
+      <div class="stat"><div class="l">Week average</div><div class="v mono">${avg?avg.kcal:"—"}</div><div style="font-size:13px;color:var(--dim)">${avg?`over ${avg.days} day${avg.days>1?"s":""}`:"nothing logged"}</div></div>
+      <div class="stat"><div class="l">Protein average</div><div class="v mono">${avg?avg.p+"g":"—"}</div><div style="font-size:13px;color:var(--dim)">target ${m.p}g</div></div>
+      <div class="stat"><div class="l">Items logged</div><div class="v mono">${logged}</div><div style="font-size:13px;color:var(--dim)">all time</div></div>
+    </div>
+    <div class="chart-box"><div class="spread" style="padding:0 6px 8px"><span class="eyebrow">Calories — last 14 days</span></div>${barChart(days,{fmt:v=>Math.round(v)})}</div>
+    <div class="chart-box"><div class="spread" style="padding:0 6px 8px"><span class="eyebrow">Protein per day</span></div>
+      ${pDays.length>=2?lineChart(pDays,{unit:"g"}):`<div style="padding:24px 10px;text-align:center;color:var(--dim);font-size:13px">Log a few days and the trend appears here.</div>`}</div>
+    <button class="btn primary" onclick="openFoodLog()">＋ Log food</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="openMacroSettings()">Adjust targets</button>`;
 }
 
 /* ---------------- training (work carried out) ---------------- */
@@ -3678,6 +3964,11 @@ function renderProfile(){
         <button class="btn ghost small" onclick="openCardioSettings()">Edit</button>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Food targets</div>
+          <div style="font-size:12px;color:var(--muted)">${macroTargets().kcal} kcal · ${macroTargets().p}g protein</div></div>
+        <button class="btn ghost small" onclick="openMacroSettings()">Edit</button>
+      </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Daily goals</div>
           <div style="font-size:12px;color:var(--muted)">Steps · kcal · water</div></div>
         <button class="btn ghost small" onclick="openGoals()">Edit</button>
@@ -3736,7 +4027,8 @@ function renderProfile(){
       <input type="file" id="imp-file" accept=".json,application/json" style="display:none" onchange="importData(this)">
       <button class="btn ghost small" style="width:100%;margin-bottom:10px" onclick="checkForUpdate()">Check for update</button>
       ${S.sessions.length===0?`<button class="btn ghost small" style="width:100%;margin-bottom:10px" onclick="seedDemo()">Preview with sample data</button>`:""}
-      <button class="btn danger small" style="width:100%" onclick="resetAll()">Reset all data</button>
+      <button class="btn ghost small" style="width:100%;margin-bottom:10px" onclick="startFresh()">Start fresh — clear history, keep profile</button>
+      <button class="btn danger small" style="width:100%" onclick="resetAll()">Erase everything</button>
     </div>
     <div style="text-align:center;color:var(--dim);font-size:11px;margin-top:6px">Workout · ${APP_VERSION} · your data never leaves this device
       <div style="margin-top:4px;opacity:.75" class="mono">screen ${screen.width}×${screen.height} · page ${innerWidth}×${innerHeight} · inset ${Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sat"))||0)}/${viewportShortfall()||"0"} · ${navigator.standalone===true||matchMedia("(display-mode: standalone)").matches?"installed":"browser"}</div></div>`;
@@ -3801,6 +4093,19 @@ function importData(input){
       S=d; save(); location.reload();
     }catch(e){ toast("Invalid backup file"); } };
   r.readAsText(f);
+}
+/* wipe the training record but keep the profile, photos and settings */
+function startFresh(){
+  if(!confirm("Clear all training, cardio, food and XP history and start from scratch? Your profile, photos, body measurements and settings stay.")) return;
+  const keep={profile:S.profile,settings:S.settings,photos:S.photos,bodyLogs:S.bodyLogs,
+    customEx:S.customEx,programme:S.programme,programmeVersion:S.programmeVersion,
+    legacyProgrammes:S.legacyProgrammes,legacyProgramme:S.legacyProgramme,
+    cycleRestart:S.cycleRestart,logged20261012:S.logged20261012,foodFaves:S.foodFaves};
+  const f=freshState();
+  S=Object.assign(f,keep);
+  S.gymStart=Date.now(); S.blockStart=Date.now(); S.schedSynced=null;
+  S.nextWorkout=liftFor(dayISO(Date.now()))||"A";
+  save(); location.reload();
 }
 function resetAll(){
   if(!confirm("Delete ALL workout data, history and photos? This cannot be undone.")) return;
