@@ -775,7 +775,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v40";
+const APP_VERSION = "v41";
 let S = null;
 
 function freshState(){
@@ -3243,9 +3243,21 @@ function applyTheme(){
   if(m) m.setAttribute("content",t==="light"?"#f6f6f7":"#18181a");
 }
 function setTheme(t){ S.settings.theme=t; S.settings.themePicked=1; save(); applyTheme(); renderAll(); }
+function statusBarInset(){
+  const probe=document.createElement("div");
+  probe.style.cssText="position:fixed;top:0;height:0;padding-top:env(safe-area-inset-top,0px);visibility:hidden";
+  document.body.appendChild(probe);
+  const v=parseFloat(getComputedStyle(probe).paddingTop)||0;
+  probe.remove();
+  return Math.round(v);
+}
 function fixNavGap(){
   const root=document.documentElement;
   const short=viewportShortfall();
+  // page is short by exactly the status bar: the window starts under it already
+  const sat=statusBarInset();
+  if(short && sat && Math.abs(short-sat)<=4) root.style.setProperty("--sat","0px");
+  else root.style.removeProperty("--sat");
   // iOS already keeps the home-indicator strip outside the page: don't pad for it twice
   if(short) root.style.setProperty("--sab","0px"); else root.style.removeProperty("--sab");
   const nudge=Math.max(0,Math.min(60,(S&&S.settings&&S.settings.navNudge)||0));
@@ -4350,7 +4362,7 @@ function renderProfile(){
       <button class="btn danger small" style="width:100%" onclick="resetAll()">Erase everything</button>
     </div>
     <div style="text-align:center;color:var(--dim);font-size:11px;margin-top:6px">Workout · ${APP_VERSION} · your data never leaves this device
-      <div style="margin-top:4px;opacity:.75" class="mono">screen ${screen.width}×${screen.height} · page ${innerWidth}×${innerHeight} · inset ${Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sat"))||0)}/${viewportShortfall()||"0"} · ${navigator.standalone===true||matchMedia("(display-mode: standalone)").matches?"installed":"browser"}</div></div>`;
+      <div style="margin-top:4px;opacity:.75" class="mono">screen ${screen.width}×${screen.height} · page ${innerWidth}×${innerHeight} · visible ${window.visualViewport?Math.round(visualViewport.height):"?"} · inset ${statusBarInset()}/${viewportShortfall()||"0"} · fill ${getComputedStyle(document.documentElement).getPropertyValue("--navfill").trim()||"0px"} · ${navigator.standalone===true||matchMedia("(display-mode: standalone)").matches?"installed":"browser"}</div></div>`;
 }
 function openWalkSettings(){
   const w=S.settings.walk;
