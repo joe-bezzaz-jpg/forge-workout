@@ -23,8 +23,8 @@
 :root{
   --brand:#3e64dd; --brand2:#5b7ce8; --brand-deep:#2f4fba;
   --bg:#000000; --bg2:#0e0e10;
-  --card:#111113; --card2:#0a0a0b; --card3:#1e1e21;
-  --line:#232326; --line2:#34343a;
+  --card:#1c1c1e; --card2:#141416; --card3:#2c2c2e;
+  --line:#2c2c2e; --line2:#3a3a3d;
   --text:#f2f2f3; --muted:#9a9aa0; --dim:#65656c;
   --accent:#3e64dd; --accent-ink:#ffffff; --accent-dim:rgba(62,100,221,.18);
   --link:#7f9bf0;
@@ -43,7 +43,7 @@
   --navpad:0px;        /* manual bottom padding on the nav, set in Profile */
   --navfill:0px;       /* measured: screen iOS keeps below the page, filled by the bar */
   --sabx:var(--sab);
-  --r:16px;
+  --r:22px;
 }
 html[data-theme="light"]{
   --brand:#1961ed; --brand2:#4b83f2; --brand-deep:#1748b8;
@@ -73,7 +73,8 @@ body{
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size:15px; line-height:1.5; letter-spacing:-.011em; overscroll-behavior:none;
   -webkit-font-smoothing:antialiased; user-select:none; -webkit-user-select:none;
-  position:fixed; top:0; left:0; right:0; height:100%; overflow:hidden; width:100%;
+  position:fixed; top:0; left:0; right:0; overflow:hidden; width:100%;
+  height:100%; height:100dvh;
   display:flex; flex-direction:column;
 }
 #app{max-width:520px;width:100%;margin:0 auto;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
@@ -109,7 +110,7 @@ b,strong{font-weight:600}
 .big-num{font-size:56px;font-weight:600;letter-spacing:-.005em;line-height:1.07;font-variant-numeric:tabular-nums}
 .mono{font-variant-numeric:tabular-nums}
 
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.card{background:var(--card);border:none;border-radius:var(--r);padding:20px;margin-bottom:10px;position:relative;overflow:hidden}
 .card.flat{background:transparent;border:1px solid var(--line)}
 .card .hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
 .row{display:flex;gap:12px}
@@ -120,7 +121,8 @@ b,strong{font-weight:600}
 .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:none;border-radius:9999px;
   padding:15px 22px;font-size:17px;font-weight:600;letter-spacing:-.022em;cursor:pointer;font-family:inherit;
   transition:transform .12s ease,filter .12s ease,opacity .12s ease;position:relative}
-.btn.primary{background:var(--brand);color:#fff}
+.btn.primary{background:var(--text);color:#000}
+html[data-theme="light"] .btn.primary{background:var(--text);color:#fff}
 .btn.ghost{background:var(--card3);color:var(--text)}
 .btn.danger{background:var(--danger-dim);color:var(--danger)}
 .btn:active{transform:scale(.98);filter:brightness(1.12)}
@@ -146,12 +148,11 @@ b,strong{font-weight:600}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;position:relative;z-index:1;
   color:var(--nav-ink);font-family:inherit;font-size:11px;font-weight:500;letter-spacing:-.01em;cursor:pointer;padding:8px 0 5px;border-radius:9999px;transition:color .25s}
 .tab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.tab.active{color:var(--accent-o)}
+.tab.active{color:var(--text)}
 html[data-theme="light"] .tab{color:var(--muted)}
 .tab.train{flex:0 0 auto;padding:0 6px}
-.tab.train .train-btn{width:50px;height:50px;border-radius:50%;background:var(--accent-o);display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 14px rgba(232,89,12,.35)}
-.tab.train .train-btn svg{stroke:#fff;width:24px;height:24px;stroke-width:2}
+.tab.train .train-btn{width:50px;height:50px;border-radius:50%;background:var(--text);display:flex;align-items:center;justify-content:center}
+.tab.train .train-btn svg{stroke:#000;width:24px;height:24px;stroke-width:2.2}
 .tab.train:active .train-btn{filter:brightness(1.12);transform:scale(.95)}
 
 /* ---------- header pills / xp ---------- */
@@ -214,7 +215,7 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .trophies span.won{filter:none;opacity:.75}
 
 /* ---------- today ---------- */
-.streak-hero{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+.streak-hero{background:var(--card);border:none;border-radius:var(--r);
   padding:26px 24px 22px;margin-bottom:12px;position:relative;overflow:hidden}
 .streak-hero.danger{background:var(--danger-dim);border-color:var(--danger)}
 .flame{display:inline-block;animation:pulseGlow 2.4s ease-in-out infinite}
@@ -277,12 +278,13 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .wk2clock .l{font-size:11px;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
 .wk2clock .v{font-family:Inter,-apple-system,sans-serif;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
 .wk2clock.over .v{color:var(--warn)}
-.nrow{background:var(--card);border-radius:20px;padding:16px 16px 13px;margin-bottom:10px}
+.nrow{background:var(--card);border-radius:22px;padding:18px 18px 14px;margin-bottom:10px}
 .grid3{display:grid;grid-template-columns:76px repeat(var(--cols,2),minmax(0,1fr));gap:7px;align-items:end}
 .ghead{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);text-align:center;padding-bottom:4px}
 .ghead.w{text-align:left;padding-left:4px}
 .cell{background:transparent;border:1.5px solid var(--line2);border-radius:9999px;padding:9px 4px 8px;text-align:center;transition:border-color .2s,background .2s}
 .cell.on{border-color:var(--text);background:transparent}
+.icon-btn{background:var(--card3)}
 .cell.on input{color:var(--text)}
 .cell input{width:100%;background:none;border:none;outline:none;color:var(--text);text-align:center;
   font-family:Poppins,Inter,sans-serif;font-variant-numeric:tabular-nums;font-size:19px;font-weight:600;letter-spacing:-.02em;
@@ -291,7 +293,7 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .cell .sub{font-size:11px;color:var(--dim);margin-top:1px}
 .cell .sub input{font-size:12px;font-weight:500;color:var(--muted);padding:0}
 .addset{background:none;border:none;color:var(--link);font-family:inherit;font-size:14px;padding:6px 2px;cursor:pointer}
-.nrow{border:1px solid var(--line);box-shadow:var(--shadow)}
+
 .nname{background:none;border:none;color:var(--text);font-family:Poppins,Inter,sans-serif;font-size:20px;font-weight:600;letter-spacing:-.025em;
   padding:0;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:0}
 .nname i{font-style:normal;color:var(--dim);font-size:13px}
@@ -311,7 +313,7 @@ html[data-theme="light"] .tab{color:var(--muted)}
   border-top:1px solid var(--nav-line)}
 .wk2tab{flex:1;border:none;border-radius:9999px;background:var(--card3);color:var(--text);font-family:inherit;font-size:15px;
   font-weight:600;padding:12px 0;cursor:pointer}
-.wk2tab.on{background:var(--accent);color:#fff}
+.wk2tab.on{background:var(--text);color:#000}
 .lap{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
 .lap:last-child{border-bottom:none}
 .setdots i{width:28px;height:6px;border-radius:3px;background:var(--card3)}
@@ -348,9 +350,9 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .target-banner{background:var(--card);border:none;border-radius:22px;padding:18px 20px;margin:14px 0}
 
 /* the two tiers: weights + cardio */
-.tier{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:12px;border:1px solid var(--line);box-shadow:var(--shadow)}
+.tier{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:10px;border:none}
 .tier.done{border-color:var(--success-line)}
-.tbig{font-size:36px;line-height:1.1;margin-top:4px}
+.tbig{font-size:40px;line-height:1.05;margin-top:4px}
 .tbig span{font-size:17px;font-weight:400;color:var(--muted);font-family:Inter,sans-serif}
 .tbar{height:6px;border-radius:3px;background:var(--card3);margin-top:16px;overflow:hidden}
 .tbar i{display:block;height:100%;border-radius:3px;background:var(--link);transition:width .6s cubic-bezier(.2,.8,.2,1)}
@@ -369,14 +371,14 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .tnote{font-size:14px;color:var(--muted);line-height:1.45;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--card3)}
 .tnote.warn{color:var(--text);background:rgba(255,159,10,.14)}
 .tnote a{cursor:pointer;font-weight:600}
-.hero{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 18px 16px;margin-bottom:12px;
+.hero{background:var(--card);border:none;border-radius:var(--r);padding:22px 20px 18px;margin-bottom:10px;
   position:relative;overflow:hidden;box-shadow:var(--shadow)}
 .hero::before{content:"";position:absolute;inset:-40% -20% auto -20%;height:180px;pointer-events:none;
   background:radial-gradient(60% 70% at 50% 0%,rgba(62,100,221,.16),transparent 70%);opacity:0;transition:opacity .6s}
 .hero.complete::before{opacity:1;background:radial-gradient(60% 70% at 50% 0%,rgba(59,178,127,.22),transparent 70%)}
 .hero.complete{border-color:var(--success-line)}
 .hero>*{position:relative;z-index:1}
-.herobig{font-size:58px;line-height:1;margin-top:4px}
+.herobig{font-size:64px;line-height:.98;margin-top:4px}
 .herobig span{font-size:22px;color:var(--muted);font-family:Inter,sans-serif;font-weight:500;letter-spacing:-.01em}
 .streakchip{display:flex;align-items:baseline;gap:5px;background:var(--card3);border-radius:9999px;padding:7px 13px;
   font-size:17px;font-weight:600;flex-shrink:0}
@@ -429,6 +431,13 @@ html[data-theme="light"] .tab{color:var(--muted)}
   .btn.primary::after,.hero::before,.flm *{animation:none!important}
 }
 @media (prefers-reduced-motion:reduce){ .mi *{animation:none!important} }
+.bentogrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.bento{background:var(--card);border-radius:var(--r);padding:18px 18px 16px;min-height:112px;display:flex;flex-direction:column;justify-content:flex-end}
+.bval{font-family:Poppins,Inter,sans-serif;font-weight:700;font-size:34px;line-height:1;letter-spacing:-.035em;
+  display:flex;align-items:baseline;gap:5px;flex-wrap:wrap}
+.bunit{font-family:Inter,sans-serif;font-size:15px;font-weight:500;color:var(--muted);letter-spacing:-.01em}
+.blab{font-size:15px;font-weight:600;margin-top:10px;letter-spacing:-.015em}
+.bsub{font-size:13px;color:var(--dim);margin-top:1px}
 .rings{display:flex;gap:6px;margin-top:18px}
 .ringbtn{flex:1;background:none;border:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
   font-family:inherit;transition:transform .2s}
@@ -807,7 +816,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v44";
+const APP_VERSION = "v45";
 let S = null;
 
 function freshState(){
@@ -2613,6 +2622,23 @@ const RING_DEF=[
   {k:"food",  col:"var(--viz)",    label:"Food",   act:"openFoodLog()"},
   {k:"water", col:"#39a9d4",       label:"Water",  act:"addWater(500)"},
 ];
+function bentoHTML(){
+  const wkKey=weekKey(Date.now());
+  const ses=S.sessions.filter(x=>weekKey(noonOf(x.dateISO))===wkKey);
+  const vol=Math.round(sum(ses.map(x=>x.volume||0)));
+  const mins=sum(cardioWeek().map(c=>c.mins));
+  const avg=foodWeekAvg();
+  const bw=bodyWeightNow();
+  const tile=(label,value,unit,sub,count)=>`<div class="bento">
+    <div class="bval">${count?`<span data-count="${count}">${value}</span>`:value}${unit?`<span class="bunit">${unit}</span>`:""}</div>
+    <div class="blab">${label}</div>${sub?`<div class="bsub">${sub}</div>`:""}</div>`;
+  return `<div class="bentogrid">
+    ${tile("Volume lifted",vol.toLocaleString("en-GB"),"kg","This week",vol)}
+    ${tile("Cardio",mins,"min","This week",mins)}
+    ${tile("Body weight",fmtKg(bw),"kg",S.bodyLogs&&S.bodyLogs.length?"Latest":"Set a baseline")}
+    ${tile("Calories",avg?avg.kcal.toLocaleString("en-GB"):"—","",avg?`Daily average`:"Log a day",avg?avg.kcal:0)}
+  </div>`;
+}
 function heroHTML(){
   const iso=dayISO(Date.now()), d=new Date(), sc=dayScore(iso);
   const all=sc.of>0&&sc.done===sc.of;
@@ -3276,12 +3302,8 @@ document.querySelectorAll("#tabbar .tab").forEach(b=>b.addEventListener("click",
    In Safari it excludes the toolbars; in a home-screen app it excludes whatever
    iOS keeps for itself. Size the shell to it and the bar lands on the real edge. */
 function sizeShell(){
-  const vv=window.visualViewport;
-  const visible=Math.round(vv?vv.height:innerHeight);
-  if(visible<=200) return;
-  // how much screen sits below what the page is allowed to lay out in
   document.documentElement.style.setProperty("--navfill","0px");
-  document.body.style.height=visible+"px";
+  document.body.style.removeProperty("height");   // CSS 100dvh owns this now
   moveTabInd(false);
 }
 function viewportShortfall(){
@@ -3453,6 +3475,7 @@ function renderToday(){
     </div>
     ${inProgressHTML()}
     ${heroHTML()}
+    ${bentoHTML()}
     ${todayPlanHTML()}
     ${progressionCardHTML()}
     ${weekAheadHTML()}
@@ -4400,6 +4423,11 @@ function renderProfile(){
         </div>
       </div>
       <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
+        <div><div style="font-weight:600;font-size:15px">Layout guides</div>
+          <div style="font-size:12px;color:var(--muted)">Marks the page, visible and screen edges</div></div>
+        <label class="switch"><input type="checkbox" ${S.settings.guides?"checked":""} onchange="toggleGuides(this.checked)"><i></i></label>
+      </div>
+      <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--line)">
         <div><div style="font-weight:600;font-size:15px">Nav bar position</div>
           <div style="font-size:12px;color:var(--muted)">Extra height on the bar, if it still sits short</div></div>
         <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
@@ -5258,6 +5286,7 @@ function seedDemo(){
 load();
 applyTheme();
 fixNavGap(); sizeShell();
+if(S.settings.guides) setTimeout(()=>toggleGuides(true),300);
 addEventListener("resize",()=>{ fixNavGap(); sizeShell(); });
 addEventListener("orientationchange",()=>setTimeout(()=>{ fixNavGap(); sizeShell(); },300));
 if(window.visualViewport){
@@ -5306,6 +5335,24 @@ if("serviceWorker" in navigator && location.protocol==="https:"){
       refreshing=true; location.reload();
     });
   });
+}
+/* Profile > Layout guides. Magenta = bottom of the page. Cyan = bottom of the
+   visible area. Yellow = bottom of the physical screen. If magenta sits above
+   yellow, iOS is not giving the app the whole screen and no CSS can reach it. */
+function toggleGuides(on){
+  S.settings.guides=!!on; save();
+  let g=el("lay-guides");
+  if(!on){ if(g) g.remove(); return; }
+  if(!g){ g=document.createElement("div"); g.id="lay-guides"; document.body.appendChild(g); }
+  const vv=window.visualViewport?Math.round(visualViewport.height):innerHeight;
+  g.style.cssText="position:fixed;left:0;right:0;top:0;bottom:0;pointer-events:none;z-index:9999";
+  g.innerHTML=`
+    <div style="position:absolute;left:0;right:0;bottom:0;height:4px;background:#ff00c8"></div>
+    <div style="position:absolute;left:0;right:0;top:${vv-4}px;height:4px;background:#00e5ff"></div>
+    <div style="position:absolute;left:0;right:0;top:${screen.height-4}px;height:4px;background:#ffe600"></div>
+    <div style="position:absolute;left:8px;bottom:10px;font:600 11px Inter,sans-serif;color:#fff;
+      background:rgba(0,0,0,.72);padding:4px 7px;border-radius:6px;font-variant-numeric:tabular-nums">
+      page ${innerHeight} · visible ${vv} · screen ${screen.height} · body ${Math.round(document.body.getBoundingClientRect().height)}</div>`;
 }
 function checkForUpdate(){
   toast("Checking…");
