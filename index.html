@@ -14,7 +14,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap">
 <style>
 /* Light system modelled on Twenty: off-white canvas, white cards, hairline
    borders, generous radii, one blue action and calm data colours. */
@@ -72,7 +72,7 @@ body{
   font-family:Inter,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;
   font-size:15px; line-height:1.5; letter-spacing:-.011em; overscroll-behavior:none;
   -webkit-font-smoothing:antialiased; user-select:none; -webkit-user-select:none;
-  position:fixed; inset:0; overflow:hidden; width:100%;
+  position:fixed; top:0; left:0; right:0; height:100%; overflow:hidden; width:100%;
   display:flex; flex-direction:column;
 }
 #app{max-width:520px;width:100%;margin:0 auto;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;
@@ -90,7 +90,10 @@ html,body{overflow-x:hidden}
 @keyframes pop{0%{transform:scale(.92);opacity:0}60%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
 @keyframes pulseGlow{0%,100%{opacity:.85}50%{opacity:1}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-h1,h2,h3,.big-num,.countdown,.wletter{font-family:Inter,-apple-system,BlinkMacSystemFont,"Helvetica Neue",Helvetica,Arial,sans-serif;font-weight:600;letter-spacing:-.021em}
+h1,h2,.big-num,.countdown,.wletter,.herobig,.tbig{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;
+  font-weight:400;letter-spacing:-.01em}
+h1{font-size:32px}
+h3{font-family:Inter,-apple-system,sans-serif;font-weight:600;letter-spacing:-.021em}
 h1{font-size:32px;letter-spacing:.004em;line-height:1.13}
 b,strong{font-weight:600}
 .icn{stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;display:inline-block;flex-shrink:0}
@@ -344,8 +347,8 @@ html[data-theme="light"] .tab{color:var(--muted)}
 /* the two tiers: weights + cardio */
 .tier{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:12px;border:1px solid var(--line);box-shadow:var(--shadow)}
 .tier.done{border-color:var(--success-line)}
-.tbig{font-family:Inter,-apple-system,sans-serif;font-size:34px;font-weight:600;letter-spacing:-.005em;line-height:1.1;margin-top:4px}
-.tbig span{font-size:17px;font-weight:400;color:var(--muted)}
+.tbig{font-size:36px;line-height:1.1;margin-top:4px}
+.tbig span{font-size:17px;font-weight:400;color:var(--muted);font-family:Inter,sans-serif}
 .tbar{height:6px;border-radius:3px;background:var(--card3);margin-top:16px;overflow:hidden}
 .tbar i{display:block;height:100%;border-radius:3px;background:var(--link);transition:width .6s cubic-bezier(.2,.8,.2,1)}
 .tweek{display:flex;gap:6px;margin-top:16px}
@@ -363,6 +366,47 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .tnote{font-size:14px;color:var(--muted);line-height:1.45;margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--card3)}
 .tnote.warn{color:var(--text);background:rgba(255,159,10,.14)}
 .tnote a{cursor:pointer;font-weight:600}
+.hero{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 18px 16px;margin-bottom:12px;
+  position:relative;overflow:hidden;box-shadow:var(--shadow)}
+.hero::before{content:"";position:absolute;inset:-40% -20% auto -20%;height:180px;pointer-events:none;
+  background:radial-gradient(60% 70% at 50% 0%,rgba(62,100,221,.16),transparent 70%);opacity:0;transition:opacity .6s}
+.hero.complete::before{opacity:1;background:radial-gradient(60% 70% at 50% 0%,rgba(59,178,127,.22),transparent 70%)}
+.hero.complete{border-color:var(--success-line)}
+.hero>*{position:relative;z-index:1}
+.herobig{font-size:56px;line-height:1;margin-top:6px}
+.herobig span{font-size:22px;color:var(--muted);font-family:Inter,sans-serif;font-weight:500}
+.streakchip{display:flex;align-items:baseline;gap:5px;background:var(--card3);border-radius:9999px;padding:7px 13px;
+  font-size:17px;font-weight:600;flex-shrink:0}
+.streakchip span:last-child{font-size:12px;color:var(--muted);font-weight:500}
+.streakchip.hot{background:rgba(224,145,47,.16);color:var(--accent-o)}
+.mi{width:22px;height:22px;display:block;overflow:visible}
+.mi *{transform-box:fill-box;transform-origin:center}
+.mi .bar{animation:mPress 2.4s ease-in-out infinite}
+.mi .plate{animation:mPress 2.4s ease-in-out infinite}
+.mi .leg1{animation:mStride 1.1s ease-in-out infinite}
+.mi .leg2{animation:mStride 1.1s ease-in-out infinite reverse}
+.mi .arm1{animation:mStride 1.1s ease-in-out infinite reverse}
+.mi .flame{animation:mFlick 1.6s ease-in-out infinite}
+.mi .drop{animation:mBob 2.2s ease-in-out infinite}
+.mi .wave{animation:mWave 2.6s linear infinite}
+@keyframes mPress{0%,100%{transform:translateY(1px)}50%{transform:translateY(-2px)}}
+@keyframes mStride{0%,100%{transform:rotate(-22deg)}50%{transform:rotate(22deg)}}
+@keyframes mFlick{0%,100%{transform:scale(1) translateY(0);opacity:.85}50%{transform:scale(1.14) translateY(-1px);opacity:1}}
+@keyframes mBob{0%,100%{transform:translateY(0)}50%{transform:translateY(2px)}}
+@keyframes mWave{0%{transform:translateX(-3px)}100%{transform:translateX(3px)}}
+@keyframes ringPop{0%{transform:scale(.8);opacity:0}60%{transform:scale(1.06)}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){ .mi *{animation:none!important} }
+.rings{display:flex;gap:6px;margin-top:18px}
+.ringbtn{flex:1;background:none;border:none;padding:0;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-family:inherit;transition:transform .2s}
+.ringbtn:active{transform:scale(.94)}
+.ringbtn.off{opacity:.45}
+.ringwrap{position:relative;display:flex;align-items:center;justify-content:center}
+.ringico{position:absolute;font-size:19px;line-height:1}
+.ringbtn.full .ringico{animation:pop .45s cubic-bezier(.2,.9,.3,1.3) both}
+.ringlab{font-size:12px;color:var(--muted);font-weight:500}
+.ringval{font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.ringbtn.full .ringval{color:var(--success)}
 .planrow{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--line);cursor:pointer}
 .planrow:first-of-type{border-top:none}
 .planchk{width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--card3);color:transparent;
@@ -728,7 +772,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v38";
+const APP_VERSION = "v39";
 let S = null;
 
 function freshState(){
@@ -834,6 +878,7 @@ function migrateToFiveDays(){
   for(const k in S.exState) if(S.exState[k]) S.exState[k].mastered=[];
   S.blockStart=Date.now();
 }
+const FRESH_START="2026-10-23";   // Joe asked to begin again from this date
 const CYCLE_RESTART="2026-10-12";
 /* the push session Joe trained on 12 Oct. Skipped if that day already has one. */
 function logPushSession_20261012(){
@@ -894,6 +939,9 @@ function load(){
   if(!S.logged20261012){ S.logged20261012=1; logPushSession_20261012(); }
   if(S.programmeVersion<8){ S.programmeVersion=8; migrateToFiveDays(); }
   if(S.programmeVersion<9){ S.programmeVersion=9; S.programme=null; }   // machine leg day
+  if(S.freshStart!==FRESH_START && dayISO(Date.now())>=FRESH_START){
+    S.freshStart=FRESH_START; wipeHistory();
+  }
   if(S.programmeVersion<11){                                            // four days: push, pull, legs, upper
     S.programmeVersion=11; S.programme=null; S.blockStart=Date.now();
     S.settings.week=JSON.parse(JSON.stringify(DEFAULT_WEEK));
@@ -932,7 +980,7 @@ function load(){
   if(!S.buffs) S.buffs={}; if(!S.relics) S.relics=[]; if(!S.crates) S.crates=[];
   if(S.redemption===undefined) S.redemption=null;
   if(!S.league) S.league={tier:0,weekKey:null,best:0,history:[]};
-  if(!S.skillLevels){ refreshExercises(); refreshProgramme(); try{ S.skillLevels=skillSnapshot(); }catch(e){ S.skillLevels={}; } }
+
   if(S.settings.navNudge===undefined) S.settings.navNudge=0;
   if(!S.settings.theme) S.settings.theme="dark";
   if(S.settings.theme==="light"&&!S.settings.themePicked) S.settings.theme="dark";   // v35 shipped light by mistake
@@ -1030,7 +1078,8 @@ function countUp(node,to,dur=800,fmt){
   function tick(now){
     const p=Math.min(1,(now-start)/dur), e=1-Math.pow(1-p,3);
     const v=to*e;
-    node.textContent = fmt?fmt(v):Math.round(v).toLocaleString("en-GB");
+    const out = fmt?fmt(v):Math.round(v).toLocaleString("en-GB");
+    if(typeof out==="string" && out.indexOf("<")>=0) node.innerHTML=out; else node.textContent=out;
     if(p<1) requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -1986,7 +2035,7 @@ function addWater(ml){
   const d=dayISO(Date.now());
   const e=S.health.find(x=>x.date===d);
   if(e) e.water=(e.water||0)+ml; else S.health.push({date:d,steps:0,kcal:0,water:ml});
-  save(); haptic(12); renderToday();
+  save(); haptic(12); renderToday(); checkDayComplete();
   const g=(S.settings.goals&&S.settings.goals.water)||3000;
   const cur=S.health.find(x=>x.date===d).water;
   if(cur>=g && cur-ml<g) toast("💧 Water goal hit",true);
@@ -2320,7 +2369,7 @@ function logCardio(){
     else if(mins>before.long) pr=`Longest session — ${mins} min`;
   }
   evalAchievements();
-  save(); closeSheet(); renderAll(); checkSkillLevels();
+  save(); closeSheet(); renderAll(); checkDayComplete();
   if(!before.hit && total>=target){
     confetti({count:60}); sndDone(); haptic([40,70,40]);
     toast(`Cardio done — ${total} min${cardioStreak()>1?` · ${cardioStreak()} days running`:""}`,true);
@@ -2455,162 +2504,152 @@ function weightsTierHTML(){
   </div>`;
 }
 
-/* ---------------- skills: the RuneScape ladder ----------------
-   Levels come from what you can actually do, not from grinding taps. The XP
-   table is RuneScape's own, so the last levels cost what they should. */
-const RS_XP=(()=>{ const t=[0,0]; let p=0;
-  for(let l=1;l<99;l++){ p+=Math.floor(l+300*Math.pow(2,l/7)); t[l+1]=Math.floor(p/4); }
-  return t; })();
-const RS_MAX=RS_XP[99];
-function rsLevel(xp){ let l=1; while(l<99 && xp>=RS_XP[l+1]) l++; return l; }
-function rsProgress(xp){
-  const l=rsLevel(xp);
-  if(l>=99) return {lvl:99,pct:100,into:0,need:0,next:null};
-  const a=RS_XP[l], b=RS_XP[l+1];
-  return {lvl:l,pct:Math.max(0,Math.min(100,(xp-a)/(b-a)*100)),into:Math.round(xp-a),need:Math.round(b-a),next:l+1};
+/* ---------------- the day, as four rings ---------------- */
+function waterOn(iso){ const h=S.health.find(x=>x.date===iso); return (h&&h.water)||0; }
+function dayScore(iso){
+  iso=iso||dayISO(Date.now());
+  const lift=liftFor(iso), trained=S.sessions.some(x=>x.dateISO===iso);
+  const cT=cardioTarget(iso), cD=cardioMins(iso);
+  const ft=foodTotals(iso), m=macroTargets();
+  const parts={
+    lift:   lift? (trained?1:0) : (trained?1:null),       // null = nothing owed today
+    cardio: cT? Math.min(1,cD/cT) : (cD>0?1:null),
+    food:   Math.min(1,m.p?ft.p/m.p:0),
+    water:  Math.min(1,waterOn(iso)/waterGoal()),
+  };
+  const live=Object.values(parts).filter(v=>v!==null);
+  const done=live.filter(v=>v>=1).length;
+  return {parts,done,of:live.length,pct:live.length?sum(live)/live.length:0};
 }
-/* Where you sit between a beginner's mark and the 99 goal, mapped onto the
-   level ladder. Early levels come quickly, the last ten are brutal. */
-function capSkill(value,floor,goal,curve){
-  const f=Math.max(0,Math.min(1,(value-floor)/(goal-floor)));
-  const pos=1+98*Math.pow(f,curve||0.85);
-  const lvl=Math.min(99,Math.floor(pos)), frac=Math.min(1,pos-lvl);
-  const base=RS_XP[lvl], next=RS_XP[Math.min(99,lvl+1)];
-  return {lvl,xp:Math.round(base+frac*(next-base))};
+function dayIsPerfect(iso){ const d=dayScore(iso); return d.of>0 && d.done===d.of; }
+function perfectStreak(){
+  let t=noonOf(dayISO(Date.now())), n=0;
+  if(!dayIsPerfect(dayISO(t))) t-=86400000;
+  while(n<400 && dayIsPerfect(dayISO(t))){ n++; t-=86400000; }
+  return n;
 }
-function bodyWeight(){
-  const b=[...(S.bodyLogs||[])].filter(x=>x.weight).sort((x,y)=>x.date<y.date?-1:1).pop();
-  return b?b.weight:(S.profile.startWeightKg||95);
-}
-/* best estimated 1RM across a group, counting bodyweight on pull-ups and dips */
-function bestE1(keys){
-  const set=new Set(keys); let best=0;
-  for(const ses of S.sessions) for(const st of ses.sets){
-    if(!set.has(st.ex)) continue;
-    const def=EXERCISES[st.ex]||{};
-    const load=def.unit==="+kg"?bodyWeight()+st.w:st.w;
-    best=Math.max(best,e1rm(load,st.reps));
-  }
-  return best;
-}
-function bestSet(ex,fn){
-  let best=0;
-  for(const ses of S.sessions) for(const st of ses.sets) if(st.ex===ex) best=Math.max(best,fn(st));
-  return best;
-}
-function coreScore(){
-  const carry=bestSet("farmer-carry",st=>st.reps>=40?st.w:0);       // kg a hand held 40s+
-  const raise=bestSet("hanging-knee-raise",st=>st.reps)*2;
-  const crunch=bestSet("cable-crunch",st=>st.w)/2;
-  const hyper=bestSet("hyperextension",st=>st.w)/2;
-  return carry+raise+crunch+hyper;
-}
-const PUSH_EX=["bench","incline-bench","machine-chest-press","incline-db-press","ohp","db-shoulder-press","dips"];
-const PULL_EX=["pullup","barbell-row","cs-row","db-row-1arm","lat-pulldown","seated-row"];
-const LEG_EX=["leg-press","leg-extension","leg-curl-seated","leg-curl-lying","trap-bar-dl","rdl","hip-thrust"];
-/* The 99s are Joe's own targets. Strength: bench 180×5 is a 210kg estimated max.
-   Attack: +60kg pull-ups × 5 at ~95kg bodyweight is about 180. */
-const SKILLS=[
-  {k:"strength",n:"Strength",e:"🗡️",goal:"Bench 180kg × 5",
-   calc:()=>capSkill(bestE1(PUSH_EX),40,210)},
-  {k:"attack",n:"Attack",e:"⚔️",goal:"Weighted pull-up +60kg × 5",
-   calc:()=>capSkill(bestE1(PULL_EX),60,180)},
-  {k:"defence",n:"Defence",e:"🛡️",goal:"Leg press 300kg × 10",
-   calc:()=>capSkill(bestE1(LEG_EX),60,400)},
-  {k:"hitpoints",n:"Hitpoints",e:"❤️",goal:"50kg carries, 20 hanging raises",
-   calc:()=>capSkill(coreScore(),0,150)},
-  {k:"agility",n:"Agility",e:"🏃",goal:"10,000m climbed · 50 cardio sessions",
-   calc:()=>capSkill(totalClimb()/100+(S.cardio||[]).length,0,150,0.7)},
-  {k:"cooking",n:"Cooking",e:"🍳",goal:"Hit protein 200 days",
-   calc:()=>{const days=[...new Set((S.food||[]).map(f=>f.date))].filter(d=>foodTotals(d).p>=macroTargets().p).length;
-     return capSkill(days,0,200,0.7);}},
-  {k:"mining",n:"Mining",e:"⛏️",goal:"1,000,000kg lifted",
-   calc:()=>capSkill(sum(S.sessions.map(x=>x.volume||0)),0,1000000,0.7)},
-  {k:"slayer",n:"Slayer",e:"💀",goal:"500 sessions logged",
-   calc:()=>capSkill(S.sessions.length+(S.cardio||[]).length,0,500,0.7)},
+const MI={
+  lift:c=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round">
+    <g class="plate"><path d="M4 8v8M7.5 5.5v13"/></g>
+    <g class="plate"><path d="M20 8v8M16.5 5.5v13"/></g>
+    <path class="bar" d="M7.5 12h9"/></svg>`,
+  cardio:c=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round">
+    <circle cx="13.5" cy="4.5" r="2.2" fill="${c}" stroke="none"/>
+    <path class="arm1" d="M13 11l-4 2"/>
+    <path d="M13 8v4"/>
+    <path class="leg1" d="M13 12l-2.5 6"/>
+    <path class="leg2" d="M13 12l3.5 5.5"/></svg>`,
+  food:c=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round">
+    <path class="flame" d="M12 3.5c2.6 3 4.5 5 4.5 8a4.5 4.5 0 1 1-9 0c0-1.6.7-2.9 1.8-4.3.5 1 1 1.5 1.7 1.8 0-2.4.4-4.2 1-5.5z" fill="${c}" fill-opacity=".18"/></svg>`,
+  water:c=>`<svg class="mi" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2" stroke-linecap="round">
+    <path class="drop" d="M12 3.5c3 4 5 6.3 5 9a5 5 0 1 1-10 0c0-2.7 2-5 5-9z" fill="${c}" fill-opacity=".16"/>
+    <path class="wave" d="M8 14.5c1.3-.9 2.7-.9 4 0s2.7.9 4 0" stroke-width="1.6" opacity=".8"/></svg>`,
+};
+const RING_DEF=[
+  {k:"lift",  col:"var(--brand)",  label:"Lift",   act:"startOrResumeWorkout()"},
+  {k:"cardio",col:"var(--viz2)",   label:"Cardio", act:"openCardioLog()"},
+  {k:"food",  col:"var(--viz)",    label:"Food",   act:"openFoodLog()"},
+  {k:"water", col:"#39a9d4",       label:"Water",  act:"addWater(500)"},
 ];
-function skillState(){
-  return SKILLS.map(sk=>{
-    let r; try{ r=sk.calc(); }catch(e){ r={lvl:1,xp:0}; }
-    return Object.assign({},sk,{xpv:r.xp},rsProgress(r.xp));
-  });
-}
-function totalLevel(){ return sum(skillState().map(s=>s.lvl)); }
-function skillSnapshot(){ return Object.fromEntries(skillState().map(s=>[s.k,s.lvl])); }
-/* called after anything that could move a skill; announces the level-ups */
-function checkSkillLevels(){
-  const before=S.skillLevels||{};
-  const now=skillSnapshot();
-  const ups=[];
-  for(const sk of SKILLS){
-    const was=before[sk.k], is=now[sk.k];
-    if(was!==undefined && is>was) ups.push({sk,from:was,to:is});
-  }
-  S.skillLevels=now; save();
-  if(ups.length) setTimeout(()=>announceLevels(ups),600);
-  return ups;
-}
-function announceLevels(ups){
-  const u=ups[0], rest=ups.length-1;
-  openSheet(`<div style="text-align:center;padding:10px 0">
-      <div style="font-size:64px;line-height:1">${u.sk.e}</div>
-      <div class="eyebrow acc" style="margin-top:8px">Congratulations</div>
-      <h2 style="font-size:28px;font-weight:600;margin:4px 0 6px">${u.sk.n} level ${u.to}</h2>
-      <p style="color:var(--muted);font-size:15px;line-height:1.5">You've just advanced a ${u.sk.n} level.<br>
-        Total level is now <b style="color:var(--text)">${totalLevel()}</b>.</p>
-      ${rest>0?`<div class="tag acc" style="margin-top:12px">+${rest} other skill${rest>1?"s":""} levelled</div>`:""}
-      <button class="btn primary" style="margin-top:20px" onclick="closeSheet();switchTab('awards')">See the ladder</button>
-    </div>`);
-  sndPR(); confetti({count:70}); haptic([40,70,40,70,120]);
-}
-function skillsCardHTML(){
-  const st=skillState();
-  return `<div class="card">
-    <div class="spread" style="align-items:baseline;margin-bottom:12px">
-      <span class="eyebrow">Skills</span>
-      <span style="font-size:15px">Total level <b class="mono">${totalLevel()}</b><span style="color:var(--dim)">/792</span></span>
+function heroHTML(){
+  const iso=dayISO(Date.now()), d=new Date(), sc=dayScore(iso);
+  const all=sc.of>0&&sc.done===sc.of;
+  const streak=perfectStreak();
+  const pct=Math.round(sc.pct*100);
+  const sub=all?"Day complete. Every box ticked."
+    :sc.done===0?"Nothing banked yet. Start with the easy one."
+    :`${sc.of-sc.done} to go. Finish the day.`;
+  return `<div class="hero ${all?"complete":""}">
+    <div class="spread" style="align-items:flex-start">
+      <div style="min-width:0">
+        <div class="eyebrow">${DAY_NAMES[d.getDay()]} ${d.getDate()} ${d.toLocaleDateString("en-GB",{month:"short"})}</div>
+        <div class="herobig" id="hero-pct">${pct}<span>%</span></div>
+        <div style="font-size:14px;color:${all?"var(--success)":"var(--muted)"};margin-top:2px">${sub}</div>
+      </div>
+      ${streak?`<div class="streakchip ${streak>=3?"hot":""}"><span class="flame">🔥</span> ${streak}<span>day${streak>1?"s":""}</span></div>`:""}
     </div>
-    ${st.map(s=>`<div class="spread" style="padding:7px 0;gap:12px" onclick="openSkill('${s.k}')">
-      <span style="display:flex;align-items:center;gap:10px;min-width:0">
-        <span style="font-size:17px;width:22px;text-align:center">${s.e}</span>
-        <span style="min-width:0"><div style="font-weight:600;font-size:15px">${s.n}</div>
-          <div style="font-size:12px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.goal}</div></span>
-      </span>
-      <span style="display:flex;align-items:center;gap:10px;flex-shrink:0">
-        <span class="xpbar" style="width:72px;margin:0"><i style="width:${s.pct}%"></i></span>
-        <span class="mono" style="font-weight:600;font-size:15px;width:24px;text-align:right">${s.lvl}</span>
-      </span>
-    </div>`).join("")}
+    <div class="rings">
+      ${RING_DEF.map(r=>{
+        const v=sc.parts[r.k];
+        const p=v===null?0:v;
+        const off=v===null?"off":p>=1?"full":"";
+        return `<button class="ringbtn ${off}" onclick="${r.act}">
+          <span class="ringwrap">${ring(p,62,5,r.col)}<span class="ringico">${MI[r.k](p>=1?"var(--success)":r.col)}</span></span>
+          <span class="ringlab">${r.label}</span>
+          <span class="ringval">${v===null?"rest":Math.round(p*100)+"%"}</span>
+        </button>`;}).join("")}
+    </div>
   </div>`;
 }
-function openSkill(k){
-  const s=skillState().find(x=>x.k===k); if(!s) return;
-  openSheet(`<div style="text-align:center;padding:4px 0 2px">
-      <div style="font-size:48px;line-height:1">${s.e}</div>
-      <h2 style="font-size:26px;font-weight:600;margin:8px 0 2px">${s.n}</h2>
-      <div style="color:var(--muted);font-size:15px">Level ${s.lvl} · ${s.xpv.toLocaleString("en-GB")} xp</div>
-    </div>
-    <div class="lvlbar" style="margin:18px 0 6px"><i style="width:${s.pct}%"></i></div>
-    <div class="spread" style="font-size:13px;color:var(--muted)">
-      <span>${s.next?`${s.into.toLocaleString("en-GB")} / ${s.need.toLocaleString("en-GB")} to ${s.next}`:"Maxed"}</span>
-      <span>${Math.round(s.pct)}%</span>
-    </div>
-    <div class="card" style="margin-top:18px">
-      <div class="eyebrow" style="margin-bottom:6px">Level 99</div>
-      <div style="font-size:16px;font-weight:600">${s.goal}</div>
-      <div style="font-size:14px;color:var(--muted);margin-top:6px;line-height:1.45">${SKILL_BLURB[s.k]||""}</div>
-    </div>`);
+/* the moment the fourth ring closes */
+function checkDayComplete(){
+  const iso=dayISO(Date.now());
+  S.dayDone=S.dayDone||{};
+  if(S.dayDone[iso]) return;
+  if(!dayIsPerfect(iso)) return;
+  S.dayDone[iso]=1; save();
+  const n=perfectStreak();
+  confetti({count:110}); sndDone(); haptic([60,90,60,90,160]);
+  setTimeout(()=>openSheet(`<div style="text-align:center;padding:12px 0">
+    <div style="font-size:64px;line-height:1">🔥</div>
+    <div class="eyebrow acc" style="margin-top:10px">Day complete</div>
+    <h2 style="font-size:30px;font-weight:600;margin:4px 0 8px">${n} day${n>1?"s":""} in a row</h2>
+    <p style="color:var(--muted);font-size:15px;line-height:1.5">Lift, cardio, food and water. All four.<br>
+      ${n===1?"That's day one. The next one is the hard one.":n<7?"Keep the chain going.":"This is what it looks like when it's working."}</p>
+    <button class="btn primary" style="margin-top:20px" onclick="closeSheet()">Done</button></div>`),420);
 }
-const SKILL_BLURB={
-  strength:"Your best estimated one-rep max across every pressing lift — bench, machine press, incline, overhead and dips. Heavier top sets move it; volume doesn't.",
-  attack:"Pulling strength: weighted pull-ups and every row. Added weight on pull-ups moves this fastest.",
-  defence:"Legs and the joints around them — presses, extensions, curls and hinges. Knee-friendly work still counts.",
-  hitpoints:"Trunk work: loaded carries, hanging raises, cable crunches and hyperextensions. The hardest one to fake.",
-  agility:"Cardio fitness — metres climbed on the incline plus sessions banked. The long walks carry this one.",
-  cooking:"Days you hit your protein target. One a day, no shortcuts — the slowest burn of the lot and the one that decides whether the rest shows.",
-  mining:"Every kilo you've ever moved, added up. Pure grind. It only ever goes up.",
-  slayer:"Sessions logged, lifting and cardio both. Turning up is the whole skill.",
+
+/* ---------------- progression ---------------- */
+const PROG_METRICS={
+  strength:{l:"Strength",u:"kg",fn:()=>{
+    const keys=["machine-chest-press","incline-bench","bench","ohp","db-shoulder-press","pullup","cs-row","lat-pulldown","leg-press"];
+    const out=[]; const best={};
+    for(const ses of S.sessions){
+      for(const st of ses.sets){
+        if(!keys.includes(st.ex)) continue;
+        const def=EXERCISES[st.ex]||{};
+        const load=def.unit==="+kg"?bodyWeightNow()+st.w:st.w;
+        best[st.ex]=Math.max(best[st.ex]||0,e1rm(load,st.reps));
+      }
+      const tot=Math.round(sum(Object.values(best)));
+      if(tot>0) out.push({x:noonOf(ses.dateISO),y:tot});
+    }
+    return out;
+  }},
+  volume:{l:"Weekly volume",u:"kg",fn:()=>{
+    const by={};
+    for(const ses of S.sessions){ const k=weekKey(noonOf(ses.dateISO)); by[k]=(by[k]||0)+(ses.volume||0); }
+    return Object.keys(by).sort().map(k=>({x:noonOf(k),y:Math.round(by[k])}));
+  }},
+  cardio:{l:"Weekly cardio",u:"min",fn:()=>{
+    const by={};
+    for(const c of (S.cardio||[])){ const k=weekKey(noonOf(c.date)); by[k]=(by[k]||0)+c.mins; }
+    return Object.keys(by).sort().map(k=>({x:noonOf(k),y:by[k]}));
+  }},
+  weight:{l:"Bodyweight",u:"kg",fn:()=>[...(S.bodyLogs||[])].filter(b=>b.weight)
+    .sort((a,b)=>a.date<b.date?-1:1).map(b=>({x:noonOf(b.date),y:b.weight}))},
 };
+function bodyWeightNow(){
+  const b=[...(S.bodyLogs||[])].filter(x=>x.weight).sort((x,y)=>x.date<y.date?-1:1).pop();
+  return b?b.weight:(S.profile.startWeightKg||93);
+}
+let progMetricCard="strength";
+function progressionCardHTML(){
+  const m=PROG_METRICS[progMetricCard];
+  const pts=m.fn();
+  const last=pts.length?pts[pts.length-1].y:null;
+  const first=pts.length?pts[0].y:null;
+  const delta=pts.length>1?last-first:null;
+  return `<div class="card" style="padding:18px 18px 10px">
+    <div class="spread" style="align-items:baseline">
+      <span class="eyebrow">${m.l}</span>
+      ${delta!==null&&delta!==0?`<span style="font-size:13px;color:${delta>0?"var(--success)":"var(--danger)"}">${delta>0?"+":""}${Math.round(delta)}${m.u} since you started</span>`:""}
+    </div>
+    <div style="font-size:30px;font-weight:600;letter-spacing:-.02em;margin:2px 0 6px" class="mono">${last!=null?Math.round(last).toLocaleString("en-GB"):"—"}<span style="font-size:15px;color:var(--muted);font-weight:400"> ${m.u}</span></div>
+    ${pts.length>=2?lineChart(pts,{h:150}):`<div style="padding:26px 10px;text-align:center;color:var(--dim);font-size:13px">Two sessions and the line starts drawing.</div>`}
+    <div class="chips" style="margin:4px 0 0">${Object.entries(PROG_METRICS).map(([k,v])=>`<button class="chip ${progMetricCard===k?"active":""}" onclick="progMetricCard='${k}';renderToday()">${v.l}</button>`).join("")}</div>
+  </div>`;
+}
 
 /* ---------------- food ---------------- */
 function macroTargets(){ return S.settings.goals.macros||{kcal:2650,p:200,c:270,f:80}; }
@@ -2644,7 +2683,7 @@ function addFood(item,grams){
     addXP(40,"Protein target hit"); haptic([30,60,30]);
     setTimeout(()=>toast(`Protein hit — ${Math.round(t.p)}g 💪`,true),300);
   }
-  save(); renderAll(); checkSkillLevels();
+  save(); renderAll(); checkDayComplete();
   return entry;
 }
 function deleteFood(id){
@@ -2680,27 +2719,23 @@ function todayPlanHTML(){
   const cTarget=cardioTarget(iso), cDone=cardioMins(iso);
   const ft=foodTotals(iso), m=macroTargets();
   const rows=[
-    {on:trained, icon:"🏋️", what:lift?`Lift ${lift} · ${WORKOUTS[lift].title.replace("Full Body · ","")}`:"No lift scheduled",
+    {on:trained, icon:MI.lift(trained?"var(--success)":"var(--brand)"), what:lift?`Lift ${lift} · ${WORKOUTS[lift].title.replace("Full Body · ","")}`:"No lift scheduled",
      sub:trained?"done":lift?`${WORKOUTS[lift].ex.length} exercises · about 50 min`:"rest from lifting",
      act:lift&&!trained?`onclick="startOrResumeWorkout()"`:""},
-    {on:cTarget?cDone>=cTarget:cDone>0, icon:isIntervalDay(iso)?"⚡":"🚶",
+    {on:cTarget?cDone>=cTarget:cDone>0, icon:MI.cardio(cTarget&&cDone>=cTarget?"var(--success)":"var(--viz2)"),
      what:todaysCardioLabel(iso), sub:cTarget?`${cDone} of ${cTarget} min`:cDone?`${cDone} min logged`:"optional today",
      act:`onclick="openCardioLog('${isIntervalDay(iso)?"Bike":"Incline walk"}')"`},
-    {on:ft.p>=m.p, icon:"🥩", what:`${m.kcal} kcal · ${m.p}g protein`,
+    {on:ft.p>=m.p, icon:MI.food(ft.p>=m.p?"var(--success)":"var(--viz)"), what:`${m.kcal} kcal · ${m.p}g protein`,
      sub:`${Math.round(ft.kcal)} kcal · ${Math.round(ft.p)}g so far`, act:`onclick="openFoodLog()"`},
-    {on:waterToday()>=waterGoal(), icon:"💧", what:`${(waterGoal()/1000).toFixed(1)}L water`,
+    {on:waterToday()>=waterGoal(), icon:MI.water(waterToday()>=waterGoal()?"var(--success)":"#39a9d4"), what:`${(waterGoal()/1000).toFixed(1)}L water`,
      sub:`${(waterToday()/1000).toFixed(1)}L so far`, act:`onclick="addWater(500)"`},
   ];
   const done=rows.filter(r=>r.on).length;
-  return `<div class="card" style="padding:18px">
-    <div class="spread" style="align-items:baseline;margin-bottom:12px">
-      <span class="eyebrow">${DAY_NAMES[d.getDay()]} ${d.getDate()} ${d.toLocaleDateString("en-GB",{month:"short"})}</span>
-      <span style="font-size:13px;color:${done===rows.length?"var(--success)":"var(--muted)"}"><b class="mono">${done}</b>/${rows.length} done</span>
-    </div>
+  return `<div class="card" style="padding:14px 18px">
     ${rows.map(r=>`<div class="planrow ${r.on?"on":""}" ${r.act}>
       <span class="planchk">${r.on?"✓":""}</span>
       <span style="min-width:0;flex:1">
-        <div style="font-weight:600;font-size:15px">${r.icon} ${esc(r.what)}</div>
+        <div style="font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px">${r.icon}<span>${esc(r.what)}</span></div>
         <div style="font-size:13px;color:var(--muted)">${esc(r.sub)}</div>
       </span>
     </div>`).join("")}
@@ -3175,6 +3210,15 @@ function sweepH1(){
 document.querySelectorAll("#tabbar .tab").forEach(b=>b.addEventListener("click",()=>switchTab(b.dataset.tab)));
 /* iOS home-screen apps sometimes end the viewport above the home indicator and report a 0
    safe-area inset — a bottom:0 bar then floats. Measure the shortfall and pull the bar down. */
+/* The one reliable measure of the visible area on iOS: the visual viewport.
+   In Safari it excludes the toolbars; in a home-screen app it excludes whatever
+   iOS keeps for itself. Size the shell to it and the bar lands on the real edge. */
+function sizeShell(){
+  const vv=window.visualViewport;
+  const h=Math.round(vv?vv.height:innerHeight);
+  if(h>200) document.body.style.height=h+"px";
+  moveTabInd(false);
+}
 function viewportShortfall(){
   // how much of the screen iOS keeps for itself below the page. Nothing we draw reaches it.
   const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
@@ -3325,19 +3369,10 @@ function renderToday(){
       ${pillsHTML()}
     </div>
     ${inProgressHTML()}
+    ${heroHTML()}
     ${todayPlanHTML()}
+    ${progressionCardHTML()}
     ${weekAheadHTML()}
-    <div class="card" style="padding:14px 18px;cursor:pointer" onclick="switchTab('awards')">
-      <div class="spread" style="align-items:center;gap:10px">
-        <div style="min-width:0"><div class="eyebrow">Total level</div>
-          <div style="font-size:22px;font-weight:600;letter-spacing:.011em" class="mono">${totalLevel()}<span style="color:var(--dim);font-size:15px;font-weight:400">/792</span></div></div>
-        <div style="display:flex;gap:6px;flex-shrink:0">
-          ${skillState().map(s=>`<span style="text-align:center">
-            <div style="font-size:14px;line-height:1.1">${s.e}</div>
-            <div class="mono" style="font-size:11px;color:var(--muted)">${s.lvl}</div></span>`).join("")}
-        </div>
-      </div>
-    </div>
     ${weightsTierHTML()}
     ${cardioTierHTML()}
     ${foodTierHTML()}
@@ -3387,6 +3422,20 @@ function renderToday(){
       ${heatmapHTML(90)}
     </div>`;
   requestAnimationFrame(startEmbers);
+  animateHero();
+}
+function animateHero(){
+  const sc=dayScore();
+  const pctNode=el("hero-pct");
+  if(pctNode){
+    const to=Math.round(sc.pct*100);
+    countUp(pctNode,to,900,v=>Math.round(v)+'<span>%</span>');
+  }
+  document.querySelectorAll(".ringwrap svg circle:last-of-type").forEach(c=>{
+    const target=c.getAttribute("stroke-dashoffset"), full=c.getAttribute("stroke-dasharray");
+    c.setAttribute("stroke-dashoffset",full);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>c.setAttribute("stroke-dashoffset",target)));
+  });
 }
 function photoPromptHTML(){
   const mon=dayISO(Date.now()).slice(0,7);
@@ -3548,7 +3597,7 @@ function lineChart(pts,{w=340,h=160,unit="",accent="var(--viz)",fill=true,mini=f
   if(!mini) for(let i=0;i<=3;i++){
     const gy=pad.t+(h-pad.t-pad.b)*i/3;
     const gv=y1-(y1-y0)*i/3;
-    grid+=`<line x1="${pad.l}" y1="${gy}" x2="${w-pad.r}" y2="${gy}" stroke="rgba(255,255,255,.06)"/>
+    grid+=`<line x1="${pad.l}" y1="${gy}" x2="${w-pad.r}" y2="${gy}" stroke="var(--line)" stroke-opacity=".6"/>
     <text x="${pad.l-6}" y="${gy+3}" text-anchor="end" class="axis-lbl">${Math.round(gv)}</text>`;
   }
   const xl=pts.length>1&&!mini?`<text x="${pad.l}" y="${h-6}" class="axis-lbl">${fmtDateShort(dayISO(x0))}</text>
@@ -3557,15 +3606,12 @@ function lineChart(pts,{w=340,h=160,unit="",accent="var(--viz)",fill=true,mini=f
   return `<svg viewBox="0 0 ${w} ${h}">
     <defs>
       <linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="rgba(41,151,255,.18)"/><stop offset="1" stop-color="rgba(41,151,255,0)"/></linearGradient>
-      <linearGradient id="${gid}s" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stop-color="#0090f7"/><stop offset=".33" stop-color="#ba62fc"/><stop offset=".66" stop-color="#f2416b"/><stop offset="1" stop-color="#f55600"/></linearGradient>
+        <stop offset="0" stop-color="var(--viz)" stop-opacity=".28"/><stop offset="1" stop-color="var(--viz)" stop-opacity="0"/></linearGradient>
     </defs>
     ${grid}
     ${fill?`<path d="${area}" fill="url(#${gid})"/>`:""}
-    <path d="${path}" fill="none" stroke="url(#${gid}s)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    ${pts.length<=40&&!mini?pts.map(p=>`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="3" fill="var(--bg)" stroke="#fff" stroke-width="1.6"/>`).join(""):""}
-    <circle cx="${X(last.x).toFixed(1)}" cy="${Y(last.y).toFixed(1)}" r="5" fill="#f55600" stroke="#fff" stroke-width="2"/>
+    <path d="${path}" fill="none" stroke="var(--viz)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${X(last.x).toFixed(1)}" cy="${Y(last.y).toFixed(1)}" r="4" fill="var(--viz)"/>
     ${xl}
   </svg>`;
 }
@@ -4126,8 +4172,7 @@ function renderAwards(){
   const locked=ACHIEVEMENTS.filter(a=>!S.achievements[a.id]);
   el("screen-awards").innerHTML=`
     <div class="spread" style="margin-bottom:4px"><h1>Awards</h1>${pillsHTML()}</div>
-    <div style="color:var(--muted);font-size:14px;margin-bottom:18px;font-weight:600">Total level ${totalLevel()} · ${unlocked.length} of ${ACHIEVEMENTS.length} trophies</div>
-    ${skillsCardHTML()}
+    <div style="color:var(--muted);font-size:14px;margin-bottom:18px;font-weight:600">${unlocked.length} of ${ACHIEVEMENTS.length} trophies unlocked</div>
     <div class="card" style="cursor:pointer" onclick="openRankSheet()">
       <div class="spread">
         <div style="display:flex;align-items:center;gap:14px">
@@ -4359,15 +4404,20 @@ function importData(input){
   r.readAsText(f);
 }
 /* wipe the training record but keep the profile, photos and settings */
+/* clears the record, keeps who you are */
+function wipeHistory(){
+  const f=freshState();
+  for(const k of ["sessions","prs","prLog","recovery","health","walks","cardio","food","xpLog",
+                  "scoreHistory","crates","relics","achievements","quests","buffs","moveStreak",
+                  "streak","league","redemption","exState","cycles","workoutsDone","xp","activeSession",
+                  "h75Awards","hard75","deload"]) S[k]=f[k];
+  for(const k in EXERCISES) if(!S.exState[k]) S.exState[k]={weight:null,xp:0,mastered:[]};
+  S.gymStart=Date.now(); S.blockStart=Date.now(); S.schedSynced=null;
+  S.foodFaves=S.foodFaves||[];
+}
 function startFresh(){
   if(!confirm("Clear all training, cardio, food and XP history and start from scratch? Your profile, photos, body measurements and settings stay.")) return;
-  const keep={profile:S.profile,settings:S.settings,photos:S.photos,bodyLogs:S.bodyLogs,
-    customEx:S.customEx,programme:S.programme,programmeVersion:S.programmeVersion,
-    legacyProgrammes:S.legacyProgrammes,legacyProgramme:S.legacyProgramme,
-    cycleRestart:S.cycleRestart,logged20261012:S.logged20261012,foodFaves:S.foodFaves};
-  const f=freshState();
-  S=Object.assign(f,keep);
-  S.gymStart=Date.now(); S.blockStart=Date.now(); S.schedSynced=null;
+  wipeHistory();
   S.nextWorkout=liftFor(dayISO(Date.now()))||"A";
   save(); location.reload();
 }
@@ -4880,9 +4930,9 @@ function finishWorkout(early){
   const newAch=evalAchievements();
   S.activeSession=null;
   save();
-  checkSkillLevels();
   sndDone(); haptic([50,100,50,100,50,100,150]);
   el("workout-overlay").classList.remove("open");
+  checkDayComplete();
   window.__pendingCrate=true;
   renderPost(session,{scoreBefore,scoreAfter,streakBonus,cycleDone,newAch,grade:gr,mult,multWhy});
 }
@@ -5119,10 +5169,14 @@ function seedDemo(){
 /* ---------------- init ---------------- */
 load();
 applyTheme();
-fixNavGap();
-addEventListener("resize",fixNavGap);
-addEventListener("orientationchange",()=>setTimeout(fixNavGap,300));
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(fixNavGap,100); });
+fixNavGap(); sizeShell();
+addEventListener("resize",()=>{ fixNavGap(); sizeShell(); });
+addEventListener("orientationchange",()=>setTimeout(()=>{ fixNavGap(); sizeShell(); },300));
+if(window.visualViewport){
+  visualViewport.addEventListener("resize",sizeShell);
+  visualViewport.addEventListener("scroll",sizeShell);
+}
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) setTimeout(()=>{ fixNavGap(); sizeShell(); },100); });
 handleExpiry();
 setTimeout(()=>{
   const A=S.activeSession;
