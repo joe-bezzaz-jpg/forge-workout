@@ -7,14 +7,14 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Workout">
-<meta name="theme-color" content="#18181a">
+<meta name="theme-color" content="#0e0e10">
 <title>Workout</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
 <style>
 /* Light system modelled on Twenty: off-white canvas, white cards, hairline
    borders, generous radii, one blue action and calm data colours. */
@@ -22,10 +22,10 @@
    cards a shade lighter, hairline borders, one blue action, violet data. */
 :root{
   --brand:#3e64dd; --brand2:#5b7ce8; --brand-deep:#2f4fba;
-  --bg:#18181a; --bg2:#1f2125;
-  --card:#1f2125; --card2:#1a1b1e; --card3:#2a2c31;
-  --line:#2b2d33; --line2:#3a3d44;
-  --text:#e9eaec; --muted:#9ba0a8; --dim:#6e737c;
+  --bg:#000000; --bg2:#0e0e10;
+  --card:#111113; --card2:#0a0a0b; --card3:#1e1e21;
+  --line:#232326; --line2:#34343a;
+  --text:#f2f2f3; --muted:#9a9aa0; --dim:#65656c;
   --accent:#3e64dd; --accent-ink:#ffffff; --accent-dim:rgba(62,100,221,.18);
   --link:#7f9bf0;
   --gold:#e9eaec; --gold-dim:rgba(233,234,236,.08); --gold-bg:#2a2c31;
@@ -37,7 +37,7 @@
   --viz:#a07cf0; --viz2:#3bb27f;
   --spectrum:linear-gradient(108deg,#3e64dd,#a07cf0 45%,#3bb27f);
   --shadow:0 1px 2px rgba(0,0,0,.3); --shadow2:0 8px 28px rgba(0,0,0,.45);
-  --nav:rgba(24,24,26,.86); --nav-solid:#141416; --nav-line:#2b2d33; --nav-ink:#e9eaec;
+  --nav:rgba(14,14,16,.92); --nav-solid:#0e0e10; --nav-line:#232326; --nav-ink:#f2f2f3;
   --accent-o:#e0912f;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
   --navpad:0px;        /* manual bottom padding on the nav, set in Profile */
@@ -91,9 +91,10 @@ html,body{overflow-x:hidden}
 @keyframes pop{0%{transform:scale(.92);opacity:0}60%{transform:scale(1.03)}100%{transform:scale(1);opacity:1}}
 @keyframes pulseGlow{0%,100%{opacity:.85}50%{opacity:1}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
-h1,h2,.big-num,.countdown,.wletter,.herobig,.tbig{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;
-  font-weight:400;letter-spacing:-.01em}
-h1{font-size:32px}
+h1,h2,.big-num,.countdown,.wletter,.herobig,.tbig{font-family:Poppins,Inter,-apple-system,sans-serif;
+  font-weight:700;letter-spacing:-.03em}
+h1{font-size:34px;line-height:1.1}
+h2{letter-spacing:-.025em}
 h3{font-family:Inter,-apple-system,sans-serif;font-weight:600;letter-spacing:-.021em}
 h1{font-size:32px;letter-spacing:.004em;line-height:1.13}
 b,strong{font-weight:600}
@@ -276,21 +277,22 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .wk2clock .l{font-size:11px;color:var(--muted);letter-spacing:.02em;text-transform:uppercase}
 .wk2clock .v{font-family:Inter,-apple-system,sans-serif;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
 .wk2clock.over .v{color:var(--warn)}
-.nrow{background:var(--card);border-radius:20px;padding:14px 14px 12px;margin-bottom:10px}
+.nrow{background:var(--card);border-radius:20px;padding:16px 16px 13px;margin-bottom:10px}
 .grid3{display:grid;grid-template-columns:76px repeat(var(--cols,2),minmax(0,1fr));gap:7px;align-items:end}
-.ghead{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--dim);text-align:center;padding-bottom:2px}
+.ghead{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--dim);text-align:center;padding-bottom:4px}
 .ghead.w{text-align:left;padding-left:4px}
-.cell{background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:7px 4px 6px;text-align:center}
-.cell.on{border-color:var(--accent);background:var(--accent-dim)}
+.cell{background:transparent;border:1.5px solid var(--line2);border-radius:9999px;padding:9px 4px 8px;text-align:center;transition:border-color .2s,background .2s}
+.cell.on{border-color:var(--text);background:transparent}
+.cell.on input{color:var(--text)}
 .cell input{width:100%;background:none;border:none;outline:none;color:var(--text);text-align:center;
-  font-family:"SF Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;font-size:21px;font-weight:600;
-  padding:3px 0;-webkit-user-select:text;user-select:text}
+  font-family:Poppins,Inter,sans-serif;font-variant-numeric:tabular-nums;font-size:19px;font-weight:600;letter-spacing:-.02em;
+  padding:2px 0;-webkit-user-select:text;user-select:text}
 .cell input::placeholder{color:var(--dim);font-weight:500}
 .cell .sub{font-size:11px;color:var(--dim);margin-top:1px}
 .cell .sub input{font-size:12px;font-weight:500;color:var(--muted);padding:0}
 .addset{background:none;border:none;color:var(--link);font-family:inherit;font-size:14px;padding:6px 2px;cursor:pointer}
 .nrow{border:1px solid var(--line);box-shadow:var(--shadow)}
-.nname{background:none;border:none;color:var(--text);font-family:inherit;font-size:17px;font-weight:600;letter-spacing:-.01em;
+.nname{background:none;border:none;color:var(--text);font-family:Poppins,Inter,sans-serif;font-size:20px;font-weight:600;letter-spacing:-.025em;
   padding:0;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:0}
 .nname i{font-style:normal;color:var(--dim);font-size:13px}
 .ntarget{font-size:13px;color:var(--muted);flex-shrink:0}
@@ -374,8 +376,8 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .hero.complete::before{opacity:1;background:radial-gradient(60% 70% at 50% 0%,rgba(59,178,127,.22),transparent 70%)}
 .hero.complete{border-color:var(--success-line)}
 .hero>*{position:relative;z-index:1}
-.herobig{font-size:56px;line-height:1;margin-top:6px}
-.herobig span{font-size:22px;color:var(--muted);font-family:Inter,sans-serif;font-weight:500}
+.herobig{font-size:58px;line-height:1;margin-top:4px}
+.herobig span{font-size:22px;color:var(--muted);font-family:Inter,sans-serif;font-weight:500;letter-spacing:-.01em}
 .streakchip{display:flex;align-items:baseline;gap:5px;background:var(--card3);border-radius:9999px;padding:7px 13px;
   font-size:17px;font-weight:600;flex-shrink:0}
 .streakchip span:last-child{font-size:12px;color:var(--muted);font-weight:500}
@@ -805,7 +807,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v42";
+const APP_VERSION = "v43";
 let S = null;
 
 function freshState(){
@@ -1106,6 +1108,19 @@ function confetti({count=80,colors=["#0090f7","#ba62fc","#f2416b","#f55600","#FF
     }
     if(alive&&f<300) requestAnimationFrame(tick); else c.remove();
   })();
+}
+/* any element carrying data-count animates up from zero once it is in the DOM */
+function countAll(scope){
+  const host=el(scope)||document;
+  host.querySelectorAll("[data-count]").forEach(n=>{
+    if(n.dataset.counted) return;
+    n.dataset.counted="1";
+    const to=parseFloat(n.dataset.count)||0;
+    const dp=parseInt(n.dataset.dp||"0");
+    const suf=n.dataset.suffix||"";
+    if(!to){ return; }
+    countUp(n,to,900,v=>(dp?v.toFixed(dp):Math.round(v).toLocaleString("en-GB"))+suf);
+  });
 }
 function countUp(node,to,dur=800,fmt){
   const start=performance.now();
@@ -2493,7 +2508,7 @@ function cardioTierHTML(){
     <div class="spread" style="align-items:flex-start">
       <div style="min-width:0">
         <div class="eyebrow">Cardio · ${esc(todaysCardioLabel(iso))}</div>
-        <div class="tbig">${done}<span> / ${target||"–"} min</span></div>
+        <div class="tbig"><span data-count="${done}">${done}</span><span> / ${target||"–"} min</span></div>
       </div>
       <div style="text-align:right">
         <div style="font-size:15px;font-weight:600">${cardioStreak()?`${cardioStreak()}d`:"—"}</div>
@@ -2692,7 +2707,7 @@ function progressionCardHTML(){
       <span class="eyebrow">${m.l}</span>
       ${delta!==null&&delta!==0?`<span style="font-size:13px;color:${delta>0?"var(--success)":"var(--danger)"}">${delta>0?"+":""}${Math.round(delta)}${m.u} since you started</span>`:""}
     </div>
-    <div style="font-size:30px;font-weight:600;letter-spacing:-.02em;margin:2px 0 6px" class="mono">${last!=null?Math.round(last).toLocaleString("en-GB"):"—"}<span style="font-size:15px;color:var(--muted);font-weight:400"> ${m.u}</span></div>
+    <div style="font-size:32px;margin:2px 0 6px" class="big-num"><span ${last!=null?`data-count="${Math.round(last)}"`:""}>${last!=null?Math.round(last).toLocaleString("en-GB"):"—"}</span><span style="font-size:15px;color:var(--muted);font-weight:400;font-family:Inter,sans-serif"> ${m.u}</span></div>
     ${pts.length>=2?lineChart(pts,{h:150}):`<div style="padding:26px 10px;text-align:center;color:var(--dim);font-size:13px">Two sessions and the line starts drawing.</div>`}
     <div class="chips" style="margin:4px 0 0">${Object.entries(PROG_METRICS).map(([k,v])=>`<button class="chip ${progMetricCard===k?"active":""}" onclick="progMetricCard='${k}';renderToday()">${v.l}</button>`).join("")}</div>
   </div>`;
@@ -2826,7 +2841,7 @@ function foodTierHTML(){
     <div class="spread" style="align-items:flex-start">
       <div>
         <div class="eyebrow">Food · ${foodOn(iso).length} item${foodOn(iso).length===1?"":"s"} today</div>
-        <div class="tbig">${Math.round(t.kcal)}<span> / ${m.kcal} kcal</span></div>
+        <div class="tbig"><span data-count="${Math.round(t.kcal)}">${Math.round(t.kcal)}</span><span> / ${m.kcal} kcal</span></div>
       </div>
       <div style="text-align:right">
         <div style="font-size:15px;font-weight:600;color:${t.p>=m.p?"var(--success)":"var(--text)"}">${Math.round(t.p)}g</div>
@@ -3283,7 +3298,7 @@ function applyTheme(){
   const t=(S&&S.settings&&S.settings.theme)||"dark";
   document.documentElement.setAttribute("data-theme",t);
   const m=document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute("content",t==="light"?"#f6f6f7":"#18181a");
+  if(m) m.setAttribute("content",t==="light"?"#f6f6f7":"#0e0e10");
 }
 function setTheme(t){ S.settings.theme=t; S.settings.themePicked=1; save(); applyTheme(); renderAll(); }
 function statusBarInset(){
@@ -3461,7 +3476,7 @@ function renderToday(){
         <div style="flex-shrink:0">
           <div class="eyebrow">Strength score</div>
           <div style="display:flex;align-items:baseline;gap:8px;white-space:nowrap">
-            <div class="big-num" style="font-size:44px">${sc.overall||"—"}</div>
+            <div class="big-num" style="font-size:44px" ${sc.overall?`data-count="${sc.overall}"`:""}>${sc.overall||"—"}</div>
             ${scDelta!==null&&scDelta!==0?`<span style="font-size:15px;color:${scDelta>0?"var(--link)":"var(--danger)"}">${scDelta>0?"↑":"↓"}${Math.abs(scDelta)}</span>`:""}
           </div>
         </div>
@@ -3470,11 +3485,11 @@ function renderToday(){
       ${scDelta!==null&&scDelta!==0?`<div style="font-size:13px;color:var(--muted);margin-top:2px">${scDelta>0?"Up":"Down"} ${Math.abs(scDelta)} in the last 30 days</div>`:""}
       <div class="spread" style="margin:14px 0 12px;font-size:14px;color:var(--muted)"><span>${sesWeek.length} of 4 sessions · ${sum(cardioWeek().map(c=>c.mins))} cardio min this week</span><span class="mono">${S.workoutsDone} total</span></div>
       <div class="statgrid">
-        <div class="stat" style="background:var(--card2)"><div class="l">Volume · week</div><div class="v mono" style="font-size:24px;white-space:nowrap">${Math.round(volWeek).toLocaleString("en-GB")}<span style="font-size:14px;color:var(--muted)"> kg</span></div>
+        <div class="stat" style="background:var(--card2)"><div class="l">Volume · week</div><div class="v mono" style="font-size:24px;white-space:nowrap"><span data-count="${Math.round(volWeek)}">${Math.round(volWeek).toLocaleString("en-GB")}</span><span style="font-size:14px;color:var(--muted)"> kg</span></div>
           ${volDelta!==null?`<div style="font-size:13px;color:${volDelta>=0?"var(--link)":"var(--danger)"}">${volDelta>=0?"+":""}${volDelta}% vs last week</div>`:`<div style="font-size:13px;color:var(--dim)">First week logged</div>`}</div>
-        <div class="stat" style="background:var(--card2)"><div class="l">PRs this month</div><div class="v mono" style="font-size:24px">${prsMonth}</div><div style="font-size:13px;color:var(--dim)">${S.prLog.length} lifetime</div></div>
-        <div class="stat" style="background:var(--card2)"><div class="l">Longest streak</div><div class="v mono" style="font-size:24px">${S.streak.longest}</div><div style="font-size:13px;color:var(--dim)">current ${S.streak.cur}</div></div>
-        <div class="stat" style="background:var(--card2)"><div class="l">Total XP</div><div class="v mono" style="font-size:24px">${S.xp.toLocaleString("en-GB")}</div><div style="font-size:13px;color:var(--dim)">level ${li.lvl}</div></div>
+        <div class="stat" style="background:var(--card2)"><div class="l">PRs this month</div><div class="v mono" style="font-size:24px" data-count="${prsMonth}">${prsMonth}</div><div style="font-size:13px;color:var(--dim)">${S.prLog.length} lifetime</div></div>
+        <div class="stat" style="background:var(--card2)"><div class="l">Longest streak</div><div class="v mono" style="font-size:24px" data-count="${S.streak.longest}">${S.streak.longest}</div><div style="font-size:13px;color:var(--dim)">current ${S.streak.cur}</div></div>
+        <div class="stat" style="background:var(--card2)"><div class="l">Total XP</div><div class="v mono" style="font-size:24px" data-count="${S.xp}">${S.xp.toLocaleString("en-GB")}</div><div style="font-size:13px;color:var(--dim)">level ${li.lvl}</div></div>
       </div>
     </div>
 
@@ -3495,6 +3510,7 @@ function renderToday(){
   requestAnimationFrame(startEmbers);
   animateHero();
   stagger("screen-today");
+  countAll("screen-today");
 }
 function animateHero(){
   const sc=dayScore();
@@ -3693,6 +3709,7 @@ const RANGES={"7D":7,"30D":30,"3M":91,"6M":182,"1Y":365,"ALL":99999};
 function rangeCut(){ return Date.now()-RANGES[progRange]*86400000; }
 
 function renderProgress(){
+  setTimeout(()=>{ stagger("screen-progress"); countAll("screen-progress"); },0);
   const sc=computeScore();
   const prev=S.scoreHistory.length>1?S.scoreHistory[Math.max(0,S.scoreHistory.length-1-4)].score:null;
   const monthAgo=dayISO(Date.now()-30*86400000);
@@ -3703,7 +3720,7 @@ function renderProgress(){
     <div class="card">
       <div class="eyebrow">Strength score</div>
       <div style="display:flex;align-items:baseline;gap:12px;margin-top:6px">
-        <div class="big-num">${sc.overall||"—"}</div>
+        <div class="big-num" ${sc.overall?`data-count="${sc.overall}"`:""}>${sc.overall||"—"}</div>
         ${delta!==null&&delta!==0?`<div style="font-weight:600;color:${delta>0?"var(--success)":"var(--danger)"}">${delta>0?"↑":"↓"} ${Math.abs(delta)} this month</div>`:""}
       </div>
       <div class="divider"></div>
@@ -3712,7 +3729,7 @@ function renderProgress(){
           <span style="font-size:13px;color:var(--muted);font-weight:600">${g}</span>
           <span style="display:flex;align-items:center;gap:10px">
             <span class="xpbar" style="width:110px;margin:0"><i style="width:${v}%"></i></span>
-            <span class="mono" style="font-weight:600;font-size:14px;width:26px;text-align:right">${v||"—"}</span>
+            <span class="mono" style="font-weight:600;font-size:14px;width:26px;text-align:right" ${v?`data-count="${v}"`:""}>${v||"—"}</span>
           </span>
         </div>`).join("")}
       <div style="font-size:11px;color:var(--dim);margin-top:10px">Scores track your progression against your own baseline — not a scientific standard.</div>
@@ -4239,6 +4256,7 @@ function openExercise(ex){
 
 /* ---------------- AWARDS ---------------- */
 function renderAwards(){
+  setTimeout(()=>{ stagger("screen-awards"); countAll("screen-awards"); },0);
   window.__skillsFirst=1;
   const unlocked=ACHIEVEMENTS.filter(a=>S.achievements[a.id]);
   const locked=ACHIEVEMENTS.filter(a=>!S.achievements[a.id]);
