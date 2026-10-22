@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Workout">
-<meta name="theme-color" content="#0e0e10">
+<meta name="theme-color" content="#000000">
 <title>Workout</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -37,7 +37,7 @@
   --viz:#a07cf0; --viz2:#3bb27f;
   --spectrum:linear-gradient(108deg,#3e64dd,#a07cf0 45%,#3bb27f);
   --shadow:0 1px 2px rgba(0,0,0,.3); --shadow2:0 8px 28px rgba(0,0,0,.45);
-  --nav:rgba(14,14,16,.92); --nav-solid:#0e0e10; --nav-line:#232326; --nav-ink:#f2f2f3;
+  --nav:#000000; --nav-solid:#000000; --nav-line:transparent; --nav-ink:#f2f2f3;
   --accent-o:#e0912f;
   --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
   --navpad:0px;        /* manual bottom padding on the nav, set in Profile */
@@ -66,7 +66,8 @@ html[data-theme="light"]{
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 button,a,.tab,.quest,.dcard,.chip,.pill,.list-item,.trophy,input,select{touch-action:manipulation}
-html{-webkit-text-size-adjust:100%;height:100%;background:var(--nav-solid);color-scheme:dark}
+html{-webkit-text-size-adjust:100%;height:100%;background:#000;color-scheme:dark}
+html[data-theme="light"]{background:#fff}
 html[data-theme="light"]{color-scheme:light}
 body{
   background:var(--bg); color:var(--text);
@@ -131,15 +132,15 @@ html[data-theme="light"] .btn.primary{background:var(--text);color:#fff}
 
 /* ---------- tab bar (floating white pill) ---------- */
 #tabbar{position:relative;flex:0 0 auto;z-index:50;width:100%;max-width:520px;margin:0 auto;
-  background:var(--nav);backdrop-filter:blur(28px) saturate(1.8);-webkit-backdrop-filter:blur(28px) saturate(1.8);
+  background:var(--nav);
   border-radius:26px 26px 0 0;display:flex;align-items:center;justify-content:space-around;
   padding:5px 8px calc(6px + var(--navpad) + var(--navfill));
-  box-shadow:0 -6px 24px rgba(0,0,0,.25);
+  box-shadow:none;
   border-top:1px solid var(--nav-line)}
 /* the bar's own background continues past the screen edge, so it can never look lifted */
 
 #tab-ind{position:absolute;top:5px;bottom:calc(6px + var(--navpad) + var(--navfill));left:0;width:0;border-radius:9999px;pointer-events:none;
-  background:var(--card3);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 2px 10px rgba(0,0,0,.25);
+  background:var(--card);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 2px 10px rgba(0,0,0,.25);
   backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);-webkit-backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);
   transition:left .5s cubic-bezier(.3,1.4,.4,1),width .5s cubic-bezier(.3,1.4,.4,1),transform .5s cubic-bezier(.3,1.4,.4,1);
   transform-origin:center;opacity:0}
@@ -284,6 +285,7 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .ghead.w{text-align:left;padding-left:4px}
 .cell{background:transparent;border:1.5px solid var(--line2);border-radius:9999px;padding:9px 4px 8px;text-align:center;transition:border-color .2s,background .2s}
 .cell.on{border-color:var(--text);background:transparent}
+.cell.drop{border-style:dashed;opacity:.9}
 .icon-btn{background:var(--card3)}
 .cell.on input{color:var(--text)}
 .cell input{width:100%;background:none;border:none;outline:none;color:var(--text);text-align:center;
@@ -292,7 +294,10 @@ html[data-theme="light"] .tab{color:var(--muted)}
 .cell input::placeholder{color:var(--dim);font-weight:500}
 .cell .sub{font-size:11px;color:var(--dim);margin-top:1px}
 .cell .sub input{font-size:12px;font-weight:500;color:var(--muted);padding:0}
-.addset{background:none;border:none;color:var(--link);font-family:inherit;font-size:14px;padding:6px 2px;cursor:pointer}
+.addset{background:none;border:none;color:var(--muted);font-family:inherit;font-size:14px;font-weight:500;padding:6px 2px;cursor:pointer}
+.exnote{width:100%;margin-top:10px;background:transparent;border:none;border-top:1px solid var(--line);
+  padding:11px 2px 2px;color:var(--text);font-family:inherit;font-size:14px;outline:none;-webkit-user-select:text;user-select:text}
+.exnote::placeholder{color:var(--dim)}
 
 .nname{background:none;border:none;color:var(--text);font-family:Poppins,Inter,sans-serif;font-size:20px;font-weight:600;letter-spacing:-.025em;
   padding:0;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;min-width:0}
@@ -750,14 +755,18 @@ function presc(ex,wk){
 function primaryWorkoutOf(ex){ for(const w of CYCLE) if(WORKOUTS[w].p[ex]) return w; return null; }
 function schemeSig(ex,wk){ const p=rawPresc(ex,wk); return p.sets+"x"+p.repLo+"-"+p.repHi+(p.top?"t":""); }
 function upThreshold(ex,wk){ const p=rawPresc(ex,wk); return p.upAt||p.sets*p.repHi; }
-function topSetOf(sets){ const w=Math.max(...sets.map(s=>s.w)); return sets.find(s=>s.w===w); }
+function topSetOf(sets){
+  const real=sets.filter(s=>!s.drop); const list=real.length?real:sets;
+  const w=Math.max(...list.map(s=>s.w)); return list.find(s=>s.w===w);
+}
 function roundInc(v,inc){ inc=inc||2.5; return Math.max(0,Math.round(v/inc)*inc); }
 function backoffWeight(ex,topW){ return roundInc(topW*0.9,(EXERCISES[ex]||{}).inc); }
 /* progression trigger: the top set reaches the top of its range.
    custom schemes with 3+ sets keep the old total-reps rule. */
 function earnsIncrease(ex,wk,sets){
   const p=rawPresc(ex,wk);
-  if(!sets||!sets.length) return false;
+  sets=(sets||[]).filter(x=>!x.drop);
+  if(!sets.length) return false;
   if(p.sets>2) return sets.length>=p.sets && sum(sets.map(s=>s.reps))>=upThreshold(ex,wk);
   return topSetOf(sets).reps>=p.repHi;
 }
@@ -816,7 +825,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v45";
+const APP_VERSION = "v46";
 let S = null;
 
 function freshState(){
@@ -2639,6 +2648,39 @@ function bentoHTML(){
     ${tile("Calories",avg?avg.kcal.toLocaleString("en-GB"):"—","",avg?`Daily average`:"Log a day",avg?avg.kcal:0)}
   </div>`;
 }
+/* if iOS hands the app less than the screen, say so rather than pretending */
+function windowNoticeHTML(){
+  if(S.settings.hideWindowNotice) return "";
+  const short=Math.round(screen.height-(window.visualViewport?visualViewport.height:innerHeight));
+  if(short<20) return "";
+  const standalone=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+  return `<div class="card" style="padding:16px 18px">
+    <div class="eyebrow">Screen</div>
+    <div style="font-size:15px;font-weight:600;margin-top:4px">${short}px of your screen isn't being given to the app</div>
+    <div style="font-size:14px;color:var(--muted);margin-top:4px;line-height:1.45">${standalone
+      ? "iOS caches a web app's window size when the icon is added. Yours predates the current setup — removing and re-adding the icon reclaims it."
+      : "You're in Safari, so the browser's toolbar is taking it. Add the app to your Home Screen and it goes away."}</div>
+    <div class="row" style="gap:8px;margin-top:12px">
+      <button class="btn primary small" style="width:100%" onclick="openWindowHelp()">How to fix</button>
+      <button class="btn ghost small" style="flex:0 0 auto;padding:0 16px" onclick="S.settings.hideWindowNotice=1;save();renderToday()">Hide</button>
+    </div>
+  </div>`;
+}
+function openWindowHelp(){
+  const short=Math.round(screen.height-(window.visualViewport?visualViewport.height:innerHeight));
+  openSheet(`<h2 style="font-size:24px;margin-bottom:6px">Reclaim the screen</h2>
+    <p style="color:var(--muted);font-size:15px;margin-bottom:16px;line-height:1.5">Your screen is ${screen.height}px tall but the app is being given ${screen.height-short}px.
+    That missing strip sits outside the app entirely, so nothing in the code can draw there — it has to be fixed at the icon.</p>
+    <div class="card">
+      ${["Press and hold the Workout icon, then Remove App → Delete from Home Screen",
+         "Open joe-bezzaz-jpg.github.io/forge-workout in Safari",
+         "Share → Add to Home Screen → Add",
+         "Open it from the new icon"].map((t,i)=>`<div class="spread" style="padding:9px 0;gap:12px;align-items:flex-start${i?";border-top:1px solid var(--line)":""}">
+        <span class="mono" style="color:var(--dim);flex-shrink:0">${i+1}</span><span style="font-size:15px;line-height:1.45">${t}</span></div>`).join("")}
+    </div>
+    <p style="color:var(--muted);font-size:14px;margin-top:14px;line-height:1.45">Your data is stored against the website, not the icon, so sessions, records and settings all survive.</p>
+    <button class="btn primary" style="margin-top:14px" onclick="closeSheet()">Got it</button>`);
+}
 function heroHTML(){
   const iso=dayISO(Date.now()), d=new Date(), sc=dayScore(iso);
   const all=sc.of>0&&sc.done===sc.of;
@@ -3317,7 +3359,7 @@ function applyTheme(){
   const t=(S&&S.settings&&S.settings.theme)||"dark";
   document.documentElement.setAttribute("data-theme",t);
   const m=document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute("content",t==="light"?"#f6f6f7":"#0e0e10");
+  if(m) m.setAttribute("content",t==="light"?"#ffffff":"#000000");
 }
 function setTheme(t){ S.settings.theme=t; S.settings.themePicked=1; save(); applyTheme(); renderAll(); }
 function statusBarInset(){
@@ -3474,6 +3516,7 @@ function renderToday(){
       ${pillsHTML()}
     </div>
     ${inProgressHTML()}
+    ${windowNoticeHTML()}
     ${heroHTML()}
     ${bentoHTML()}
     ${todayPlanHTML()}
@@ -4128,6 +4171,9 @@ function openSession(id){
         ${sets.map((x,i)=>`<div class="spread mono" style="padding:8px 0;font-size:15px;cursor:pointer;border-bottom:1px solid var(--line)" onclick="openEditSet('saved','${s.id}','${ex}',${s.sets.indexOf(x)})">
           <span style="color:var(--dim)">Set ${i+1}</span><span><span style="font-weight:600">${fmtKg(x.w)}${EXERCISES[ex].unit} \u00D7 ${x.reps}</span><span style="color:var(--dim);margin-left:10px">Edit</span></span></div>`).join("")}
       </div>`).join("")}
+    ${s.notes&&s.notes.length?`<div class="card">
+      <div class="eyebrow" style="margin-bottom:8px">Notes</div>
+      ${s.notes.map(n=>`<div style="padding:5px 0;font-size:14px"><b>${(EXERCISES[n.ex]||{short:n.ex}).short}:</b> <span style="color:var(--muted)">${esc(n.note)}</span></div>`).join("")}</div>`:""}
     ${s.prs.length?`<div class="card">
       <div class="eyebrow" style="color:var(--gold);margin-bottom:8px">🏆 Records set</div>
       ${s.prs.map(p=>`<div style="padding:4px 0;font-size:14px;font-weight:600">${EXERCISES[p.ex].short}: ${p.label} <span style="color:var(--gold)">${p.delta||""}</span></div>`).join("")}</div>`:""}`);
@@ -4574,10 +4620,21 @@ function sessionRows(A){
     return row;
   });
 }
+function lastRealIdx(r){ let k=-1; r.sets.forEach((c,j)=>{ if(!c.drop) k=j; }); return k; }
 function rowWeight(r,i){ const c=r.sets[i]; return c&&c.w!=null?c.w:(r.w!=null?r.w:0); }
 function rowSets(A,i){
   const r=A.rows[i]; if(!r) return [];
-  return r.sets.filter(c=>c&&c.reps>0).map((c,j)=>({ex:r.ex,w:rowWeight(r,r.sets.indexOf(c)),reps:c.reps}));
+  const out=[];
+  r.sets.forEach((c,j)=>{ if(c&&c.reps>0) out.push({ex:r.ex,w:rowWeight(r,j),reps:c.reps,drop:!!c.drop}); });
+  return out;
+}
+/* a drop set rides on the back of the set before it, at ~80% of the weight */
+function addDrop(i){
+  const A=S.activeSession, r=A.rows[i]; if(!r) return;
+  const base=r.sets.filter(c=>!c.drop).pop();
+  const w=base&&base.w!=null?base.w:r.w;
+  r.sets.push({reps:null,w:w!=null?roundInc(w*0.8,(EXERCISES[r.ex]||{}).inc):null,drop:true});
+  save(); renderWorkout(); haptic(10);
 }
 function setsToText(sets){
   if(!sets||!sets.length) return "";
@@ -4632,13 +4689,24 @@ function restTargetNow(){
   const A=S.activeSession; if(!A||!A.sets.length) return 0;
   return presc(A.sets[A.sets.length-1].ex,A.workout).rest||0;
 }
+function sessionPace(){
+  const A=S.activeSession; if(!A||!A.sets.length) return null;
+  const perSet=wkElapsed()/A.sets.length;
+  const planned=(A.rows||[]).reduce((a,r)=>a+presc(r.ex,A.workout).sets,0);
+  const left=Math.max(0,planned-A.sets.length);
+  return {perSet,left,eta:Math.round(perSet*left)};
+}
 function clockHTML(){
   const t=restTargetNow(), sec=sinceLast(), over=t&&sec>t;
+  const pace=sessionPace();
   return `<div class="wk2clocks">
     <div class="wk2clock"><div class="l">Workout</div><div class="v mono" id="wk2-total">${fmtDur(wkElapsed())}</div></div>
     <div class="wk2clock ${over?"over":""}" id="wk2-restbox"><div class="l">Since last set${t?` · ${fmtDur(t)} rest`:""}</div>
       <div class="v mono" id="wk2-rest">${fmtDur(sec)}${over?` <span style="font-size:14px">+${fmtDur(sec-t)}</span>`:""}</div></div>
-  </div>`;
+  </div>
+  ${pace?`<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-top:7px">
+    <span>Pace · ${fmtDur(Math.round(pace.perSet))} a set</span>
+    <span>${pace.left?`${pace.left} set${pace.left>1?"s":""} left · about ${fmtDur(pace.eta)}`:"All sets logged"}</span></div>`:""}`;
 }
 function tickWorkoutClocks(){
   const A=S.activeSession; if(!A) return;
@@ -4652,6 +4720,10 @@ function tickWorkoutClocks(){
   const sw=el("sw-total"); if(sw) sw.textContent=fmtDur(wkElapsed());
   const sr=el("sw-rest");
   if(sr){ const t=restTargetNow(), sec=sinceLast(); sr.innerHTML=fmtDur(sec)+(t&&sec>t?` <span style="color:var(--warn)">+${fmtDur(sec-t)} over</span>`:t?` <span style="color:var(--dim)">/ ${fmtDur(t)}</span>`:""); }
+}
+function setRowNote(i,v){
+  const A=S.activeSession; if(!A||!A.rows[i]) return;
+  A.rows[i].note=v; save();
 }
 function setRowWeight(i,v){
   const A=S.activeSession, r=A.rows[i]; if(!r) return;
@@ -4725,21 +4797,23 @@ function notesTabHTML(){
           :t.mode==="beat"?` · <b>beat ${t.prevReps}</b>`:""}</div>
         <div class="grid3" style="--cols:${cols};margin-top:4px">
           <div class="ghead w">${unit}</div>
-          ${r.sets.map((c,j)=>`<div class="ghead">${pr.top&&j===r.sets.length-1&&r.sets.length>1?"BACK-OFF":"SET "+(j+1)}</div>`).join("")}
+          ${r.sets.map((c,j)=>`<div class="ghead">${c.drop?"↓ DROP":pr.top&&j===lastRealIdx(r)&&r.sets.length>1?"BACK-OFF":"SET "+(r.sets.slice(0,j+1).filter(x=>!x.drop).length)}</div>`).join("")}
           <div class="cell" style="padding-top:9px">
             <input id="w-${i}" type="number" inputmode="decimal" step="0.5" value="${r.w==null?"":fmtKg(r.w)}"
               placeholder="${t.weight?fmtKg(t.weight):"—"}" onchange="setRowWeight(${i},this.value)" oninput="setRowWeight(${i},this.value)">
           </div>
           ${r.sets.map((c,j)=>{
             const own=c.w!=null&&c.w!==r.w;
-            return `<div class="cell ${c.reps>0?"on":""}" id="cell-${i}-${j}">
+            return `<div class="cell ${c.reps>0?"on":""} ${c.drop?"drop":""}" id="cell-${i}-${j}">
               <input type="number" inputmode="numeric" value="${c.reps==null?"":c.reps}" placeholder="${repWord==="SEC"?"sec":"–"}"
                 onchange="setCellReps(${i},${j},this.value)" oninput="setCellReps(${i},${j},this.value)">
-              ${own||(pr.top&&j===r.sets.length-1&&r.sets.length>1)?`<div class="sub"><input id="bo-${i}-${j}" type="number" inputmode="decimal" step="0.5"
+              ${own||c.drop||(pr.top&&j===lastRealIdx(r)&&r.sets.length>1)?`<div class="sub"><input id="bo-${i}-${j}" type="number" inputmode="decimal" step="0.5"
                 value="${c.w==null?"":fmtKg(c.w)}" placeholder="${unit}" onchange="setCellWeight(${i},${j},this.value)"></div>`:""}
             </div>`;}).join("")}
         </div>
         ${rowMetaHTML(A,i)}
+        <input class="exnote" id="note-${i}" value="${esc(r.note||"")}" placeholder="Type anything…"
+          oninput="setRowNote(${i},this.value)" autocomplete="off">
       </div>`;}).join("")}
     <button class="btn ghost" style="margin-top:4px" onclick="openAddToSession()">＋ Add an exercise</button>
     <button class="btn primary" style="margin-top:10px" onclick="confirmFinishEarly()">Finish &amp; save workout</button>`;
@@ -5026,6 +5100,8 @@ function finishWorkout(early){
     dur:Math.round((now-A.start)/1000), sets:A.sets, volume, xp:A.xp, prs:A.prs,
   };
   if(A.deload) session.deload=true;
+  const notes=(A.rows||[]).filter(r=>r.note&&r.note.trim()).map(r=>({ex:r.ex,note:r.note.trim()}));
+  if(notes.length) session.notes=notes;
   // multipliers: double-XP crate buff and redemption week
   let mult=1, multWhy=[];
   if(S.buffs.doubleNext){ mult*=2; multWhy.push("Double XP crate"); S.buffs.doubleNext=false; }
