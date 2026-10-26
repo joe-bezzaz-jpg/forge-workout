@@ -134,12 +134,12 @@ html[data-theme="light"] .btn.primary{background:var(--text);color:#fff}
 #tabbar{position:relative;flex:0 0 auto;z-index:50;width:100%;max-width:520px;margin:0 auto;
   background:var(--nav);
   border-radius:26px 26px 0 0;display:flex;align-items:center;justify-content:space-around;
-  padding:5px 8px calc(2px + var(--navpad) + var(--navfill));
+  padding:5px 8px calc(max(2px, var(--sab) - 20px) + var(--navpad) + var(--navfill));
   box-shadow:none;
   border-top:1px solid var(--nav-line)}
 /* the bar's own background continues past the screen edge, so it can never look lifted */
 
-#tab-ind{position:absolute;top:5px;bottom:calc(2px + var(--navpad) + var(--navfill));left:0;width:0;border-radius:9999px;pointer-events:none;
+#tab-ind{position:absolute;top:5px;bottom:calc(max(2px, var(--sab) - 20px) + var(--navpad) + var(--navfill));left:0;width:0;border-radius:9999px;pointer-events:none;
   background:var(--card);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.25),0 2px 10px rgba(0,0,0,.25);
   backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);-webkit-backdrop-filter:blur(2px) brightness(1.25) saturate(1.3);
   transition:left .5s cubic-bezier(.3,1.4,.4,1),width .5s cubic-bezier(.3,1.4,.4,1),transform .5s cubic-bezier(.3,1.4,.4,1);
@@ -825,7 +825,7 @@ function syncScheduledWorkout(){
 
 /* ---------------- state ---------------- */
 const DB_KEY = "forge.v1";
-const APP_VERSION = "v47";
+const APP_VERSION = "v48";
 let S = null;
 
 function freshState(){
@@ -3372,8 +3372,8 @@ function statusBarInset(){
 }
 function fixNavGap(){
   const root=document.documentElement;
-  const short=viewportShortfall();
   root.style.removeProperty("--sat");   // the status bar overlays the page: keep padding for it
+  root.style.removeProperty("--sab");   // and the home indicator overlays its bottom: clear it
   // iOS already keeps the home-indicator strip outside the page: don't pad for it twice
   if(short) root.style.setProperty("--sab","0px"); else root.style.removeProperty("--sab");
   const nudge=Math.max(0,Math.min(60,(S&&S.settings&&S.settings.navNudge)||0));
